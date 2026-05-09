@@ -622,7 +622,7 @@ class Pipeline(BaseModelTool):
         Generates a short, cynical, and highly viral description for Facebook/Instagram Reels.
         """
         prompt = f"""
-        Eres el narrador de una serie llamada "Formas cochinas de ganar dinero". Eres cínico, directo y maquiavélico.
+        Eres el narrador de una serie llamada "EnigmaIQ". Eres autoritario, pedagógico y directo.
         Escribe la descripción para el siguiente video: "{title}"
         
         Requisitos OBLIGATORIOS:

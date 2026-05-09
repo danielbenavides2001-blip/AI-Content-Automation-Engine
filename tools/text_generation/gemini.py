@@ -3,6 +3,7 @@ from typing import Any, Type, TypeVar
 from pydantic import BaseModel
 
 from tools.common.gemini_base import GeminiBase
+from tools.common.messenger import Messenger
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -17,10 +18,15 @@ class GeminiTextGenerator(GeminiBase):
         """
         Generates content with Gemini and parses it into a Pydantic model.
         """
+        if not prompt:
+             Messenger.error("❌ ERROR: PROMPT VACÍO")
+        else:
+             Messenger.info(f"DEBUG PROMPT LEN: {len(prompt)}")
+
         response = self._execute_with_retry(
             self.client.models.generate_content,
             model=self.text_model,
-            contents=prompt,
+            contents=[prompt],
             config={
                 'response_mime_type': 'application/json',
                 'response_schema': schema,
@@ -40,7 +46,7 @@ class GeminiTextGenerator(GeminiBase):
         response = self._execute_with_retry(
             self.client.models.generate_content,
             model=self.text_model,
-            contents=prompt
+            contents=[prompt]
         )
         self._extract_usage(response, self.text_model)
 

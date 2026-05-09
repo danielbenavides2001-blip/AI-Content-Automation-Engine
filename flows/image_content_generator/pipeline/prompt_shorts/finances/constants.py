@@ -19,21 +19,26 @@ Explora territorios psicológicos y prácticos sin repetir conceptos:
 - No repitas el mismo ángulo bajo ninguna circunstancia.
 """
 
-# --- NUEVO MOTOR DE IMÁGENES SKETCH (ESTILO CÓDIGO MILLONARIO) ---
-IMAGE_INTERACTION_PROMPT: str = """# 🧩 GENERADOR DE ACERTIJOS VISUALES — ESTILO SKETCH MINIMALISTA
-**OBJETIVO:** Generar una imagen tipo boceto a mano que represente un dilema financiero.
+# --- NUEVO MOTOR DE IMÁGENES SKETCH (ESTILO INFOGRAFÍA ENIGMAIQ) ---
+IMAGE_INTERACTION_PROMPT: str = """# 🧩 GENERADOR DE INFOGRAFÍAS — ESTILO SKETCH (PEN & INK)
+**OBJETIVO:** Generar un dibujo a tinta que compare dos situaciones financieras con etiquetas en ESPAÑOL.
 
 **ESTILO VISUAL OBLIGATORIO (ENIGMAIQ):** 
-Hand-drawn sketch style, thick clean lines, minimalist white stickman character, expressive facial features (sweat, wide eyes, exhaustion, or calm smile). 
-Background: Warm cream or light beige paper texture. 
-Colors: Mostly black and white, with strategic highlights in Emerald Green (money), Bright Yellow (gold), or Electric Blue (tech/screens).
+- **Estilo**: Detailed hand-drawn pen and ink sketch on warm cream paper. 
+- **Técnica**: Thick clean black lines, cross-hatching shadows, minimalist style, high contrast.
+- **Contenido**: A split-screen comparison: on the left, [SITUACIÓN 1]; on the right, [SITUACIÓN 2].
+- **Texto en Imagen**: Usa etiquetas simples en ESPAÑOL (ej: "Pobre" vs "Rico", "Error" vs "Acierto", "Mentalidad de Escasez" vs "Abundancia").
+- **Personaje**: Expressive cartoon stickman, New Yorker cartoon aesthetic.
+- **NO USAR**: Realistic photos, 3D, gradients, cinematic lighting.
 
 **FORMATO DE RESPUESTA OBLIGATORIO (JSON):**
 {
-  "idea_visual": "Boceto del personaje frente a un dilema (ej: dos puertas, un grifo que gotea monedas)",
-  "image_prompt": "Minimalist hand-drawn sketch, clean thick lines, warm cream background, [DESCRIPCIÓN DE LA ESCENA CON EL STICKMAN EXPRESIVO], emerald green highlights for money elements, high contrast, 4k.",
-  "caption": "Caption corto, crudo y que genere una pregunta al espectador.",
-  "objetivo_psicologico": "Reflexión o Culpa"
+  "title": "Título corto y potente",
+  "hook": "Gancho para detener el scroll",
+  "idea_visual": "Comparación: Hábito pobre vs Hábito rico",
+  "image_prompt": "Detailed hand-drawn pen and ink sketch on warm cream paper. A split-screen comparison with SPANISH LABELS. Left: [SITUACIÓN 1 con etiqueta 'Pobre']. Right: [SITUACIÓN 2 con etiqueta 'Rico']. Thick clean black lines, cross-hatching shadows, minimalist style, high contrast, clean white and black, emerald green highlights for money elements. No realistic photos, no 3D. New Yorker cartoon aesthetic.",
+  "caption": "Pregunta cruda para Facebook.",
+  "objetivo_psicologico": "Contraste"
 }
 """
 

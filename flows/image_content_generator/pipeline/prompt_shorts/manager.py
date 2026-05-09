@@ -87,16 +87,14 @@ class PromptManagerShorts(BasePromptManager):
         Messenger.info(f"\n--- Generating Viral Content ({'RIDDLE' if is_riddle else 'VIDEO'}): {idea_data.title} ---")
         
         if is_riddle:
-            full_script_prompt = (
-                finance_constants.IMAGE_INTERACTION_PROMPT + 
-                f"\n\nIDEA A DESARROLLAR: {idea_data.title}\n"
-                f"RECUERDA: Stickman minimalista, fondo crema, estilo Código Millonario."
-            )
+            # Extraer el prompt real generado por la IA (ahora campo de primer nivel)
+            real_prompt = getattr(idea_data, "image_prompt", idea_data.title)
+            
             script = VideoScript(
                 scenes=[{
                     "scene_number": 1,
                     "narration": "", 
-                    "image_prompt": idea_data.title
+                    "image_prompt": real_prompt
                 }]
             )
         else:

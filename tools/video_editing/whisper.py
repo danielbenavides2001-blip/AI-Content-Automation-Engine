@@ -120,7 +120,7 @@ class WhisperTool(BaseModelTool):
         current: List[WhisperWord] = []
         for w in words:
             pause = (float(w.start) - float(current[-1].end)) / 1000.0 if current else 0.0
-            if len(current) >= 3 or pause > 0.4:
+            if len(current) >= 3 or pause > 0.3:
                 blocks.append(current)
                 current = []
             current.append(w)
