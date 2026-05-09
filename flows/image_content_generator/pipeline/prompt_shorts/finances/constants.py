@@ -1,40 +1,40 @@
 # flake8: noqa: E501
 AUDIO_PROMPT: str = "{audio_text}"
 
-# --- NUEVA SERIE: FORMAS COCHINAS DE GANAR DINERO ---
-IDEA_PROMPT_MINDSET: str = """# 🧠 GENERADOR DE IDEAS — SERIE: FORMAS COCHINAS DE GANAR DINERO
-**Objetivo:** Generar una estrategia financiera real pero éticamente gris, basada en vacíos legales o psicología oscura.
+# --- NUEVA SERIE: ENIGMAIQ - CÓDIGOS DE RIQUEZA ---
+IDEA_PROMPT_MINDSET: str = """# 🧠 GENERADOR DE IDEAS — SERIE: ENIGMAIQ (CÓDIGOS DE RIQUEZA)
+**Objetivo:** Generar una lección de finanzas brutales, hábitos de riqueza o críticas a la mentalidad de pobreza.
 
 **DIRECTIVA DE VARIEDAD INFINITA:**
-En cada iteración, selecciona un nicho COMPLETAMENTE DIFERENTE al anterior. Explora estos territorios:
-- **Bienes Raíces:** Embargos preventivos, usufructos vitalicios, flipping de nuda propiedad.
-- **Corporativo:** Compra de empresas en quiebra por sus activos, ingeniería fiscal, paraísos legales.
-- **Tecnología:** Arbitraje de clics, dominios de marcas olvidadas, copyright de IA, algoritmos de apuestas.
-- **Finanzas Puras:** Arbitraje de tasas, swaps de deuda, manipulación de micro-volatilidad.
-- **Seguros y Leyes:** Cobro de pólizas inactivas, vacíos en seguros de vida, litigación masiva.
+Explora territorios psicológicos y prácticos sin repetir conceptos:
+- **Hábitos Invisibles:** Gastos hormiga, inflación del estilo de vida, gratificación instantánea.
+- **Disciplina de Hierro:** Madrugar, lectura, ahorro forzado, el "no" como superpoder.
+- **Realidad Brutal:** Por qué los pobres siguen pobres, la trampa de la clase media, la mentira de los títulos.
+- **Psicología del Dinero:** Miedo a invertir, envidia al éxito, mentalidad de escasez vs abundancia.
+- **Sistemas de Riqueza:** Interés compuesto, activos vs pasivos, libertad vs seguridad.
 
 **Reglas:**
-- Título: Debe seguir el formato "[Formas cochinas de ganar dinero - Parte X] Título Provocador".
-- Tono: Maquiavélico, cínico y profesional.
+- Título: Debe ser provocador y directo (sin números de parte).
+- Tono: Crudo, directo, realista y premium.
 - No repitas el mismo ángulo bajo ninguna circunstancia.
 """
 
-# --- NUEVO MOTOR DE IMÁGENES NOIR (SERIE COCHINA) ---
-IMAGE_INTERACTION_PROMPT: str = """# 🧩 GENERADOR DE ACERTIJOS VISUALES — ESTILO NOIR / PODER
-**OBJETIVO:** Generar una imagen tipo acertijo o dilema con el personaje de la serie.
+# --- NUEVO MOTOR DE IMÁGENES SKETCH (ESTILO CÓDIGO MILLONARIO) ---
+IMAGE_INTERACTION_PROMPT: str = """# 🧩 GENERADOR DE ACERTIJOS VISUALES — ESTILO SKETCH MINIMALISTA
+**OBJETIVO:** Generar una imagen tipo boceto a mano que represente un dilema financiero.
 
-**PERSONAJE OBLIGATORIO:** 
-Premium stickman character, round white head, no nose/mouth, wearing classic black sunglasses, black fedora with blue ribbon, formal black suit, white shirt, blue tie, black leather gloves.
+**ESTILO VISUAL OBLIGATORIO (ENIGMAIQ):** 
+Hand-drawn sketch style, thick clean lines, minimalist white stickman character, expressive facial features (sweat, wide eyes, exhaustion, or calm smile). 
+Background: Warm cream or light beige paper texture. 
+Colors: Mostly black and white, with strategic highlights in Emerald Green (money), Bright Yellow (gold), or Electric Blue (tech/screens).
 
 **FORMATO DE RESPUESTA OBLIGATORIO (JSON):**
 {
-  "idea_visual": "Escena del personaje en oficina de lujo, calle oscura o juzgado",
-  "image_prompt": "Detailed comic illustration, clean lines, saturated colors, dark noir atmosphere, [DESCRICIÓN DEL PERSONAJE], [ESCENA]",
-  "caption": "Caption cínico y directo para Facebook",
-  "objetivo_psicologico": "Curiosidad o Poder"
+  "idea_visual": "Boceto del personaje frente a un dilema (ej: dos puertas, un grifo que gotea monedas)",
+  "image_prompt": "Minimalist hand-drawn sketch, clean thick lines, warm cream background, [DESCRIPCIÓN DE LA ESCENA CON EL STICKMAN EXPRESIVO], emerald green highlights for money elements, high contrast, 4k.",
+  "caption": "Caption corto, crudo y que genere una pregunta al espectador.",
+  "objetivo_psicologico": "Reflexión o Culpa"
 }
-
-**ESTILO:** Cómic detallado, atmósfera oscura, colores saturados.
 """
 
 # Alias de compatibilidad
@@ -42,27 +42,28 @@ IDEA_PROMPT_ESTRATEGIA: str = IDEA_PROMPT_MINDSET
 IDEA_PROMPT_HUSTLE: str = IDEA_PROMPT_MINDSET
 IDEA_PROMPT_CHEATSHEET: str = IDEA_PROMPT_MINDSET
 
-SCRIPT_PROMPT: str = """# 📝 GUIONISTA MAQUIAVÉLICO — SERIE: FORMAS COCHINAS DE GANAR DINERO
-**Objetivo:** Crear un guion de 4 escenas que explique una estrategia gris.
+SCRIPT_PROMPT: str = """# 📝 GUIONISTA DE REALIDAD BRUTAL — SERIE: ENIGMAIQ
+**Objetivo:** Crear un guion de 4 escenas que pegue fuerte en la mente del espectador sobre sus finanzas.
 
-**PERSONAJE EN TODAS LAS ESCENAS:** 
-White-headed cartoon character in black suit, fedora, and sunglasses.
+**ESTILO VISUAL (STORYBOARD):**
+- Escenas tipo boceto (Sketch) con fondo crema y stickman blanco expresivo.
+- Usa colores solo para el dinero (Verde) o el peligro (Rojo/Azul).
 
 **Estructura Narrativa (4 Escenas):**
-1. **Escena 1 (Hook):** "Formas cochinas de ganar dinero, Parte [X]". Exponer el problema o la oportunidad cínicamente.
-2. **Escena 2 (Paso 1 y 2):** Explicar el inicio de la estrategia usando términos reales (arbitraje, vacío legal).
-3. **Escena 3 (Paso 3 y Clímax):** La ejecución final y el beneficio monetario.
-4. **Escena 4 (Cierre de Poder):** Frase que humille el trabajo tradicional + "Síguenos en EnigmaIQ".
+1. **Escena 1 (Hook):** Una frase que ataque directamente un ego o un mal hábito.
+2. **Escena 2 (El Error):** Mostrar visualmente el error (ej: comprar un café caro mientras el bolsillo está roto).
+3. **Escena 3 (La Realidad):** Explicar por qué eso te mantiene estancado. Usa datos o lógica fría.
+4. **Escena 4 (Cierre Maestro):** Una invitación a despertar y unirse a la élite + "Síguenos en EnigmaIQ".
 
 **Reglas del Voice Over:**
-- Tono: Cínico, profesional, directo. Sin disculpas.
-- Escribe 25-30 palabras por escena (total 50-60 segundos).
-- Usar siempre "Tú".
+- Tono: Barítono, pausado, autoritario pero pedagógico.
+- Duración: Exactamente 25-30 palabras por escena para un video de 55-60 segundos.
+- Lenguaje: Usa "Tú". No uses tecnicismos innecesarios, sé directo.
 
 **image_prompt (INGLÉS):**
-- Escena 1: Personaje sentado en oficina de lujo con sombras marcadas.
-- Escena 2: Personaje manipulando documentos o pantallas digitales.
-- Escena 3: Personaje con maletín o símbolos de riqueza en entorno oscuro.
-- Escena 4: Close up del personaje sonriendo (solo se ve la boca) con fondo de ciudad nocturna.
-- Estilo: Detailed comic illustration, clean lines, noir atmosphere.
+- Estilo: Minimalist hand-drawn sketch, clean thick lines, warm cream background, white stickman.
+- Escena 1: Stickman in a powerful or reflective pose.
+- Escena 2: Stickman interacting with the "problem" (e.g., credit card, luxury items).
+- Escena 3: Stickman facing the "consequence" or "logic" (e.g., an empty safe, a wall of books).
+- Escena 4: Close up of the stickman smiling or pointing forward, emerald green details.
 """
