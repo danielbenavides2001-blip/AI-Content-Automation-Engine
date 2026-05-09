@@ -223,8 +223,14 @@ class FFmpegTool(BaseModelTool):
             z_expr = "1.0 + 0.0005*on" 
             pos_filter = "x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
             
-            # Professional Fades (0.5s in, 0.5s out)
-            fade_filter = f"fade=t=in:st=0:d=0.5,fade=t=out:st={duration-0.5}:d=0.5"
+            # Adaptive Fades: If duration is short, reduce fade time
+            fade_time = min(0.4, duration / 4) if duration > 0.4 else 0.0
+            
+            if fade_time > 0:
+                fade_filter = f"fade=t=in:st=0:d={fade_time:.2f},fade=t=out:st={max(0, duration-fade_time):.2f}:d={fade_time:.2f}"
+            else:
+                fade_filter = "format=yuv420p" # No fade for extremely short scenes
+
             vf = f"{vf_fill},zoompan=z='{z_expr}':d=1:{pos_filter}:s=1080x1920,format=yuv420p,{fade_filter}"
 
             cmd = [

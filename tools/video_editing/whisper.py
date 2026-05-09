@@ -118,9 +118,13 @@ class WhisperTool(BaseModelTool):
         # Group words into blocks (max 3 words or pause > 0.4s)
         blocks: List[List[WhisperWord]] = []
         current: List[WhisperWord] = []
+        
+        # Compensate for "ahead" feeling by adding a small offset (100ms)
+        offset_ms = 100 
+        
         for w in words:
             pause = (float(w.start) - float(current[-1].end)) / 1000.0 if current else 0.0
-            if len(current) >= 3 or pause > 0.3:
+            if len(current) >= 3 or pause > 0.4:
                 blocks.append(current)
                 current = []
             current.append(w)
@@ -128,6 +132,8 @@ class WhisperTool(BaseModelTool):
             blocks.append(current)
 
         def fmt(ms: int) -> str:
+            # Apply global offset to sync text with audio
+            ms = max(0, ms + offset_ms)
             s, ms = divmod(ms, 1000)
             m, s = divmod(s, 60)
             h, m = divmod(m, 60)

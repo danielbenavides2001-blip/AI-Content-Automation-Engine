@@ -62,20 +62,33 @@ class PromptManagerShorts(BasePromptManager):
         next_part = parts_count + 1
         Messenger.info(f"🎞️ Series: {series_name} | Next Part: {next_part}")
 
-        # 3. Idea Generation with Strict Avoidance (THE GOLDEN RULE)
+        # 3. Idea Generation with Focus Area Diversity (NEW DIVERSITY ENGINE)
+        focus_areas = [
+            "PSICOLOGÍA DEL DINERO (Mentalidad, sesgos cognitivos, hábitos invisibles)",
+            "HUSTLE & EMPRENDIMIENTO (Side hustles, escalar negocios, flujo de caja)",
+            "INVERSIONES & ACTIVOS (Bolsa, bienes raíces, activos digitales)",
+            "EFICIENCIA FISCAL & AHORRO (Impuestos, frugalidad inteligente, protección de riqueza)",
+            "ERRORES & ESTAFAS (Deuda mala, inflación, trampas financieras comunes)"
+        ]
+        selected_area = random.choice(focus_areas)
+        Messenger.info(f"🎯 Random Focus Area: {selected_area}")
+
         avoid_msg = ""
         if extra_avoid:
-            avoid_msg = f"\n\n🚨 **REGLA DE ORO DE NO REPETICIÓN:** 🚨\n{extra_avoid}"
+            avoid_msg = f"\n\n🚨 **REGLA DE ORO DE NO REPETICIÓN:** 🚨\nEstá PROHIBIDO repetir temas anteriores como:\n{extra_avoid}"
         elif titles_to_avoid:
             avoid_list_str = "\n- ".join(titles_to_avoid)
             avoid_msg = (
                 f"\n\n🚨 **REGLA DE ORO DE NO REPETICIÓN:** 🚨\n"
                 f"Está ESTRICTAMENTE PROHIBIDO repetir cualquiera de estos temas o conceptos:\n- {avoid_list_str}\n\n"
-                f"Tu misión es crear contenido 100% ÚNICO y FRESCO."
             )
 
-        # Inyectar el número de parte en el prompt
-        full_idea_prompt = f"{idea_prompt}\n\n**ESTE VIDEO ES LA PARTE {next_part}** de la serie '{series_name}'."
+        # Inyectar el número de parte y el área de enfoque
+        full_idea_prompt = (
+            f"{idea_prompt}\n\n"
+            f"**TEMA CENTRAL OBLIGATORIO:** {selected_area}\n"
+            f"**ESTE CONTENIDO ES LA PARTE {next_part}** de la serie '{series_name}'."
+        )
         
         idea_data = content_gen.generate_text(
             full_idea_prompt + avoid_msg, 
