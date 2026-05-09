@@ -1,0 +1,67 @@
+name: Daily Finance Content Automation
+
+on:
+  schedule:
+    - cron: '0 12,15,17,19,21,23 * * *'  # 6 posts between 7am and 6pm (Colombia Time UTC-5)
+  workflow_dispatch:
+    inputs:
+      force_type:
+        description: 'Forzar tipo de post (0=Imagen, 1=Video, vacío=Ciclo Normal)'
+        required: false
+        type: string
+
+jobs:
+  post-content:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Poetry
+        run: pipx install poetry
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'poetry'
+
+      - name: Setup FFmpeg
+        uses: FedericoCarboni/setup-ffmpeg@v3
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Create GCP Credentials
+        env:
+          GCP_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
+        run: |
+          python -c "import os, json; f=open('gcp_credentials.json', 'w'); json.dump(json.loads(os.environ.get('GCP_JSON', '{}'), strict=False), f, indent=2)"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/gcp_credentials.json" >> $GITHUB_ENV
+
+      - name: Run Daily Automation
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GCP_LOCATION: ${{ secrets.GCP_LOCATION }}
+          FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+          FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
+          FACEBOOK_APP_ID: ${{ secrets.FACEBOOK_APP_ID }}
+          FACEBOOK_APP_SECRET: ${{ secrets.FACEBOOK_APP_SECRET }}
+          USE_VERTEX_AI_IMAGE: "true"
+          FORCE_POST_TYPE: ${{ github.event.inputs.force_type }}
+        run: |
+          # Run the daily content script
+          poetry run python flows/image_content_generator/pipeline/daily_automated_content.py
+          
+      - name: Commit state changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -f flows/image_content_generator/out_short/ideas_tracking.csv
+          git add .last_post_type
+          git commit -m "chore: update state and tracking [skip ci]" || echo "No changes to commit"
+          git pull --rebase origin main
+          git push origin main || echo "No changes to push"
