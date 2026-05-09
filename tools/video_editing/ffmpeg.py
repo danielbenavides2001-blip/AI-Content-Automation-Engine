@@ -238,6 +238,8 @@ class FFmpegTool(BaseModelTool):
                 "-i", str(source_path),
                 "-i", str(audio_path),
                 "-vf", vf,
+                "-r", "25",
+                "-fps_mode", "cfr",
                 "-shortest",
                 "-c:v", "libx264", "-c:a", "aac", "-pix_fmt", "yuv420p",
                 "-v", "error", str(out_path)

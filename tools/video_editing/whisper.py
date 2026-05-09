@@ -119,8 +119,8 @@ class WhisperTool(BaseModelTool):
         blocks: List[List[WhisperWord]] = []
         current: List[WhisperWord] = []
         
-        # Compensate for "ahead" feeling by adding a small offset (100ms)
-        offset_ms = 100 
+        # Compensate for "ahead" feeling by adding a small offset (200ms)
+        offset_ms = 200 
         
         for w in words:
             pause = (float(w.start) - float(current[-1].end)) / 1000.0 if current else 0.0

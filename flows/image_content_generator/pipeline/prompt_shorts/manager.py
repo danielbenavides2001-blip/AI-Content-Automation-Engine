@@ -64,23 +64,25 @@ class PromptManagerShorts(BasePromptManager):
 
         # 3. Idea Generation with Focus Area Diversity (NEW DIVERSITY ENGINE)
         focus_areas = [
-            "PSICOLOGÍA DEL DINERO (Mentalidad, sesgos cognitivos, hábitos invisibles)",
-            "HUSTLE & EMPRENDIMIENTO (Side hustles, escalar negocios, flujo de caja)",
-            "INVERSIONES & ACTIVOS (Bolsa, bienes raíces, activos digitales)",
+            "HUSTLE & EMPRENDIMIENTO (Side hustles, escalar negocios, flujo de caja, arbitraje)",
+            "INVERSIONES & ACTIVOS (Bolsa, bienes raíces, activos digitales, interés compuesto)",
             "EFICIENCIA FISCAL & AHORRO (Impuestos, frugalidad inteligente, protección de riqueza)",
-            "ERRORES & ESTAFAS (Deuda mala, inflación, trampas financieras comunes)"
+            "ERRORES & ESTAFAS (Deuda mala, inflación, trampas financieras comunes, ciberdelincuencia)"
         ]
+        # Eliminamos temporalmente 'Psicología' para forzar temas técnicos y frescos
         selected_area = random.choice(focus_areas)
         Messenger.info(f"🎯 Random Focus Area: {selected_area}")
 
         avoid_msg = ""
+        banned_words = "Pobre, Rico, Mentalidad, Escasez, Abundancia, Mindset, Millonario"
         if extra_avoid:
-            avoid_msg = f"\n\n🚨 **REGLA DE ORO DE NO REPETICIÓN:** 🚨\nEstá PROHIBIDO repetir temas anteriores como:\n{extra_avoid}"
+            avoid_msg = f"\n\n🚨 **REGLA DE ORO DE NO REPETICIÓN:** 🚨\nEstá PROHIBIDO repetir temas anteriores como:\n{extra_avoid}\n\n🚫 **PALABRAS PROHIBIDAS (NO USAR):** {banned_words}"
         elif titles_to_avoid:
             avoid_list_str = "\n- ".join(titles_to_avoid)
             avoid_msg = (
                 f"\n\n🚨 **REGLA DE ORO DE NO REPETICIÓN:** 🚨\n"
                 f"Está ESTRICTAMENTE PROHIBIDO repetir cualquiera de estos temas o conceptos:\n- {avoid_list_str}\n\n"
+                f"🚫 **PALABRAS PROHIBIDAS (NO USAR):** {banned_words}"
             )
 
         # Inyectar el número de parte y el área de enfoque

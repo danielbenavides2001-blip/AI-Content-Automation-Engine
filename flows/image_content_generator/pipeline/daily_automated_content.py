@@ -199,6 +199,35 @@ class DailyAutomator:
             state_file.write_text(str(choice))
             Messenger.info(f"🔄 Cycling post type: Last was {last_type if state_file.exists() else 'None'}, Now {choice}")
 
+        # --- NEW: CLEAR STUCK IDEAS ---
+        # Before running, we ensure no half-finished ideas exist in the 'ideas' folder
+        # to prevent reusing old/corrupt content.
+        Messenger.info("🧹 Cleaning up stuck or incomplete ideas...")
+        ideas_dir = Path("flows/image_content_generator/out_short/ideas")
+        if ideas_dir.exists():
+            import shutil
+            # We check the ideas_tracking.csv to see what's NOT COMPLETED or UPLOADED
+            video_csv = Path("flows/image_content_generator/out_short/ideas_tracking.csv")
+            tracking_titles = []
+            if video_csv.exists():
+                try:
+                    import pandas as pd
+                    df = pd.read_csv(video_csv)
+                    # We keep track of titles but we'll be aggressive: 
+                    # If it's not UPLOADED, we consider it a failed attempt.
+                    valid_ids = df[df["state"] == "UPLOADED"]["id"].tolist()
+                    for idea_path in ideas_dir.iterdir():
+                        if idea_path.is_dir():
+                            try:
+                                idea_id = int(idea_path.name.split("_")[-1])
+                                if idea_id not in valid_ids:
+                                    Messenger.warning(f"🗑️ Deleting stuck idea: {idea_path.name}")
+                                    shutil.rmtree(idea_path)
+                            except ValueError:
+                                pass
+                except Exception as e:
+                    Messenger.warning(f"Could not parse tracking CSV for cleanup: {e}")
+
         try:
             if choice == 0 or choice == 2:
                 # Interaction or regular image
