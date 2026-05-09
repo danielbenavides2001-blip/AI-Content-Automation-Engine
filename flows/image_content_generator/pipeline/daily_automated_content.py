@@ -185,10 +185,19 @@ class DailyAutomator:
             choice = None
 
         if choice is None:
-            # Opción A (Elegida por el usuario): FORZAR SIEMPRE VIDEO
-            # El bot ahora es una máquina exclusiva de episodios de la serie
-            choice = 1
-            Messenger.info("🔄 Forcing Video Reel generation for the 'Formas cochinas' series.")
+            # Lógica de Alternancia: Video (1) vs Infografía (2)
+            if state_file.exists():
+                try:
+                    last_type = int(state_file.read_text().strip())
+                    choice = 2 if last_type == 1 else 1
+                except Exception:
+                    choice = 1
+            else:
+                choice = 1
+            
+            # Guardar el nuevo estado
+            state_file.write_text(str(choice))
+            Messenger.info(f"🔄 Cycling post type: Last was {last_type if state_file.exists() else 'None'}, Now {choice}")
 
         try:
             if choice == 0 or choice == 2:
