@@ -1,0 +1,72 @@
+
+--- Checking Permissions (me/permissions) ---
+{
+  "data": [
+    {
+      "permission": "email",
+      "status": "granted"
+    },
+    {
+      "permission": "read_insights",
+      "status": "granted"
+    },
+    {
+      "permission": "publish_video",
+      "status": "granted"
+    },
+    {
+      "permission": "pages_manage_instant_articles",
+      "status": "granted"
+    },
+    {
+      "permission": "pages_show_list",
+      "status": "granted"
+    },
+    {
+      "permission": "business_management",
+      "status": "granted"
+    },
+    {
+      "permission": "instagram_basic",
+      "status": "granted"
+    },
+    {
+      "permission": "instagram_content_publish",
+      "status": "granted"
+    },
+    {
+      "permission": "page_events",
+      "status": "granted"
+    },
+    {
+      "permission": "pages_read_engagement",
+      "status": "granted"
+    },
+    {
+      "permission": "pages_manage_metadata",
+      "status": "granted"
+    },
+    {
+      "permission": "pages_read_user_content",
+      "status": "granted"
+    },
+    {
+      "permission": "pages_manage_posts",
+      "status": "granted"
+    },
+    {
+      "permission": "pages_manage_engagement",
+      "status": "granted"
+    },
+    {
+      "permission": "public_profile",
+      "status": "granted"
+    }
+  ]
+}
+
+--- Checking User/Page Info (me) ---
+{
+  "id": "25982332081460932",
+  "name": "Daniel Benavides"
+}
