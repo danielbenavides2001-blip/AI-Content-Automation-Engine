@@ -32,8 +32,11 @@ class RemotionTool(BaseModelTool):
         Messenger.info(f"Rendering Remotion composition '{composition_id}'...")
         
         # 2. Run Remotion render
+        import platform
+        npx_cmd = "npx.cmd" if platform.system() == "Windows" else "npx"
+        
         cmd = [
-            "npx.cmd", "remotion", "render",
+            npx_cmd, "remotion", "render",
             "src/index.ts",
             composition_id,
             str(output_path.absolute()),
