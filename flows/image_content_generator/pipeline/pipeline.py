@@ -23,6 +23,7 @@ from tools.utils.time import retry
 from tools.social_media.facebook import FacebookTool
 from tools.video_editing.ffmpeg import FFmpegTool
 from tools.video_editing.whisper import WhisperTool
+from tools.video_editing.remotion import RemotionTool
 
 T = TypeVar("T", bound=BaseModel)
 PromptManager = Union[PromptManagerShorts, PromptManagerLongs]
@@ -46,6 +47,7 @@ class Pipeline(BaseModelTool):
     _audio_tool: Optional[AudioTool] = PrivateAttr(default=None)
     _store: Optional[CsvStore] = PrivateAttr(default=None)
     _facebook: Optional[FacebookTool] = PrivateAttr(default=None)
+    _remotion: Optional[Any] = PrivateAttr(default=None)
 
     # Standard Output Directories
     IDEAS_DIR: ClassVar[str] = "ideas"
@@ -53,12 +55,15 @@ class Pipeline(BaseModelTool):
     AUDIOS_DIR: ClassVar[str] = "audios"
     VIDEOS_DIR: ClassVar[str] = "videos"
     EDITIONS_DIR: ClassVar[str] = "editions"
+    REMOTION_DIR: ClassVar[str] = "flows/image_content_generator/remotion"
 
     # Standard Output Files
     IDEA_JSON: ClassVar[str] = "idea.json"
     SCRIPT_JSON: ClassVar[str] = "script.json"
     RAW_VIDEO: ClassVar[str] = "raw_video.mp4"
     SUBTITLED_VIDEO: ClassVar[str] = "subtitled_video.mp4"
+    REMOTION_VIDEO: ClassVar[str] = "remotion_overlay.mp4"
+    PRO_SUBTITLED_VIDEO: ClassVar[str] = "pro_subtitled_video.mp4"
     FINAL_AUDIO: ClassVar[str] = "final_audio.wav"
     FINAL_SUBS: ClassVar[str] = "final_subs.srt"
     FINAL_VIDEO: ClassVar[str] = "final_video.mp4"
@@ -158,6 +163,12 @@ class Pipeline(BaseModelTool):
             else:
                 raise ValueError(f"Orientation {self.orientation} not supported.")
         return self._prompt_manager
+
+    @property
+    def remotion(self) -> RemotionTool:
+        if self._remotion is None:
+            self._remotion = RemotionTool()
+        return self._remotion
 
     @property
     def facebook(self) -> FacebookTool:
@@ -540,26 +551,78 @@ class Pipeline(BaseModelTool):
         self.store.save(idea_obj)
         Messenger.success(f"Step 5 ready: {State.VIDEO_SUBTITLED} finalized.\n")
 
+    def step5_pro_subtitles(self):
+        """
+        Generate Pro Subtitles: Uses Remotion for high-end animations.
+        """
+        idea_obj = self.store.get_first_by_state(State.VIDEO_GENERATED)
+        if not idea_obj:
+            Messenger.error("No video ready for pro subtitles.")
+            return
+
+        Messenger.info("\n--- Generating PRO Subtitles via Remotion ---")
+
+        # 1. Prepare paths
+        raw_video = self.get_idea_asset_path(idea_obj.id, self.EDITIONS_DIR, self.RAW_VIDEO)
+        audio_wav = self.get_idea_asset_path(idea_obj.id, self.EDITIONS_DIR, self.FINAL_AUDIO)
+        remotion_overlay = self.get_idea_asset_path(idea_obj.id, self.EDITIONS_DIR, self.REMOTION_VIDEO)
+        pro_video = self.get_idea_asset_path(idea_obj.id, self.EDITIONS_DIR, self.PRO_SUBTITLED_VIDEO)
+        
+        # 2. Extract Audio if not exists
+        if not audio_wav.exists():
+            self.ffmpeg.extract_audio(raw_video, audio_wav)
+
+        # 3. Get word tokens
+        words = self.whisper.get_word_tokens(audio_wav)
+        word_data = [{"text": w.text, "start": w.start, "end": w.end} for w in words]
+
+        # 4. Render Remotion
+        remotion_root = Path(self.REMOTION_DIR)
+        self.remotion.render_subtitles(
+            remotion_path=remotion_root,
+            output_path=remotion_overlay,
+            data=word_data
+        )
+
+        # 5. Merge Overlay
+        import subprocess
+        cmd = [
+            "ffmpeg", "-y",
+            "-i", str(raw_video),
+            "-i", str(remotion_overlay),
+            "-filter_complex", "[0:v][1:v]overlay=shortest=1[v]",
+            "-map", "[v]", "-map", "0:a",
+            "-c:v", "libx264", "-c:a", "copy", "-pix_fmt", "yuv420p",
+            str(pro_video)
+        ]
+        subprocess.run(cmd, check=True)
+
+        # 6. Updates state
+        idea_obj.state = State.VIDEO_PRO_SUBTITLED
+        self.store.save(idea_obj)
+        Messenger.success(f"Step 5 (PRO) ready: {State.VIDEO_PRO_SUBTITLED} finalized.\n")
+
     def step6_add_background_music(self):
         """
         Background Music: Adds a random background track to the subtitled video.
-        1. Retrieves the VIDEO_SUBTITLED idea.
-        2. Prepares directories.
-        3. Picks a random audio file.
-        4. Mixes it with low volume and looping.
-        5. Updates state.
         """
-        # 1. Retrieves VIDEO_SUBTITLED idea.
-        idea_obj = self.store.get_first_by_state(State.VIDEO_SUBTITLED)
+        # 1. Retrieves subtitled video (PRO takes priority)
+        idea_obj = self.store.get_first_by_state(State.VIDEO_PRO_SUBTITLED)
+        is_pro = True
         if not idea_obj:
-            Messenger.error("No subtitled video found to add music.")
+            idea_obj = self.store.get_first_by_state(State.VIDEO_SUBTITLED)
+            is_pro = False
+            
+        if not idea_obj:
+            Messenger.error("No subtitled video (Standard or PRO) found to add music.")
             return
 
-        Messenger.info("\n--- Adding background music ---")
+        Messenger.info(f"\n--- Adding background music to {'PRO' if is_pro else 'Standard'} video ---")
 
         # 2. Prepares directories.
         subtitled_video = self.get_idea_asset_path(
-            idea_obj.id, self.EDITIONS_DIR, self.SUBTITLED_VIDEO
+            idea_obj.id, self.EDITIONS_DIR, 
+            self.PRO_SUBTITLED_VIDEO if is_pro else self.SUBTITLED_VIDEO
         )
         final_with_music = self.get_idea_asset_path(
             idea_obj.id, self.EDITIONS_DIR, self.FINAL_VIDEO

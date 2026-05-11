@@ -95,6 +95,24 @@ class WhisperTool(BaseModelTool):
             for s in data.transcription
         ]
 
+    def get_word_tokens(
+        self,
+        audio_path: Path
+    ) -> List[WhisperWord]:
+        """
+        Returns a list of all words with their start/end timestamps (ms).
+        """
+        data = self._get_transcription_json(audio_path)
+        words: List[WhisperWord] = []
+        for s in data.transcription:
+            for t in s.tokens:
+                words.append(WhisperWord(
+                    text=t.text.strip(),
+                    start=t.offsets.from_ms,
+                    end=t.offsets.to_ms
+                ))
+        return words
+
     def generate_srt(
         self,
         audio_path: Path,

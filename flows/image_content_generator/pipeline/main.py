@@ -18,6 +18,7 @@ class PipelineStep(str, Enum):
     STEP3 = "step3"
     STEP4 = "step4"
     STEP5 = "step5"
+    STEP5_PRO = "step5_pro"
     STEP6 = "step6"
     STEP7 = "step7"
     STEP8 = "step8"
@@ -46,6 +47,7 @@ def main():
         PipelineStep.STEP3: pipeline.step3_generate_audios,
         PipelineStep.STEP4: pipeline.step4_generate_videos,
         PipelineStep.STEP5: pipeline.step5_generate_subtitles,
+        PipelineStep.STEP5_PRO: pipeline.step5_pro_subtitles,
         PipelineStep.STEP6: pipeline.step6_add_background_music,
         PipelineStep.STEP7: pipeline.step7_rename_final_video,
         PipelineStep.STEP8: pipeline.step8_upload_to_facebook,
@@ -57,8 +59,12 @@ def main():
     elif args.step == PipelineStep.ALL:
         Messenger.info("--- Starting Full Pipeline Run (Steps 1-8) ---")
         pipeline.step1_generate_story(extra_avoid=args.avoid)
-        steps_remaining = [s for s in PipelineStep if s not in [PipelineStep.ALL, PipelineStep.STEP1]]
-        for step in steps_remaining:
+        # We run PRO subtitles instead of standard if step is ALL
+        steps_to_run = [
+            PipelineStep.STEP2, PipelineStep.STEP3, PipelineStep.STEP4,
+            PipelineStep.STEP5_PRO, PipelineStep.STEP6, PipelineStep.STEP7, PipelineStep.STEP8
+        ]
+        for step in steps_to_run:
             step_methods[step]()
         Messenger.success("Full pipeline cycle completed successfully.")
     else:
