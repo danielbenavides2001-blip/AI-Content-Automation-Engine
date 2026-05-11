@@ -62,7 +62,7 @@ class Pipeline(BaseModelTool):
     SCRIPT_JSON: ClassVar[str] = "script.json"
     RAW_VIDEO: ClassVar[str] = "raw_video.mp4"
     SUBTITLED_VIDEO: ClassVar[str] = "subtitled_video.mp4"
-    REMOTION_VIDEO: ClassVar[str] = "remotion_overlay.webm"
+    REMOTION_VIDEO: ClassVar[str] = "remotion_frames/frame-%04d.png"
     PRO_SUBTITLED_VIDEO: ClassVar[str] = "pro_subtitled_video.mp4"
     FINAL_AUDIO: ClassVar[str] = "final_audio.wav"
     FINAL_SUBS: ClassVar[str] = "final_subs.srt"
@@ -576,21 +576,25 @@ class Pipeline(BaseModelTool):
         words = self.whisper.get_word_tokens(audio_wav)
         word_data = [{"text": w.text, "start": w.start, "end": w.end} for w in words]
 
-        # 4. Render Remotion
+        # 4. Render Remotion (as PNG sequence for perfect transparency)
         remotion_root = Path(self.REMOTION_DIR)
+        remotion_frames_dir = remotion_overlay.parent
+        remotion_frames_dir.mkdir(parents=True, exist_ok=True)
+        
         self.remotion.render_subtitles(
             remotion_path=remotion_root,
             output_path=remotion_overlay,
             data=word_data
         )
 
-        # 5. Merge Overlay
+        # 5. Merge Overlay (using PNG sequence)
         import subprocess
         cmd = [
             "ffmpeg", "-y",
             "-i", str(raw_video),
+            "-framerate", "25",
             "-i", str(remotion_overlay),
-            "-filter_complex", "[0:v][1:v]overlay=format=auto:shortest=1[v]",
+            "-filter_complex", "[0:v][1:v]overlay=shortest=1[v]",
             "-map", "[v]", "-map", "0:a",
             "-c:v", "libx264", "-c:a", "copy", "-pix_fmt", "yuv420p",
             str(pro_video)

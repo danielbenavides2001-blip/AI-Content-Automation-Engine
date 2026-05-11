@@ -35,10 +35,10 @@ export const Subtitles: React.FC<{ words: Word[] }> = ({ words }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // Group words into phrases of max 3 words
+  // Group words into phrases of 4 words (2 lines of 2 words)
   const phrases: { words: Word[], start: number, end: number }[] = [];
-  for (let i = 0; i < words.length; i += 3) {
-    const chunk = words.slice(i, i + 3);
+  for (let i = 0; i < words.length; i += 4) {
+    const chunk = words.slice(i, i + 4);
     phrases.push({
       words: chunk,
       start: chunk[0].start,
@@ -47,7 +47,7 @@ export const Subtitles: React.FC<{ words: Word[] }> = ({ words }) => {
   }
 
   return (
-    <div style={{ flex: 1, backgroundColor: 'transparent', position: 'relative' }}>
+    <div style={{ flex: 1, backgroundColor: 'transparent', position: 'relative', overflow: 'hidden' }}>
       {phrases.map((phrase, pi) => {
         const startFrame = (phrase.start / 1000) * fps;
         const endFrame = (phrase.end / 1000) * fps;
@@ -58,55 +58,57 @@ export const Subtitles: React.FC<{ words: Word[] }> = ({ words }) => {
         return (
           <div key={pi} style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
             
-            {/* Dynamic Animations based on keywords */}
-            <div style={{ marginBottom: 60 }}>
+            {/* Money Chart Animation */}
+            <div style={{ marginBottom: 40 }}>
               {phrase.words.map((w, wi) => {
                 const clean = w.text.toLowerCase().replace(/[.,!]/g, '');
-                const icon = IconMap[clean];
                 const isShowing = frame >= (w.start / 1000) * fps && frame < (w.end / 1000) * fps;
-                
                 if (!isShowing) return null;
-
                 const scale = spring({ frame: frame - (w.start / 1000) * fps, fps, config: { stiffness: 200 } });
-
-                if (clean === 'inversión' || clean === 'crecimiento') {
+                if (clean === 'dinero' || clean === 'rico' || clean === 'inversión' || clean === 'crecimiento') {
                     return <MoneyChart key={wi} progress={scale} />;
                 }
-                
-                return icon ? <div key={wi} style={{ transform: `scale(${scale * 1.3})` }}>{icon}</div> : null;
+                return null;
               })}
             </div>
 
-            {/* 3-Word Subtitle Block */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 20, padding: '0 60px' }}>
-              {phrase.words.map((word, wi) => {
-                const wStart = (word.start / 1000) * fps;
-                const wEnd = (word.end / 1000) * fps;
-                const isCurrentWord = frame >= wStart && frame < wEnd;
+            {/* Subtitle Block (Semi-transparent black box) */}
+            <div style={{ 
+                backgroundColor: 'rgba(0, 0, 0, 0.65)', 
+                padding: '15px 40px', 
+                borderRadius: '8px', 
+                display: 'flex', 
+                flexDirection: 'column',
+                alignItems: 'center',
+                maxWidth: '85%',
+                boxShadow: '0 5px 20px rgba(0,0,0,0.4)',
+                border: '1px solid rgba(255,255,255,0.1)'
+            }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '15px 30px' }}>
+                {phrase.words.map((word, wi) => {
+                  const wStart = (word.start / 1000) * fps;
+                  const wEnd = (word.end / 1000) * fps;
+                  const isCurrentWord = frame >= wStart && frame < wEnd;
 
-                const scale = spring({
-                  frame: frame - wStart,
-                  fps,
-                  config: { stiffness: 200, damping: 12 },
-                });
-
-                return (
-                  <span
-                    key={wi}
-                    style={{
-                      fontSize: 100,
-                      fontFamily: 'Impact, sans-serif',
-                      color: isCurrentWord ? '#fbbf24' : 'white',
-                      textShadow: '0 0 10px black, 0 0 20px black, 5px 5px 0px #000',
-                      transform: isCurrentWord ? `scale(${scale * 1.1})` : 'scale(1)',
-                      textTransform: 'uppercase',
-                      display: 'inline-block'
-                    }}
-                  >
-                    {word.text}
-                  </span>
-                );
-              })}
+                  return (
+                    <span
+                      key={wi}
+                      style={{
+                        fontSize: 95,
+                        fontFamily: 'Impact, sans-serif',
+                        fontWeight: 'bold',
+                        color: isCurrentWord ? '#FFFF00' : '#FFFFFF',
+                        textTransform: 'uppercase',
+                        display: 'inline-block',
+                        lineHeight: 1.1,
+                        textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
+                      }}
+                    >
+                      {word.text}
+                    </span>
+                  );
+                })}
+              </div>
             </div>
           </div>
         );
