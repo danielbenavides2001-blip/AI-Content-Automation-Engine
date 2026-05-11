@@ -250,32 +250,62 @@ class Pipeline(BaseModelTool):
     def step1_generate_story(self, extra_avoid: str = ""):
         """
         Generate Concept & Script: Creates a cinematic idea and expands it into a storyboard.
-        1. Generates concept and script using PromptManager.
-        2. Registers the new idea in tracking CSV.
-        3. Saves idea.json and script.json.
-        4. Updates state to SCRIPT_GENERATED.
+        A/B TESTING (Fase 3): Generates two versions (A and B) with different hooks.
         """
-        Messenger.info("\n--- Generating cinematic concept and script ---")
+        Messenger.info("\n--- Generating cinematic concept and script (A/B Split) ---")
 
         # Merge tracking CSV titles with extra avoid list
         titles = self.store.get_all_titles()
 
-        # 1. Generates full story (Concept + Script)
+        # 1. Generates full story (Concept + Script) for Version A
         idea_data, script, category = self.prompt_manager.generate_full_story(
             self.text_gen, titles_to_avoid=titles, extra_avoid=extra_avoid
         )
 
-        # 2. Registers the new idea in tracking CSV.
-        idea_obj = self.store.add_new_idea(idea_data.title, category)
+        # --- FASE 3: A/B TESTING (Generar Gancho B) ---
+        Messenger.info("   Generating alternative Hook B...")
+        prompt_b = f"""
+        Tienes el siguiente guion de video:
+        Título: {idea_data.title}
+        Gancho A (Original): {script.scenes[0].narrator_text}
 
-        # 3. Saves JSONs
-        self.save_json(idea_obj.id, self.IDEA_JSON, idea_data)
-        self.save_json(idea_obj.id, self.SCRIPT_JSON, script)
+        Escribe un NUEVO GANCHO (Escena 1) completamente diferente. 
+        Si el original era agresivo/directo, haz este curioso/misterioso (o viceversa).
+        Debe durar máximo 3 segundos (15 palabras).
+        Responde SOLO con el texto narrativo del nuevo gancho, sin comillas ni texto extra.
+        """
+        try:
+            alt_hook_text = self.text_gen.generate(prompt_b).strip()
+            
+            import copy
+            idea_b_data = copy.deepcopy(idea_data)
+            script_b = copy.deepcopy(script)
+            
+            # Modificar la Versión B
+            idea_b_data.title = f"{idea_data.title} [Hook B]"
+            if "hook" in idea_b_data.model_fields:
+                setattr(idea_b_data, "hook", alt_hook_text)
+            script_b.scenes[0].narrator_text = alt_hook_text
+            script_b.scenes[0].visual_prompt = f"Variation B: {script_b.scenes[0].visual_prompt}"
 
-        # 4. Updates state
-        idea_obj.state = State.SCRIPT_GENERATED
-        self.store.save(idea_obj)
-        Messenger.success(f"Step 1 ready: {State.SCRIPT_GENERATED} finalized.\n")
+            # 2. Registra y guarda IDEA B (Se registrará con un ID distinto)
+            idea_obj_b = self.store.add_new_idea(idea_b_data.title, category)
+            self.save_json(idea_obj_b.id, self.IDEA_JSON, idea_b_data)
+            self.save_json(idea_obj_b.id, self.SCRIPT_JSON, script_b)
+            idea_obj_b.state = State.SCRIPT_GENERATED
+            self.store.save(idea_obj_b)
+            Messenger.success(f"   Hook B generated and queued as Idea {idea_obj_b.id}.")
+        except Exception as e:
+            Messenger.warning(f"Failed to generate Hook B: {e}")
+
+        # 3. Registra y guarda IDEA A (Original)
+        idea_obj_a = self.store.add_new_idea(idea_data.title, category)
+        self.save_json(idea_obj_a.id, self.IDEA_JSON, idea_data)
+        self.save_json(idea_obj_a.id, self.SCRIPT_JSON, script)
+        idea_obj_a.state = State.SCRIPT_GENERATED
+        self.store.save(idea_obj_a)
+        
+        Messenger.success(f"Step 1 ready: {State.SCRIPT_GENERATED} finalized (A/B Test Created).\n")
 
     def step2_generate_images(self):
         """
