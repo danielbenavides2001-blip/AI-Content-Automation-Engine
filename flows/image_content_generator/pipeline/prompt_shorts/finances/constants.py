@@ -47,28 +47,22 @@ IDEA_PROMPT_ESTRATEGIA: str = IDEA_PROMPT_MINDSET
 IDEA_PROMPT_HUSTLE: str = IDEA_PROMPT_MINDSET
 IDEA_PROMPT_CHEATSHEET: str = IDEA_PROMPT_MINDSET
 
-SCRIPT_PROMPT: str = """# 📝 GUIONISTA DE REALIDAD BRUTAL — SERIE: ENIGMAIQ
-**Objetivo:** Crear un guion de 4 escenas que pegue fuerte en la mente del espectador sobre sus finanzas.
+SCRIPT_PROMPT: str = """# 📝 GUIONISTA MAESTRO — ESTRATEGIA DE RETENCIÓN 2026
+**Objetivo:** Crear un video de 60 segundos con retención del 90% y comentarios masivos.
 
-**ESTILO VISUAL (STORYBOARD):**
-- Escenas tipo boceto (Sketch) con fondo crema y stickman blanco expresivo.
-- Usa colores solo para el dinero (Verde) o el peligro (Rojo/Azul).
+**ESTRATEGIA MAESTRA (OBLIGATORIA):**
+1. **El Gancho (0-3s):** Debe ser una frase DISRUPTIVA que use una palabra clave del nicho inmediatamente. Ej: "El Biohacking es mentira si no haces esto...".
+2. **Estilo Lo-Fi:** Las descripciones de imagen deben pedir un estilo "Hand-drawn sketch" o "Authentic iPhone photo", nada de renders perfectos.
+3. **El Nudo (Explicación):** Datos fríos, lógica aplastante. No uses relleno.
+4. **Cebo de Comentarios (Comment Bait):** Al final, NO pidas un like. Haz una pregunta que obligue a escribir más de 5 palabras. Ej: "¿En qué gastaste tu último dólar que hoy consideras un error?" o "¿Qué protocolo de salud te parece una estafa?".
 
-**Estructura Narrativa (4 Escenas):**
-1. **Escena 1 (Hook):** Una frase que ataque directamente un ego o un mal hábito.
-2. **Escena 2 (El Error):** Mostrar visualmente el error (ej: comprar un café caro mientras el bolsillo está roto).
-3. **Escena 3 (La Realidad):** Explicar por qué eso te mantiene estancado. Usa datos o lógica fría.
-4. **Escena 4 (Cierre Maestro):** Una invitación a despertar y unirse a la élite + "Síguenos en EnigmaIQ".
+**Estructura de 4 Escenas:**
+- Escena 1: HOOK visual y verbal potente.
+- Escena 2: El error común que comete el 99%.
+- Escena 3: La solución "Elite" (secreto del nicho).
+- Escena 4: Pregunta de interacción + "Síguenos en EnigmaIQ".
 
-**Reglas del Voice Over:**
-- Tono: Barítono, pausado, autoritario pero pedagógico.
-- Duración: Exactamente 25-30 palabras por escena para un video de 55-60 segundos.
-- Lenguaje: Usa "Tú". No uses tecnicismos innecesarios, sé directo.
-
-**image_prompt (INGLÉS):**
-- Estilo: Minimalist hand-drawn sketch, clean thick lines, warm cream background, white stickman.
-- Escena 1: Stickman in a powerful or reflective pose.
-- Escena 2: Stickman interacting with the "problem" (e.g., credit card, luxury items).
-- Escena 3: Stickman facing the "consequence" or "logic" (e.g., an empty safe, a wall of books).
-- Escena 4: Close up of the stickman smiling or pointing forward, emerald green details.
+**Reglas de Imagen (image_prompt en inglés):**
+- Fondo crema, Stickman blanco minimalista. Estilo "Authentic hand-drawn ink sketch".
+- Usa verde esmeralda solo para enfatizar dinero o éxito.
 """

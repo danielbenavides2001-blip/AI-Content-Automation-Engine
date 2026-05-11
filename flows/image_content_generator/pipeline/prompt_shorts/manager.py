@@ -64,10 +64,11 @@ class PromptManagerShorts(BasePromptManager):
 
         # 3. Idea Generation with Focus Area Diversity (NEW DIVERSITY ENGINE)
         focus_areas = [
-            "HUSTLE & EMPRENDIMIENTO (Side hustles, escalar negocios, flujo de caja, arbitraje)",
-            "INVERSIONES & ACTIVOS (Bolsa, bienes raíces, activos digitales, interés compuesto)",
-            "EFICIENCIA FISCAL & AHORRO (Impuestos, frugalidad inteligente, protección de riqueza)",
-            "ERRORES & ESTAFAS (Deuda mala, inflación, trampas financieras comunes, ciberdelincuencia)"
+            "BIOHACKING & LONGEVITY (Ayuno intermitente, nootrópicos, protocolos de sueño, optimización celular)",
+            "IA & PRODUCTIVIDAD (Side-hustles con IA, automatización de tareas, ahorro de tiempo, herramientas disruptivas)",
+            "FINANZAS DE GUERRILLA (Minimalismo financiero, inversión en micro-acciones, hacks de ahorro extremo)",
+            "PSICOLOGÍA OSCURA (Lenguaje corporal, detección de mentiras, red flags, persuasión en negocios)",
+            "URBAN HOMESTEADING & TECH (Huertos hidropónicos, energía solar DIY, sustentabilidad tecnológica)"
         ]
         # Eliminamos temporalmente 'Psicología' para forzar temas técnicos y frescos
         selected_area = random.choice(focus_areas)
