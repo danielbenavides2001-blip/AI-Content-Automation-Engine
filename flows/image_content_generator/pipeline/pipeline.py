@@ -439,14 +439,9 @@ class Pipeline(BaseModelTool):
 
     def step4_generate_videos(self):
         """
-        Generate Videos: Batch Video Generation (FFmpeg).
-        1. Retrieves the AUDIO_GENERATED idea.
-        2. Loads script.json for scene data.
-        3. Merges assets into scene clips.
-        4. Final video concatenation.
-        5. Updates state.
+        Video Generation: Creates clips for each scene and merges them.
         """
-        # 1. Retrieves AUDIO_GENERATED idea.
+        # 1. Retrieves state
         idea_obj = self.store.get_first_by_state(State.AUDIO_GENERATED)
         if not idea_obj:
             Messenger.error("No audio ready for video generation.")
@@ -454,50 +449,58 @@ class Pipeline(BaseModelTool):
 
         Messenger.info("\n--- Generating videos for the script ---")
 
-        # 2. Loads script.json for scene data.
+        # 2. Loads script.json
         script_data = self.load_json(idea_obj.id, self.SCRIPT_JSON, VideoScript)
+        
+        # 3. Create Master Audio (Source of Truth)
+        # This prevents gaps and desync by making one continuous audio file first.
+        audio_segments = []
+        for i in range(len(script_data.scenes)):
+            seg = self.get_idea_asset_path(idea_obj.id, self.AUDIOS_DIR, self.SCENE_AUDIO_PATTERN.format(i + 1))
+            audio_segments.append(seg)
+        
+        master_audio = self.get_idea_asset_path(idea_obj.id, self.EDITIONS_DIR, self.FINAL_AUDIO)
+        # Custom concat for audio to ensure zero gaps
+        audio_inputs = "".join([f"-i {str(s)} " for s in audio_segments])
+        filter_complex = "".join([f"[{i}:a]" for i in range(len(audio_segments))]) + f"concat=n={len(audio_segments)}:v=0:a=1[a]"
+        cmd = f"ffmpeg -y {audio_inputs}-filter_complex \"{filter_complex}\" -map \"[a]\" {str(master_audio)}"
+        import os
+        os.system(cmd)
 
-        # 3. Merges assets into scene clips.
+        # 4. Merges assets into scene clips (Visual only)
         scene_videos: List[Path] = []
         for i, scene in enumerate(script_data.scenes):
-            # Check for animation sequence (multi-frame) vs single image
-            source_path = self.get_idea_asset_path(
-                idea_obj.id, self.IMAGES_DIR, f"scene_{i+1:02d}_frame_01.png"
-            )
-            
-            # If multi-frame doesn't exist, fallback to single frame
+            source_path = self.get_idea_asset_path(idea_obj.id, self.IMAGES_DIR, f"scene_{i+1:02d}_frame_01.png")
             if not source_path.exists():
-                source_path = self.get_idea_asset_path(
-                    idea_obj.id, self.IMAGES_DIR, f"scene_{i+1:02d}.png"
-                )
+                source_path = self.get_idea_asset_path(idea_obj.id, self.IMAGES_DIR, f"scene_{i+1:02d}.png")
 
-            if not source_path.exists():
-                Messenger.error(f"Missing source for Scene {i+1} (checked frames and single image)")
-                continue
+            audio_seg = audio_segments[i]
+            video_path = self.get_idea_asset_path(idea_obj.id, self.VIDEOS_DIR, self.SCENE_VIDEO_PATTERN.format(i + 1))
 
-            audio_path = self.get_idea_asset_path(
-                idea_obj.id, self.AUDIOS_DIR, self.SCENE_AUDIO_PATTERN.format(i + 1)
-            )
-            video_path = self.get_idea_asset_path(
-                idea_obj.id, self.VIDEOS_DIR, self.SCENE_VIDEO_PATTERN.format(i + 1)
-            )
-
-            Messenger.info(f"Stitching Scene {i+1} with {source_path.suffix} source...")
-            
-            # If it's a multi-frame video, we use the animated scene logic
+            Messenger.info(f"Stitching Scene {i+1}...")
+            # We still need the audio segment for duration in this step
             if "_frame_" in str(source_path):
                 image_sequence_pattern = str(source_path).replace("_frame_01.png", "_frame_%02d.png")
-                self.ffmpeg.create_animated_scene_video(image_sequence_pattern, audio_path, video_path)
+                self.ffmpeg.create_animated_scene_video(image_sequence_pattern, audio_seg, video_path)
             else:
-                self.ffmpeg.create_composite_scene_video(source_path, audio_path, video_path)
-                
+                self.ffmpeg.create_composite_scene_video(source_path, audio_seg, video_path)
             scene_videos.append(video_path)
 
-        # 4. Final video concatenation.
+        # 5. Final video concatenation + Master Audio re-sync
         raw_video = self.get_idea_asset_path(idea_obj.id, self.EDITIONS_DIR, self.RAW_VIDEO)
-        self.ffmpeg.concat_videos(scene_videos, raw_video)
+        temp_video = self.get_idea_asset_path(idea_obj.id, self.VIDEOS_DIR, "temp_concat.mp4")
+        self.ffmpeg.concat_videos(scene_videos, temp_video)
+        
+        # Merge concatenated video with the Master Audio to fix any drift
+        cmd_merge = [
+            "ffmpeg", "-y", "-i", str(temp_video), "-i", str(master_audio),
+            "-c:v", "copy", "-c:a", "aac", "-map", "0:v:0", "-map", "1:a:0", "-shortest",
+            str(raw_video)
+        ]
+        import subprocess
+        subprocess.run(cmd_merge, check=True)
 
-        # 5. Updates state.
+        # 6. Updates state.
         idea_obj.state = State.VIDEO_GENERATED
         self.store.save(idea_obj)
         Messenger.success(f"Step 4 ready: {State.VIDEO_GENERATED} finalized.\n")
@@ -553,30 +556,25 @@ class Pipeline(BaseModelTool):
 
     def step5_pro_subtitles(self):
         """
-        Generate Pro Subtitles: Uses Remotion for high-end animations.
+        Step 5 (PRO): High-End Subtitles and Multi-layer Composition.
         """
+        # 1. Retrieves state
         idea_obj = self.store.get_first_by_state(State.VIDEO_GENERATED)
         if not idea_obj:
-            Messenger.error("No video ready for pro subtitles.")
+            Messenger.error("No video ready for PRO subtitles.")
             return
 
-        Messenger.info("\n--- Generating PRO Subtitles via Remotion ---")
-
-        # 1. Prepare paths
         raw_video = self.get_idea_asset_path(idea_obj.id, self.EDITIONS_DIR, self.RAW_VIDEO)
-        audio_wav = self.get_idea_asset_path(idea_obj.id, self.EDITIONS_DIR, self.FINAL_AUDIO)
         remotion_overlay = self.get_idea_asset_path(idea_obj.id, self.EDITIONS_DIR, self.REMOTION_VIDEO)
         pro_video = self.get_idea_asset_path(idea_obj.id, self.EDITIONS_DIR, self.PRO_SUBTITLED_VIDEO)
+        audio_wav = self.get_idea_asset_path(idea_obj.id, self.EDITIONS_DIR, self.FINAL_AUDIO)
         
-        # 2. Extract Audio if not exists
-        if not audio_wav.exists():
-            self.ffmpeg.extract_audio(raw_video, audio_wav)
-
-        # 3. Get word tokens
+        # 2. Transcription (Master Audio already exists from Step 4)
+        Messenger.info(f"Transcribing {self.FINAL_AUDIO} with OpenAI Whisper...")
         words = self.whisper.get_word_tokens(audio_wav)
         word_data = [{"text": w.text, "start": w.start, "end": w.end} for w in words]
 
-        # 4. Render Remotion (as PNG sequence for perfect transparency)
+        # 3. Render Remotion
         remotion_root = Path(self.REMOTION_DIR)
         remotion_frames_dir = remotion_overlay.parent
         remotion_frames_dir.mkdir(parents=True, exist_ok=True)
@@ -587,23 +585,10 @@ class Pipeline(BaseModelTool):
             data=word_data
         )
 
-        # 5. Multi-layer Composition with filter_complex
-        # Layer 1: Base Video (0:v)
-        # Layer 2: Film Grain (generated via noise)
-        # Layer 3: Progress Bar (generated via drawbox)
-        # Layer 4: Remotion Subtitles (1:v)
+        # 4. Multi-layer Composition with filter_complex
         import subprocess
         remotion_pattern = remotion_overlay / "%04d.png"
-        
-        # We calculate the progress bar width based on duration
         duration = self.ffmpeg.get_video_duration(raw_video)
-        
-        # filter_complex: 
-        # [0:v] sets the base. 
-        # noise adds grain. 
-        # drawbox creates the progress bar background.
-        # drawbox again for the moving progress (using 't/duration').
-        # overlay puts the subtitles.
         
         fc = (
             f"[0:v]noise=alls=5:allf=t+u[v_grain];"
@@ -624,7 +609,7 @@ class Pipeline(BaseModelTool):
         ]
         subprocess.run(cmd, check=True)
 
-        # 6. Updates state
+        # 5. Updates state
         idea_obj.state = State.VIDEO_PRO_SUBTITLED
         self.store.save(idea_obj)
         Messenger.success(f"Step 5 (PRO) ready: {State.VIDEO_PRO_SUBTITLED} finalized.\n")
