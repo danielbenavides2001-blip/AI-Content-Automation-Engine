@@ -62,7 +62,7 @@ class Pipeline(BaseModelTool):
     SCRIPT_JSON: ClassVar[str] = "script.json"
     RAW_VIDEO: ClassVar[str] = "raw_video.mp4"
     SUBTITLED_VIDEO: ClassVar[str] = "subtitled_video.mp4"
-    REMOTION_VIDEO: ClassVar[str] = "remotion_overlay.mp4"
+    REMOTION_VIDEO: ClassVar[str] = "remotion_overlay.webm"
     PRO_SUBTITLED_VIDEO: ClassVar[str] = "pro_subtitled_video.mp4"
     FINAL_AUDIO: ClassVar[str] = "final_audio.wav"
     FINAL_SUBS: ClassVar[str] = "final_subs.srt"
@@ -590,7 +590,7 @@ class Pipeline(BaseModelTool):
             "ffmpeg", "-y",
             "-i", str(raw_video),
             "-i", str(remotion_overlay),
-            "-filter_complex", "[0:v][1:v]overlay=shortest=1[v]",
+            "-filter_complex", "[0:v][1:v]overlay=format=auto:shortest=1[v]",
             "-map", "[v]", "-map", "0:a",
             "-c:v", "libx264", "-c:a", "copy", "-pix_fmt", "yuv420p",
             str(pro_video)

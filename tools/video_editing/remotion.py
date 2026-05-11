@@ -41,6 +41,7 @@ class RemotionTool(BaseModelTool):
             composition_id,
             str(output_path.absolute()),
             f"--props={input_json.absolute()}",
+            "--codec=vp9",
         ]
 
         try:

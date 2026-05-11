@@ -9,56 +9,104 @@ interface Word {
 }
 
 const IconMap: Record<string, React.ReactNode> = {
-  'dinero': <DollarSign size={120} color="#fbbf24" />,
-  'rico': <DollarSign size={120} color="#fbbf24" />,
-  'pobre': <AlertTriangle size={120} color="#ef4444" />,
-  'inversión': <TrendingUp size={120} color="#10b981" />,
-  'negocio': <Briefcase size={120} color="#3b82f6" />,
-  'seguridad': <ShieldCheck size={120} color="#8b5cf6" />,
+  'dinero': <DollarSign size={140} color="#fbbf24" />,
+  'rico': <DollarSign size={140} color="#fbbf24" />,
+  'pobre': <AlertTriangle size={140} color="#ef4444" />,
+  'inversión': <TrendingUp size={140} color="#10b981" />,
+  'negocio': <Briefcase size={140} color="#3b82f6" />,
+  'seguridad': <ShieldCheck size={140} color="#8b5cf6" />,
+};
+
+// Money Chart Animation Component
+const MoneyChart: React.FC<{ progress: number }> = ({ progress }) => {
+  return (
+    <div style={{ width: 400, height: 200, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20, padding: 20, display: 'flex', alignItems: 'flex-end', gap: 10 }}>
+      {[0.2, 0.4, 0.3, 0.6, 0.8, 1.0].map((h, i) => {
+        const currentH = Math.min(h, progress * (i + 1) / 6) * 100;
+        return (
+          <div key={i} style={{ flex: 1, height: `${currentH}%`, backgroundColor: '#10b981', borderRadius: 5, transition: 'height 0.1s' }} />
+        );
+      })}
+    </div>
+  );
 };
 
 export const Subtitles: React.FC<{ words: Word[] }> = ({ words }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
+  // Group words into phrases of max 3 words
+  const phrases: { words: Word[], start: number, end: number }[] = [];
+  for (let i = 0; i < words.length; i += 3) {
+    const chunk = words.slice(i, i + 3);
+    phrases.push({
+      words: chunk,
+      start: chunk[0].start,
+      end: chunk[chunk.length - 1].end
+    });
+  }
+
   return (
     <div style={{ flex: 1, backgroundColor: 'transparent', position: 'relative' }}>
-      {words.map((word, i) => {
-        const startFrame = (word.start / 1000) * fps;
-        const endFrame = (word.end / 1000) * fps;
-        const isActive = frame >= startFrame && frame < endFrame;
+      {phrases.map((phrase, pi) => {
+        const startFrame = (phrase.start / 1000) * fps;
+        const endFrame = (phrase.end / 1000) * fps;
+        const isActivePhrase = frame >= startFrame && frame < endFrame;
 
-        if (!isActive) return null;
-
-        const cleanWord = word.text.toLowerCase().replace(/[.,!]/g, '');
-        const icon = IconMap[cleanWord];
-
-        const scale = spring({
-          frame: frame - startFrame,
-          fps,
-          config: { stiffness: 200, damping: 12 },
-        });
+        if (!isActivePhrase) return null;
 
         return (
-          <div key={i} style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            {icon && (
-              <div style={{ marginBottom: 40, transform: `scale(${scale * 1.2})` }}>
-                {icon}
-              </div>
-            )}
-            <div
-              style={{
-                fontSize: 110,
-                fontFamily: 'Impact, sans-serif',
-                color: 'white',
-                textShadow: '0 0 10px black, 0 0 20px black, 5px 5px 0px #000',
-                transform: `scale(${scale})`,
-                textTransform: 'uppercase',
-                padding: '0 40px',
-                textAlign: 'center'
-              }}
-            >
-              {word.text}
+          <div key={pi} style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            
+            {/* Dynamic Animations based on keywords */}
+            <div style={{ marginBottom: 60 }}>
+              {phrase.words.map((w, wi) => {
+                const clean = w.text.toLowerCase().replace(/[.,!]/g, '');
+                const icon = IconMap[clean];
+                const isShowing = frame >= (w.start / 1000) * fps && frame < (w.end / 1000) * fps;
+                
+                if (!isShowing) return null;
+
+                const scale = spring({ frame: frame - (w.start / 1000) * fps, fps, config: { stiffness: 200 } });
+
+                if (clean === 'inversión' || clean === 'crecimiento') {
+                    return <MoneyChart key={wi} progress={scale} />;
+                }
+                
+                return icon ? <div key={wi} style={{ transform: `scale(${scale * 1.3})` }}>{icon}</div> : null;
+              })}
+            </div>
+
+            {/* 3-Word Subtitle Block */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 20, padding: '0 60px' }}>
+              {phrase.words.map((word, wi) => {
+                const wStart = (word.start / 1000) * fps;
+                const wEnd = (word.end / 1000) * fps;
+                const isCurrentWord = frame >= wStart && frame < wEnd;
+
+                const scale = spring({
+                  frame: frame - wStart,
+                  fps,
+                  config: { stiffness: 200, damping: 12 },
+                });
+
+                return (
+                  <span
+                    key={wi}
+                    style={{
+                      fontSize: 100,
+                      fontFamily: 'Impact, sans-serif',
+                      color: isCurrentWord ? '#fbbf24' : 'white',
+                      textShadow: '0 0 10px black, 0 0 20px black, 5px 5px 0px #000',
+                      transform: isCurrentWord ? `scale(${scale * 1.1})` : 'scale(1)',
+                      textTransform: 'uppercase',
+                      display: 'inline-block'
+                    }}
+                  >
+                    {word.text}
+                  </span>
+                );
+              })}
             </div>
           </div>
         );
