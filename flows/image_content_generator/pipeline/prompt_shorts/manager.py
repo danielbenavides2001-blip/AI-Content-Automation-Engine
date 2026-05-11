@@ -140,4 +140,22 @@ class PromptManagerShorts(BasePromptManager):
             )
             script = content_gen.generate_text(full_script_prompt, VideoScript)
 
+            # --- BLINDAJE CONTRA BANEOS (TODO ES TODO) ---
+            # 1. Transparencia de IA (Mandatorio Meta 2026)
+            # 2. Descargo de Responsabilidad (Para nichos YMYL)
+            # 3. Firma Humana (Para evitar detección de Bot puro)
+            
+            transparency_footer = (
+                "\n\n---\n"
+                "💡 **Transparencia**: Este contenido ha sido conceptualizado y producido con el apoyo de Inteligencia Artificial para fines educativos y de entretenimiento. No constituye asesoría médica ni financiera profesional.\n\n"
+                "✨ Publicado por el equipo de EnigmaIQ.\n"
+                "#EnigmaIQ #HechoConIA #AIContent #Biohacking #Finanzas #Productividad"
+            )
+            
+            # Forzar el footer en el caption del idea_data
+            if hasattr(idea_data, 'caption'):
+                idea_data.caption = str(idea_data.caption) + transparency_footer
+            elif hasattr(idea_data, 'hook'):
+                idea_data.caption = str(idea_data.hook) + transparency_footer
+
         return idea_data, script, category

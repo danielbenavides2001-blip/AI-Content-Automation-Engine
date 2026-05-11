@@ -45,8 +45,6 @@ IMAGE_INTERACTION_PROMPT: str = """# 🧩 GENERADOR DE INFOGRAFÍAS — ESTILO S
 # Alias de compatibilidad
 IDEA_PROMPT_ESTRATEGIA: str = IDEA_PROMPT_MINDSET
 IDEA_PROMPT_HUSTLE: str = IDEA_PROMPT_MINDSET
-IDEA_PROMPT_CHEATSHEET: str = IDEA_PROMPT_MINDSET
-
 SCRIPT_PROMPT: str = """# 📝 GUIONISTA MAESTRO — ESTRATEGIA DE RETENCIÓN 2026
 **Objetivo:** Crear un video de 60 segundos con retención del 90% y comentarios masivos.
 
@@ -54,7 +52,13 @@ SCRIPT_PROMPT: str = """# 📝 GUIONISTA MAESTRO — ESTRATEGIA DE RETENCIÓN 20
 1. **El Gancho (0-3s):** Debe ser una frase DISRUPTIVA que use una palabra clave del nicho inmediatamente. Ej: "El Biohacking es mentira si no haces esto...".
 2. **Estilo Lo-Fi:** Las descripciones de imagen deben pedir un estilo "Hand-drawn sketch" o "Authentic iPhone photo", nada de renders perfectos.
 3. **El Nudo (Explicación):** Datos fríos, lógica aplastante. No uses relleno.
-4. **Cebo de Comentarios (Comment Bait):** Al final, NO pidas un like. Haz una pregunta que obligue a escribir más de 5 palabras. Ej: "¿En qué gastaste tu último dólar que hoy consideras un error?" o "¿Qué protocolo de salud te parece una estafa?".
+4. **Cebo de Comentarios (Comment Bait):** Al final, NO pidas un like. Haz una pregunta que obligue a escribir más de 5 palabras.
+
+**SEGURIDAD & CUMPLIMIENTO (CRÍTICO):**
+- **NO des consejos médicos específicos** (ej: "toma X mg de tal suplemento").
+- **NO des consejos financieros específicos** (ej: "compra la acción X").
+- Mantén un tono **EDUCATIVO y FILOSÓFICO**.
+- El contenido debe ser interpretado como entretenimiento e información general.
 
 **Estructura de 4 Escenas:**
 - Escena 1: HOOK visual y verbal potente.
