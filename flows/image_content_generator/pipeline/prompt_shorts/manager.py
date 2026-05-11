@@ -152,10 +152,14 @@ class PromptManagerShorts(BasePromptManager):
                 "#EnigmaIQ #HechoConIA #AIContent #Biohacking #Finanzas #Productividad"
             )
             
-            # Forzar el footer en el caption del idea_data
-            if hasattr(idea_data, 'caption'):
-                idea_data.caption = str(idea_data.caption) + transparency_footer
-            elif hasattr(idea_data, 'hook'):
-                idea_data.caption = str(idea_data.hook) + transparency_footer
+            # Forzar el footer en el caption del idea_data (Blindaje)
+            # Usamos model_fields para evitar errores de Pydantic v2
+            if "caption" in idea_data.model_fields:
+                new_val = str(getattr(idea_data, "caption", "")) + transparency_footer
+                setattr(idea_data, "caption", new_val)
+            elif "hook" in idea_data.model_fields:
+                # Si no hay caption (como en videos), lo añadimos al hook que es lo que se publica
+                new_val = str(getattr(idea_data, "hook", "")) + transparency_footer
+                setattr(idea_data, "hook", new_val)
 
         return idea_data, script, category
