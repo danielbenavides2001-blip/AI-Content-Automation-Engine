@@ -786,11 +786,24 @@ class Pipeline(BaseModelTool):
             Messenger.info("   Generating AI-optimized description...")
             description = self.generate_facebook_description(video_title)
 
+            # --- BLINDAJE CONTRA BANEOS (TODO ES TODO) ---
+            # 1. Transparencia de IA (Mandatorio Meta 2026)
+            # 2. Descargo de Responsabilidad (Para nichos YMYL)
+            # 3. Firma Humana (Para evitar detección de Bot puro)
+            transparency_footer = (
+                "\n\n---\n"
+                "💡 **Transparencia**: Este contenido ha sido conceptualizado y producido con el apoyo de Inteligencia Artificial para fines educativos y de entretenimiento. No constituye asesoría médica ni financiera profesional.\n\n"
+                "✨ Publicado por el equipo de EnigmaIQ.\n"
+                "#HechoConIA #AIContent #EnigmaIQ"
+            )
+            
+            final_description = description + transparency_footer
+
             # 4. Uploads via FacebookTool.
             try:
                 self.facebook.upload_video(
                     file_path=video_path,
-                    description=description,
+                    description=final_description,
                     title=video_title
                 )
                 
