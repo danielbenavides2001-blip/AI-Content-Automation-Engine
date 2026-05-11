@@ -197,3 +197,25 @@ class FacebookTool(BaseModelTool):
         post_id = response.json().get("id")
         Messenger.success(f"✅ Text post published! ID: {post_id}")
         return post_id
+
+    def add_comment(self, post_id: str, message: str) -> str:
+        """
+        Adds a comment to a specific post or video on the Facebook Page.
+        Used for Phase 4: Auto-Engagement.
+        """
+        Messenger.info(f"💬 Adding auto-comment to post {post_id}...")
+        url = f"{self.base_url}/{post_id}/comments"
+        data = {
+            "message": message,
+            "access_token": self.access_token
+        }
+        response = requests.post(url, data=data)
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            Messenger.warning(f"⚠️ Failed to add comment: {e.response.text}")
+            return ""
+        
+        comment_id = response.json().get("id")
+        Messenger.success(f"✅ Comment added successfully! ID: {comment_id}")
+        return comment_id

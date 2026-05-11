@@ -529,9 +529,10 @@ class Pipeline(BaseModelTool):
             Messenger.info(f"Stitching Scene {scene_num}...")
             if "_frame_" in str(source_path):
                 image_sequence_pattern = str(source_path).replace("_frame_01.png", "_frame_%02d.png")
+                # Animating sequence doesn't support glitch filter directly in this version, so we skip it for sequences
                 self.ffmpeg.create_animated_scene_video(image_sequence_pattern, audio_seg, video_path)
             else:
-                self.ffmpeg.create_composite_scene_video(source_path, audio_seg, video_path)
+                self.ffmpeg.create_composite_scene_video(source_path, audio_seg, video_path, apply_glitch=(i > 0))
             scene_videos.append(video_path)
 
         if not scene_videos:
@@ -813,12 +814,27 @@ class Pipeline(BaseModelTool):
 
             # 4. Uploads via FacebookTool.
             try:
-                self.facebook.upload_video(
+                video_id = self.facebook.upload_video(
                     file_path=video_path,
                     description=final_description,
                     title=video_title
                 )
                 
+                # --- FASE 4: AUTO-COMENTARIO (Cebo de engagement) ---
+                if video_id:
+                    Messenger.info("   Generating polemic auto-comment...")
+                    prompt_comment = f"""
+                    Eres el creador de la serie "EnigmaIQ". Acabas de subir un video titulado: "{video_title}".
+                    Escribe un comentario corto (1 línea) en forma de PREGUNTA POLÉMICA para fijarlo como el primer comentario del video.
+                    El objetivo es que la gente se pelee o debata en las respuestas. 
+                    No uses hashtags. Sé directo, algo cínico y muy controversial.
+                    """
+                    try:
+                        polemic_comment = self.text_gen.generate(prompt_comment).strip()
+                        self.facebook.add_comment(video_id, polemic_comment)
+                    except Exception as e:
+                        Messenger.warning(f"Failed to generate or post auto-comment: {e}")
+
                 # 5. Updates state to UPLOADED.
                 idea_obj.state = State.UPLOADED
                 self.store.save(idea_obj)

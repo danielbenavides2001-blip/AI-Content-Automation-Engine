@@ -196,14 +196,22 @@ class FFmpegTool(BaseModelTool):
         self,
         source_path: Path,
         audio_path: Path,
-        out_path: Path
+        out_path: Path,
+        apply_glitch: bool = False
     ) -> None:
         """
         Creates a video clip for a scene using either an image or a video as source.
+        Optionally applies a cyber-glitch transition for the first 0.5 seconds.
         """
         duration = self.get_audio_duration(audio_path)
         fps = 25
         is_video = source_path.suffix.lower() == ".mp4"
+
+        # Glitch effect for transitions
+        glitch_filter = ""
+        if apply_glitch:
+            # rgbashift separates colors like a VHS tape, noise adds static
+            glitch_filter = ",rgbashift=rh=-15:bv=15:enable='between(t,0,0.5)',noise=alls=80:allf=t+u:enable='between(t,0,0.5)'"
 
         if is_video:
             # Scale to fill screen and crop excess (No black bars)
@@ -213,7 +221,7 @@ class FFmpegTool(BaseModelTool):
                 "-i", str(source_path),
                 "-i", str(audio_path),
                 "-t", str(duration),
-                "-vf", f"{vf_fill},format=yuv420p",
+                "-vf", f"{vf_fill},format=yuv420p{glitch_filter}",
                 "-c:v", "libx264", "-c:a", "aac", "-pix_fmt", "yuv420p",
                 "-v", "error", str(out_path)
             ]
@@ -226,7 +234,7 @@ class FFmpegTool(BaseModelTool):
             # Pro Vignette Effect
             vignette = "vignette=PI/4"
             
-            vf = f"{vf_fill},zoompan=z='{z_expr}':d=1:{pos_filter}:s=1080x1920,format=yuv420p,{vignette}"
+            vf = f"{vf_fill},zoompan=z='{z_expr}':d=1:{pos_filter}:s=1080x1920,format=yuv420p,{vignette}{glitch_filter}"
 
             cmd = [
                 "ffmpeg", "-y", "-loop", "1",
@@ -259,7 +267,16 @@ class FFmpegTool(BaseModelTool):
         self._run(cmd)
 
     def extract_audio(self, video_in: Path, audio_out: Path) -> None:
-
+        """
+        Extracts audio from a video file, optimized for Whisper STT.
+        """
+        cmd = [
+            "ffmpeg", "-y",
+            "-i", str(video_in),
+            "-vn", "-ac", "1", "-ar", "16000",
+            str(audio_out)
+        ]
+        self._run(cmd)
     def add_subtitles_to_video(
         self,
         video_in: Path,
