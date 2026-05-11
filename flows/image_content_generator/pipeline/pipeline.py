@@ -587,16 +587,38 @@ class Pipeline(BaseModelTool):
             data=word_data
         )
 
-        # 5. Merge Overlay (using PNG sequence: Remotion outputs 0000.png, 0001.png, etc.)
+        # 5. Multi-layer Composition with filter_complex
+        # Layer 1: Base Video (0:v)
+        # Layer 2: Film Grain (generated via noise)
+        # Layer 3: Progress Bar (generated via drawbox)
+        # Layer 4: Remotion Subtitles (1:v)
         import subprocess
         remotion_pattern = remotion_overlay / "%04d.png"
+        
+        # We calculate the progress bar width based on duration
+        duration = self.ffmpeg.get_video_duration(raw_video)
+        
+        # filter_complex: 
+        # [0:v] sets the base. 
+        # noise adds grain. 
+        # drawbox creates the progress bar background.
+        # drawbox again for the moving progress (using 't/duration').
+        # overlay puts the subtitles.
+        
+        fc = (
+            f"[0:v]noise=alls=5:allf=t+u[v_grain];"
+            f"[v_grain]drawbox=y=ih-10:w=iw:h=10:color=black@0.5:t=fill[v_bar_bg];"
+            f"[v_bar_bg]drawbox=y=ih-10:w=iw*t/{duration}:h=10:color=#FFFF00@0.8:t=fill[v_composed];"
+            f"[v_composed][1:v]overlay=shortest=1[out]"
+        )
+        
         cmd = [
             "ffmpeg", "-y",
             "-i", str(raw_video),
             "-framerate", "25",
             "-i", str(remotion_pattern),
-            "-filter_complex", "[0:v][1:v]overlay=shortest=1[v]",
-            "-map", "[v]", "-map", "0:a",
+            "-filter_complex", fc,
+            "-map", "[out]", "-map", "0:a",
             "-c:v", "libx264", "-c:a", "copy", "-pix_fmt", "yuv420p",
             str(pro_video)
         ]
