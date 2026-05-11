@@ -56,7 +56,15 @@ export const Subtitles: React.FC<{ words: Word[] }> = ({ words }) => {
         if (!isActivePhrase) return null;
 
         return (
-          <div key={pi} style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <div key={pi} style={{ 
+              position: 'absolute', 
+              inset: 0, 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              justifyContent: 'flex-end', // Moved to bottom
+              paddingBottom: 220 // Space from bottom
+          }}>
             
             {/* Money Chart Animation */}
             <div style={{ marginBottom: 40 }}>
@@ -75,16 +83,16 @@ export const Subtitles: React.FC<{ words: Word[] }> = ({ words }) => {
             {/* Subtitle Block (Semi-transparent black box) */}
             <div style={{ 
                 backgroundColor: 'rgba(0, 0, 0, 0.65)', 
-                padding: '15px 40px', 
-                borderRadius: '8px', 
+                padding: '12px 35px', 
+                borderRadius: '5px', 
                 display: 'flex', 
                 flexDirection: 'column',
                 alignItems: 'center',
                 maxWidth: '85%',
-                boxShadow: '0 5px 20px rgba(0,0,0,0.4)',
-                border: '1px solid rgba(255,255,255,0.1)'
+                boxShadow: '0 5px 15px rgba(0,0,0,0.5)',
+                borderBottom: '4px solid #FFFF00' // Stylish bottom border
             }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '15px 30px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px 25px' }}>
                 {phrase.words.map((word, wi) => {
                   const wStart = (word.start / 1000) * fps;
                   const wEnd = (word.end / 1000) * fps;
@@ -94,14 +102,14 @@ export const Subtitles: React.FC<{ words: Word[] }> = ({ words }) => {
                     <span
                       key={wi}
                       style={{
-                        fontSize: 95,
+                        fontSize: 75, // Slightly smaller
                         fontFamily: 'Impact, sans-serif',
                         fontWeight: 'bold',
                         color: isCurrentWord ? '#FFFF00' : '#FFFFFF',
                         textTransform: 'uppercase',
                         display: 'inline-block',
-                        lineHeight: 1.1,
-                        textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
+                        lineHeight: 1.0,
+                        textShadow: '2px 2px 2px rgba(0,0,0,0.8)'
                       }}
                     >
                       {word.text}

@@ -218,20 +218,15 @@ class FFmpegTool(BaseModelTool):
                 "-v", "error", str(out_path)
             ]
         else:
-            # Scale to fill screen, crop excess, then apply Ken Burns
+            # Scale to fill screen, crop excess, then apply Ken Burns (Increased Speed)
             vf_fill = "scale='max(1080,iw*1920/ih)':'max(1920,ih*1080/iw)',crop=1080:1920"
-            z_expr = "1.0 + 0.0005*on" 
+            z_expr = "1.0 + 0.001*on" # Faster zoom for more energy
             pos_filter = "x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
             
-            # Adaptive Fades: If duration is short, reduce fade time
-            fade_time = min(0.4, duration / 4) if duration > 0.4 else 0.0
+            # Pro Vignette Effect
+            vignette = "vignette=PI/4"
             
-            if fade_time > 0:
-                fade_filter = f"fade=t=in:st=0:d={fade_time:.2f},fade=t=out:st={max(0, duration-fade_time):.2f}:d={fade_time:.2f}"
-            else:
-                fade_filter = "format=yuv420p" # No fade for extremely short scenes
-
-            vf = f"{vf_fill},zoompan=z='{z_expr}':d=1:{pos_filter}:s=1080x1920,format=yuv420p,{fade_filter}"
+            vf = f"{vf_fill},zoompan=z='{z_expr}':d=1:{pos_filter}:s=1080x1920,format=yuv420p,{vignette}"
 
             cmd = [
                 "ffmpeg", "-y", "-loop", "1",
