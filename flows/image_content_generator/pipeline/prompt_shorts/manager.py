@@ -86,7 +86,25 @@ class PromptManagerShorts(BasePromptManager):
                 f"🚫 **PALABRAS PROHIBIDAS (NO USAR):** {banned_words}"
             )
 
-        # Inyectar el número de parte y el área de enfoque
+        # 3. Dynamic Visual Style Selector
+        styles = {
+            "BIOHACKING": "Estilo: Vintage anatomical medical sketch on aged parchment paper. Sepia ink, detailed scientific annotations, classic medical journal look.",
+            "IA": "Estilo: Cybernetic Technical Blueprint. Deep blue background, crisp white lines, digital HUD elements, grid overlay, futuristic tech aesthetic.",
+            "FINANZAS": "Estilo: Minimalist hand-drawn ink sketch on warm cream paper. Thick black lines, high contrast, clean and professional (EnigmaIQ Classic).",
+            "PSICOLOGÍA": "Estilo: Cinematic Film Noir. Deep shadows, high contrast black and white, silhouette of a stickman, dramatic lighting, mysterious atmosphere.",
+            "URBAN": "Estilo: Organic pencil and watercolor sketch. Recycled paper texture, soft graphite lines, subtle green watercolor accents, eco-tech feel."
+        }
+        
+        # Detect style from area name
+        selected_style = styles["FINANZAS"] # Default
+        for key, value in styles.items():
+            if key in selected_area:
+                selected_style = value
+                break
+        
+        Messenger.info(f"🎨 Selected Visual Style: {selected_style}")
+
+        # Inyectar el estilo y el área de enfoque
         full_idea_prompt = (
             f"{idea_prompt}\n\n"
             f"**TEMA CENTRAL OBLIGATORIO:** {selected_area}\n"
@@ -98,7 +116,7 @@ class PromptManagerShorts(BasePromptManager):
             idea_model
         )
 
-        # 3. Viral Script / Content Generation
+        # 4. Viral Script / Content Generation
         is_riddle = (idea_model == InteractionImageIdea)
         Messenger.info(f"\n--- Generating Viral Content ({'RIDDLE' if is_riddle else 'VIDEO'}): {idea_data.title} ---")
         
@@ -117,7 +135,8 @@ class PromptManagerShorts(BasePromptManager):
             full_script_prompt = (
                 finance_constants.SCRIPT_PROMPT + 
                 f"\n\nIDEA A DESARROLLAR: {idea_data.title}\n"
-                f"RECUERDA: Tono barítono, pausado, 4 escenas, personaje Stickman Blanco (minimalista, fondo crema)."
+                f"**ESTILO VISUAL OBLIGATORIO PARA ESTE VIDEO:** {selected_style}\n"
+                f"RECUERDA: Tono barítono, pausado, 4 escenas, personaje Stickman Blanco (minimalista)."
             )
             script = content_gen.generate_text(full_script_prompt, VideoScript)
 
