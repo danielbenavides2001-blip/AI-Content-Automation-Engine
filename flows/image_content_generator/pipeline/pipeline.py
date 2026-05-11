@@ -62,7 +62,7 @@ class Pipeline(BaseModelTool):
     SCRIPT_JSON: ClassVar[str] = "script.json"
     RAW_VIDEO: ClassVar[str] = "raw_video.mp4"
     SUBTITLED_VIDEO: ClassVar[str] = "subtitled_video.mp4"
-    REMOTION_VIDEO: ClassVar[str] = "remotion_frames/frame-%04d.png"
+    REMOTION_VIDEO: ClassVar[str] = "remotion_frames"
     PRO_SUBTITLED_VIDEO: ClassVar[str] = "pro_subtitled_video.mp4"
     FINAL_AUDIO: ClassVar[str] = "final_audio.wav"
     FINAL_SUBS: ClassVar[str] = "final_subs.srt"
@@ -587,13 +587,14 @@ class Pipeline(BaseModelTool):
             data=word_data
         )
 
-        # 5. Merge Overlay (using PNG sequence)
+        # 5. Merge Overlay (using PNG sequence: Remotion outputs 0.png, 1.png, etc.)
         import subprocess
+        remotion_pattern = remotion_overlay / "%d.png"
         cmd = [
             "ffmpeg", "-y",
             "-i", str(raw_video),
             "-framerate", "25",
-            "-i", str(remotion_overlay),
+            "-i", str(remotion_pattern),
             "-filter_complex", "[0:v][1:v]overlay=shortest=1[v]",
             "-map", "[v]", "-map", "0:a",
             "-c:v", "libx264", "-c:a", "copy", "-pix_fmt", "yuv420p",

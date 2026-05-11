@@ -35,7 +35,8 @@ class RemotionTool(BaseModelTool):
         import platform
         npx_cmd = "npx.cmd" if platform.system() == "Windows" else "npx"
         
-        is_sequence = "%" in str(output_path) or output_path.suffix == ""
+        # If output has no extension or is a pattern, it's a sequence
+        is_sequence = output_path.suffix not in ['.mp4', '.webm', '.mov', '.mkv']
         
         cmd = [
             npx_cmd, "remotion", "render",
