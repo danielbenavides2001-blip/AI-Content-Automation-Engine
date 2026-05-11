@@ -45,8 +45,9 @@ class RemotionTool(BaseModelTool):
             f"--props={input_json.absolute()}",
         ]
 
-        # Only add codec if it's NOT a sequence (let it infer .png)
-        if not is_sequence:
+        if is_sequence:
+            cmd.append("--sequence")
+        else:
             cmd.append("--codec=vp9")
 
         try:
