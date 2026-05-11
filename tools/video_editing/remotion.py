@@ -48,6 +48,8 @@ class RemotionTool(BaseModelTool):
 
         if is_sequence:
             cmd.append("--sequence")
+            # Force a predictable pattern for FFmpeg: 0000.png, 0001.png...
+            cmd.append("--image-sequence-pattern=[frame].[ext]")
         else:
             cmd.append("--codec=vp9")
 

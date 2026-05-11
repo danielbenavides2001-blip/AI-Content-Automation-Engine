@@ -587,9 +587,9 @@ class Pipeline(BaseModelTool):
             data=word_data
         )
 
-        # 5. Merge Overlay (using PNG sequence: Remotion outputs 0.png, 1.png, etc.)
+        # 5. Merge Overlay (using PNG sequence: Remotion outputs 0000.png, 0001.png, etc.)
         import subprocess
-        remotion_pattern = remotion_overlay / "%d.png"
+        remotion_pattern = remotion_overlay / "%04d.png"
         cmd = [
             "ffmpeg", "-y",
             "-i", str(raw_video),
