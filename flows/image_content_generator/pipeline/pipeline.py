@@ -458,6 +458,18 @@ class Pipeline(BaseModelTool):
             # Use actual scene_number if available, else i+1
             scene_num = getattr(script_data.scenes[i], 'scene_number', i + 1)
             seg = self.get_idea_asset_path(idea_obj.id, self.AUDIOS_DIR, self.SCENE_AUDIO_PATTERN.format(scene_num))
+            
+            # --- FASE 1: SFX TRANSITION LOGIC ---
+            sfx_path = Path("flows/image_content_generator/resources/sfx/swoosh.mp3")
+            if i > 0 and sfx_path.exists() and seg.exists():
+                sfx_seg = self.get_idea_asset_path(idea_obj.id, self.AUDIOS_DIR, f"scene_{scene_num:02d}_sfx.wav")
+                try:
+                    self.ffmpeg.mix_sfx(seg, sfx_path, sfx_seg, volume=0.35)
+                    if sfx_seg.exists():
+                        seg = sfx_seg  # Use the version with SFX injected
+                except Exception as e:
+                    Messenger.warning(f"Failed to mix SFX for scene {scene_num}: {e}")
+
             if seg.exists():
                 audio_segments.append(seg)
             else:

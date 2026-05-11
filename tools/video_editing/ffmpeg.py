@@ -242,17 +242,23 @@ class FFmpegTool(BaseModelTool):
         
         self._run(cmd)
 
-    def extract_audio(self, video_in: Path, audio_out: Path) -> None:
+    def mix_sfx(self, base_audio: Path, sfx_audio: Path, out_path: Path, volume: float = 0.5) -> None:
         """
-        Extracts audio from a video file, optimized for Whisper STT.
+        Mixes a short Sound Effect (SFX) into the base audio stream, starting at 0s.
+        Uses amix to combine them without extending the original audio duration.
         """
         cmd = [
             "ffmpeg", "-y",
-            "-i", str(video_in),
-            "-vn", "-ac", "1", "-ar", "16000",
-            str(audio_out)
+            "-i", str(base_audio),
+            "-i", str(sfx_audio),
+            "-filter_complex", f"[0:a]volume=1.0[a0];[1:a]volume={volume}[a1];[a0][a1]amix=inputs=2:duration=first:dropout_transition=2[a]",
+            "-map", "[a]",
+            "-v", "error",
+            str(out_path)
         ]
         self._run(cmd)
+
+    def extract_audio(self, video_in: Path, audio_out: Path) -> None:
 
     def add_subtitles_to_video(
         self,
