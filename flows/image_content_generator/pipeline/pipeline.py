@@ -453,32 +453,68 @@ class Pipeline(BaseModelTool):
         script_data = self.load_json(idea_obj.id, self.SCRIPT_JSON, VideoScript)
         
         # 3. Create Master Audio (Source of Truth)
-        # This prevents gaps and desync by making one continuous audio file first.
         audio_segments = []
         for i in range(len(script_data.scenes)):
-            seg = self.get_idea_asset_path(idea_obj.id, self.AUDIOS_DIR, self.SCENE_AUDIO_PATTERN.format(i + 1))
-            audio_segments.append(seg)
+            # Use actual scene_number if available, else i+1
+            scene_num = getattr(script_data.scenes[i], 'scene_number', i + 1)
+            seg = self.get_idea_asset_path(idea_obj.id, self.AUDIOS_DIR, self.SCENE_AUDIO_PATTERN.format(scene_num))
+            if seg.exists():
+                audio_segments.append(seg)
+            else:
+                Messenger.warning(f"Missing audio segment for scene {scene_num}: {seg}")
         
+        if not audio_segments:
+            Messenger.error("No audio segments found. Cannot proceed.")
+            return
+
         master_audio = self.get_idea_asset_path(idea_obj.id, self.EDITIONS_DIR, self.FINAL_AUDIO)
-        # Custom concat for audio to ensure zero gaps
-        audio_inputs = "".join([f"-i {str(s)} " for s in audio_segments])
-        filter_complex = "".join([f"[{i}:a]" for i in range(len(audio_segments))]) + f"concat=n={len(audio_segments)}:v=0:a=1[a]"
-        cmd = f"ffmpeg -y {audio_inputs}-filter_complex \"{filter_complex}\" -map \"[a]\" {str(master_audio)}"
-        import os
-        os.system(cmd)
+        
+        # Audio concatenation via filter_complex
+        cmd_audio = ["ffmpeg", "-y"]
+        for s in audio_segments:
+            cmd_audio.extend(["-i", str(s)])
+        
+        if len(audio_segments) > 1:
+            filter_complex = "".join([f"[{i}:a]" for i in range(len(audio_segments))]) + f"concat=n={len(audio_segments)}:v=0:a=1[a]"
+            cmd_audio.extend(["-filter_complex", filter_complex, "-map", "[a]"])
+        else:
+            cmd_audio.extend(["-c:a", "copy"])
+        
+        cmd_audio.append(str(master_audio))
+        import subprocess
+        subprocess.run(cmd_audio, check=True)
 
         # 4. Merges assets into scene clips (Visual only)
         scene_videos: List[Path] = []
         for i, scene in enumerate(script_data.scenes):
-            source_path = self.get_idea_asset_path(idea_obj.id, self.IMAGES_DIR, f"scene_{i+1:02d}_frame_01.png")
-            if not source_path.exists():
-                source_path = self.get_idea_asset_path(idea_obj.id, self.IMAGES_DIR, f"scene_{i+1:02d}.png")
+            scene_num = getattr(scene, 'scene_number', i + 1)
+            
+            # Check multiple naming patterns for images
+            possible_names = [
+                f"scene_{scene_num:02d}_frame_01.png",
+                f"scene_{scene_num:02d}.png",
+                f"scene_{scene_num}.png"
+            ]
+            
+            source_path = None
+            for name in possible_names:
+                p = self.get_idea_asset_path(idea_obj.id, self.IMAGES_DIR, name)
+                if p.exists():
+                    source_path = p
+                    break
+            
+            if not source_path:
+                Messenger.error(f"Missing image for Scene {scene_num}. Skipping.")
+                continue
 
-            audio_seg = audio_segments[i]
-            video_path = self.get_idea_asset_path(idea_obj.id, self.VIDEOS_DIR, self.SCENE_VIDEO_PATTERN.format(i + 1))
+            audio_seg = self.get_idea_asset_path(idea_obj.id, self.AUDIOS_DIR, self.SCENE_AUDIO_PATTERN.format(scene_num))
+            video_path = self.get_idea_asset_path(idea_obj.id, self.VIDEOS_DIR, self.SCENE_VIDEO_PATTERN.format(scene_num))
 
-            Messenger.info(f"Stitching Scene {i+1}...")
-            # We still need the audio segment for duration in this step
+            if not audio_seg.exists():
+                Messenger.error(f"Missing audio for Scene {scene_num}. Skipping.")
+                continue
+
+            Messenger.info(f"Stitching Scene {scene_num}...")
             if "_frame_" in str(source_path):
                 image_sequence_pattern = str(source_path).replace("_frame_01.png", "_frame_%02d.png")
                 self.ffmpeg.create_animated_scene_video(image_sequence_pattern, audio_seg, video_path)
@@ -486,18 +522,21 @@ class Pipeline(BaseModelTool):
                 self.ffmpeg.create_composite_scene_video(source_path, audio_seg, video_path)
             scene_videos.append(video_path)
 
+        if not scene_videos:
+            Messenger.error("No scene videos generated.")
+            return
+
         # 5. Final video concatenation + Master Audio re-sync
         raw_video = self.get_idea_asset_path(idea_obj.id, self.EDITIONS_DIR, self.RAW_VIDEO)
         temp_video = self.get_idea_asset_path(idea_obj.id, self.VIDEOS_DIR, "temp_concat.mp4")
         self.ffmpeg.concat_videos(scene_videos, temp_video)
         
-        # Merge concatenated video with the Master Audio to fix any drift
+        # Merge concatenated video with the Master Audio
         cmd_merge = [
             "ffmpeg", "-y", "-i", str(temp_video), "-i", str(master_audio),
             "-c:v", "copy", "-c:a", "aac", "-map", "0:v:0", "-map", "1:a:0", "-shortest",
             str(raw_video)
         ]
-        import subprocess
         subprocess.run(cmd_merge, check=True)
 
         # 6. Updates state.
