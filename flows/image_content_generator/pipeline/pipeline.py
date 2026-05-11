@@ -267,7 +267,7 @@ class Pipeline(BaseModelTool):
         prompt_b = f"""
         Tienes el siguiente guion de video:
         Título: {idea_data.title}
-        Gancho A (Original): {script.scenes[0].narrator_text}
+        Gancho A (Original): {script.scenes[0].narration}
 
         Escribe un NUEVO GANCHO (Escena 1) completamente diferente. 
         Si el original era agresivo/directo, haz este curioso/misterioso (o viceversa).
@@ -285,8 +285,8 @@ class Pipeline(BaseModelTool):
             idea_b_data.title = f"{idea_data.title} [Hook B]"
             if "hook" in idea_b_data.model_fields:
                 setattr(idea_b_data, "hook", alt_hook_text)
-            script_b.scenes[0].narrator_text = alt_hook_text
-            script_b.scenes[0].visual_prompt = f"Variation B: {script_b.scenes[0].visual_prompt}"
+            script_b.scenes[0].narration = alt_hook_text
+            script_b.scenes[0].image_prompt = f"Variation B: {script_b.scenes[0].image_prompt}"
 
             # 2. Registra y guarda IDEA B (Se registrará con un ID distinto)
             idea_obj_b = self.store.add_new_idea(idea_b_data.title, category)
