@@ -2,7 +2,7 @@ import json
 import random
 from typing import Any, ClassVar, Dict, List, Optional, Sequence, Type
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from flows.image_content_generator.pipeline.prompt_base import constants
 
@@ -87,12 +87,14 @@ class ImagePrompt(BaseModel):
 
 
 class Scene(BaseModel):
+    model_config = ConfigDict(extra='ignore')
     scene_number: int = Field(description="Sequential number of the scene (Integer)")
     image_prompt: str = Field(description="Physical description and style in ENGLISH. Use a unified block of text.")
     narration: str = Field(description="Spoken narration for this scene in SPANISH (LATAM)")
 
 
 class VideoScript(BaseModel):
+    model_config = ConfigDict(extra='ignore')
     intrigue_header: Optional[str] = None
     scenes: List[Scene]
     SCRIPT_PROMPT: ClassVar[str]

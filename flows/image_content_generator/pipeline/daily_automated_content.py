@@ -58,9 +58,11 @@ class DailyAutomator:
         
         # Deduplicate and format
         unique_topics = list(set([str(t).strip() for t in topics if str(t).strip()]))
-        avoid_list = "\n- ".join(unique_topics[-40:]) # Last 40 unique topics
+        # Limit to 15 to avoid command line limits and prompt saturation
+        avoid_list = "\n- ".join(unique_topics[-15:]) 
         
         return f"\n\n**CRITICAL - ANTI-REPETITION RULES:**\nDO NOT repeat, reuse or get inspired by the following themes, metaphors or titles (THEY ARE ALREADY POSTED):\n- {avoid_list}\n\nBe creative. EXPLORE NEW VISUAL TERRITORIES."
+
 
     def sync_to_github(self):
         """
