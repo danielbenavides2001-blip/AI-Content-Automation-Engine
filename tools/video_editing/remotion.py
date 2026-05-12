@@ -15,8 +15,9 @@ class RemotionTool(BaseModelTool):
         self,
         remotion_path: Path,
         output_path: Path,
-        data: List[Dict[str, Any]],
+        words: List[Dict[str, Any]],
         composition_id: str = "Subtitles",
+        intrigue_header: str = None
     ) -> None:
         """
         Renders a Remotion composition with provided data.
@@ -26,8 +27,12 @@ class RemotionTool(BaseModelTool):
         data_dir.mkdir(exist_ok=True)
         input_json = data_dir / "input.json"
         
+        payload = {"words": words}
+        if intrigue_header:
+            payload["intrigueHeader"] = intrigue_header
+
         with open(input_json, "w", encoding="utf-8") as f:
-            json.dump({"words": data}, f, indent=2)
+            json.dump(payload, f, indent=2)
 
         Messenger.info(f"Rendering Remotion composition '{composition_id}'...")
         

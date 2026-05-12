@@ -31,7 +31,7 @@ const MoneyChart: React.FC<{ progress: number }> = ({ progress }) => {
   );
 };
 
-export const Subtitles: React.FC<{ words: Word[] }> = ({ words }) => {
+export const Subtitles: React.FC<{ words: Word[], intrigueHeader?: string }> = ({ words, intrigueHeader }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
@@ -48,6 +48,37 @@ export const Subtitles: React.FC<{ words: Word[] }> = ({ words }) => {
 
   return (
     <div style={{ flex: 1, backgroundColor: 'transparent', position: 'relative', overflow: 'hidden' }}>
+      
+      {/* Intrigue Header for Story Reels */}
+      {intrigueHeader && (
+        <div style={{
+          position: 'absolute',
+          top: 150,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: '#ff0000',
+          padding: '15px 40px',
+          borderRadius: '10px',
+          zIndex: 100,
+          boxShadow: '0 8px 20px rgba(0,0,0,0.6)',
+          border: '4px solid #FFFF00',
+          width: '80%',
+          textAlign: 'center'
+        }}>
+          <h1 style={{
+            color: '#ffffff',
+            fontFamily: 'Impact, sans-serif',
+            fontSize: 70,
+            textTransform: 'uppercase',
+            margin: 0,
+            lineHeight: 1.1,
+            textShadow: '3px 3px 0 #000'
+          }}>
+            {intrigueHeader}
+          </h1>
+        </div>
+      )}
+
       {phrases.map((phrase, pi) => {
         const startFrame = (phrase.start / 1000) * fps;
         const endFrame = (phrase.end / 1000) * fps;

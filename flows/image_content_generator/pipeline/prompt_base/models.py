@@ -93,6 +93,7 @@ class Scene(BaseModel):
 
 
 class VideoScript(BaseModel):
+    intrigue_header: Optional[str] = Field(default=None, description="Optional: A short, punchy 3-5 word phrase to persist at the top of the video (e.g., 'THE SECRET THEY HIDE', 'WAIT FOR THE END'). Required for Stories.")
     scenes: List[Scene]
     SCRIPT_PROMPT: ClassVar[str]
     CHUNK_INSTRUCTIONS: ClassVar[str] = constants.CHUNK_INSTRUCTIONS

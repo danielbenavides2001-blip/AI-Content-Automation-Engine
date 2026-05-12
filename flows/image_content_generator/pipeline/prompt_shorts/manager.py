@@ -13,37 +13,51 @@ from flows.image_content_generator.pipeline.prompt_shorts.finances import (
     constants as finance_constants,
 )
 from flows.image_content_generator.pipeline.prompt_shorts.finances.models import FinanceHandler, MindsetFinanceIdea, InteractionImageIdea
+from flows.image_content_generator.pipeline.prompt_shorts.stories.models import StoryHandler, StoryIdea
 from tools.common.messenger import Messenger
 from tools.text_generation.gemini import GeminiTextGenerator
 
 
 class PromptManagerShorts(BasePromptManager):
-    """Manager specific to Viral Stickman Finance Content (Videos & Riddles)."""
+    """Manager specific to Viral Content (Videos, Riddles, and Stories)."""
 
     AUDIO_PROMPT: str = finance_constants.AUDIO_PROMPT
 
     CATEGORIES: Sequence[Type[CategoryHandler]] = [
         FinanceHandler,
+        StoryHandler
     ]
 
     def generate_full_story(
         self, content_gen: GeminiTextGenerator, titles_to_avoid: list[str] = [], extra_avoid: str = ""
     ) -> Tuple[BaseIdea, VideoScript, str]:
         """
-        Executes the viral generation loop for either Video or Interaction Image.
+        Executes the viral generation loop for either Video, Interaction Image, or Story.
         """
-        category = "finances"
-        
-        # 1. Determinamos el modelo de idea basado en la intención del sistema
+        # Determine choice: Force from Env or Random
         force_type = os.getenv("FORCE_POST_TYPE")
         
-        if force_type == "2":
+        if force_type == "3":
+            category = "stories"
+            idea_model = StoryIdea
+        elif force_type == "2":
+            category = "finances"
             idea_model = InteractionImageIdea
         elif force_type == "1":
+            category = "finances"
             idea_model = MindsetFinanceIdea
         else:
-            # Si no hay fuerza, usamos el azar pero coordinado
-            idea_model = random.choice(FinanceHandler.idea_variants)
+            # Alternar entre historias y finanzas
+            choice = random.choice([1, 1, 3]) # Bias towards finances 2:1
+            if choice == 3:
+                category = "stories"
+                idea_model = StoryIdea
+            elif choice == 2:
+                category = "finances"
+                idea_model = InteractionImageIdea
+            else:
+                category = "finances"
+                idea_model = MindsetFinanceIdea
         
         idea_prompt = getattr(idea_model, "IDEA_PROMPT", finance_constants.IDEA_PROMPT_MINDSET)
 
@@ -63,13 +77,21 @@ class PromptManagerShorts(BasePromptManager):
         Messenger.info(f"🎞️ Series: {series_name} | Next Part: {next_part}")
 
         # 3. Idea Generation with Focus Area Diversity (NEW DIVERSITY ENGINE)
-        focus_areas = [
-            "BIOHACKING & LONGEVITY (Ayuno intermitente, nootrópicos, protocolos de sueño, optimización celular)",
-            "IA & PRODUCTIVIDAD (Side-hustles con IA, automatización de tareas, ahorro de tiempo, herramientas disruptivas)",
-            "FINANZAS DE GUERRILLA (Minimalismo financiero, inversión en micro-acciones, hacks de ahorro extremo)",
-            "PSICOLOGÍA OSCURA (Lenguaje corporal, detección de mentiras, red flags, persuasión en negocios)",
-            "URBAN HOMESTEADING & TECH (Huertos hidropónicos, energía solar DIY, sustentabilidad tecnológica)"
-        ]
+        if category == "stories":
+            focus_areas = [
+                "HISTORIAS DE REDDIT (Traiciones, venganzas empresariales, secretos familiares oscuros)",
+                "MISTERIOS HISTÓRICOS (Tesoros perdidos, desapariciones inexplicables, secretos de estado)",
+                "TRUE CRIME FINANCIERO (Estafas maestras, robos de identidad, hackers legendarios)",
+                "PARADOJAS Y MISTERIOS (Efecto mandela, coincidencias imposibles, historias reales que parecen ficción)"
+            ]
+        else:
+            focus_areas = [
+                "BIOHACKING & LONGEVITY (Ayuno intermitente, nootrópicos, protocolos de sueño, optimización celular)",
+                "IA & PRODUCTIVIDAD (Side-hustles con IA, automatización de tareas, ahorro de tiempo, herramientas disruptivas)",
+                "FINANZAS DE GUERRILLA (Minimalismo financiero, inversión en micro-acciones, hacks de ahorro extremo)",
+                "PSICOLOGÍA OSCURA (Lenguaje corporal, detección de mentiras, red flags, persuasión en negocios)",
+                "URBAN HOMESTEADING & TECH (Huertos hidropónicos, energía solar DIY, sustentabilidad tecnológica)"
+            ]
         # Eliminamos temporalmente 'Psicología' para forzar temas técnicos y frescos
         selected_area = random.choice(focus_areas)
         Messenger.info(f"🎯 Random Focus Area: {selected_area}")
