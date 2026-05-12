@@ -103,49 +103,30 @@ class PromptManagerShorts(BasePromptManager):
         )
 
         # 4. Viral Script / Content Generation
-        is_riddle = (idea_model == InteractionImageIdea)
-        Messenger.info(f"\n--- Generating Viral Content ({'RIDDLE' if is_riddle else 'VIDEO'}): {idea_data.title} ---")
+        Messenger.info(f"\n--- Generating Viral STORY Content: {idea_data.title} ---")
         
-        if is_riddle:
-            # Extraer el prompt real generado por la IA (ahora campo de primer nivel)
-            real_prompt = getattr(idea_data, "image_prompt", idea_data.title)
-            
-            script = VideoScript(
-                scenes=[{
-                    "scene_number": 1,
-                    "narration": "", 
-                    "image_prompt": real_prompt
-                }]
-            )
-        else:
-            full_script_prompt = (
-                finance_constants.SCRIPT_PROMPT + 
-                f"\n\nIDEA A DESARROLLAR: {idea_data.title}\n"
-                f"**ESTILO VISUAL OBLIGATORIO PARA ESTE VIDEO:** {selected_style}\n"
-                f"RECUERDA: Tono barítono, pausado, 4 escenas, personaje Stickman Blanco (minimalista)."
-            )
-            script = content_gen.generate_text(full_script_prompt, VideoScript)
+        full_script_prompt = (
+            story_constants.SCRIPT_PROMPT + 
+            f"\n\nIDEA A DESARROLLAR: {idea_data.title}\n"
+            f"**ESTILO VISUAL OBLIGATORIO PARA ESTE VIDEO:** {selected_style}\n"
+        )
+        script = content_gen.generate_text(full_script_prompt, VideoScript)
 
-            # --- BLINDAJE CONTRA BANEOS (TODO ES TODO) ---
-            # 1. Transparencia de IA (Mandatorio Meta 2026)
-            # 2. Descargo de Responsabilidad (Para nichos YMYL)
-            # 3. Firma Humana (Para evitar detección de Bot puro)
-            
-            transparency_footer = (
-                "\n\n---\n"
-                "💡 **Transparencia**: Este contenido ha sido conceptualizado y producido con el apoyo de Inteligencia Artificial para fines educativos y de entretenimiento. No constituye asesoría médica ni financiera profesional.\n\n"
-                "✨ Publicado por el equipo de EnigmaIQ.\n"
-                "#EnigmaIQ #HechoConIA #AIContent #Biohacking #Finanzas #Productividad"
-            )
-            
-            # Forzar el footer en el caption del idea_data (Blindaje)
-            # Usamos model_fields para evitar errores de Pydantic v2
-            if "caption" in idea_data.model_fields:
-                new_val = str(getattr(idea_data, "caption", "")) + transparency_footer
-                setattr(idea_data, "caption", new_val)
-            elif "hook" in idea_data.model_fields:
-                # Si no hay caption (como en videos), lo añadimos al hook que es lo que se publica
-                new_val = str(getattr(idea_data, "hook", "")) + transparency_footer
-                setattr(idea_data, "hook", new_val)
+        # --- BLINDAJE CONTRA BANEOS (TRANS-STORY) ---
+        transparency_footer = (
+            "\n\n---\n"
+            "💡 **Transparencia**: Este contenido narrativo ha sido producido con el apoyo de Inteligencia Artificial para fines de entretenimiento. Las historias pueden basarse en hechos reales, ficción o leyendas urbanas.\n\n"
+            "✨ Producido por el equipo de EnigmaIQ.\n"
+            "#EnigmaIQ #HechoConIA #Storytelling #Misterios #HistoriasAtrapantes"
+        )
+        
+        # Inyectar el footer en el caption o hook (Blindaje)
+        if "caption" in idea_data.model_fields:
+            new_val = str(getattr(idea_data, "caption", "")) + transparency_footer
+            setattr(idea_data, "caption", new_val)
+        elif "hook" in idea_data.model_fields:
+            new_val = str(getattr(idea_data, "hook", "")) + transparency_footer
+            setattr(idea_data, "hook", new_val)
+
 
         return idea_data, script, category
