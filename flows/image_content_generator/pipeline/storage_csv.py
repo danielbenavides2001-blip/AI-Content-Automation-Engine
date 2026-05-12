@@ -34,13 +34,28 @@ class CsvStore(CsvProcessor):
 
     def get_first_by_state(self, state: State) -> IdeaRaw | None:
         df = self.read_all()
-
-        # Simplified casting: single Any cast on the index to handle dynamic lookup
-        idx = cast(Any, df.index)[df[Column.STATE.value] == state.value]
-        if len(idx) == 0:
+        if df.empty:
             return None
 
-        return self.get_by_index(int(idx[0]))
+        # Filter by state
+        matching_rows = df[df[Column.STATE.value] == state.value]
+        if matching_rows.empty:
+            return None
+
+        # IMPORTANT: Verify that the folder actually exists!
+        # This prevents picking up 'stuck' ideas that were deleted by cleanup but remain in CSV
+        for _, row in matching_rows.iterrows():
+            idea_id = int(row[Column.ID.value])
+            # We assume the parent dir of the CSV is the out_base
+            out_base = self.path.parent
+            ideas_dir = out_base / "ideas"
+            folder_name = f"idea_{idea_id:06d}"
+            idea_path = ideas_dir / folder_name
+            
+            if idea_path.exists():
+                return self._map_row(row)
+        
+        return None
 
     def get_all_titles(self) -> list[str]:
         df = self.read_all()

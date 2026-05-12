@@ -22,7 +22,7 @@ class StickmanNoirManager(BasePromptManager):
         """
         Generates a complete Stickman Noir cycle: Idea + Script.
         """
-        # 1. Select Theme and Symbol (Originality Motor)
+        # 1. Select Theme
         themes = ["Autoengaño", "Envidia", "Ambición tóxica", "Procrastinación", "Duelo", "Validación externa", "Ego", "Disciplina", "Silencio", "Intuición"]
         selected_theme = random.choice(themes)
         
@@ -36,29 +36,33 @@ class StickmanNoirManager(BasePromptManager):
             avoid_msg=avoid_msg
         )
 
-        # 3. Generate Idea and Script in ONE call for maximum coherence
-        # We use VideoScript as the primary model, but we need it to include the Idea fields.
-        # Actually, let's just generate the JSON and parse it manually into both models.
-        
+        # 3. Generate and Parse
+        Messenger.info(f"   Generating Stickman Story with Theme: {selected_theme}...")
         raw_json = content_gen.generate(full_prompt)
         
-        # Clean JSON if it's wrapped in markdown
+        # DEBUG: Log raw response length
+        Messenger.info(f"   Raw JSON received (length: {len(raw_json)})")
+        
+        # Clean JSON
         clean_json = raw_json.strip()
-        if clean_json.startswith("```json"):
-            clean_json = clean_json[7:]
-        if clean_json.endswith("```"):
-            clean_json = clean_json[:-3]
-        clean_json = clean_json.strip()
-
-        # Parse into StickmanNoirIdea
-        idea_obj = StickmanNoirIdea.model_validate_json(clean_json)
+        if "```json" in clean_json:
+            clean_json = clean_json.split("```json")[1].split("```")[0].strip()
+        elif "```" in clean_json:
+            clean_json = clean_json.split("```")[1].split("```")[0].strip()
         
-        # Parse into VideoScript
-        script_obj = VideoScript.model_validate_json(clean_json)
-        
-        # Validation: Ensure exactly 4 scenes
-        if len(script_obj.scenes) != 4:
-            # Fallback or retry logic could go here, but for now we trust Gemini
-            pass
+        try:
+            # Parse into StickmanNoirIdea
+            idea_obj = StickmanNoirIdea.model_validate_json(clean_json)
+            # Parse into VideoScript
+            script_obj = VideoScript.model_validate_json(clean_json)
+            
+            if not script_obj.scenes or len(script_obj.scenes) == 0:
+                raise ValueError("Gemini returned a script with NO scenes.")
 
-        return idea_obj, script_obj
+            Messenger.success(f"   Stickman Story parsed successfully: {idea_obj.title} ({len(script_obj.scenes)} scenes)")
+            return idea_obj, script_obj
+            
+        except Exception as e:
+            Messenger.error(f"❌ Failed to parse Gemini Stickman JSON: {str(e)}")
+            Messenger.info(f"   Problematic JSON: {clean_json[:500]}...")
+            raise e

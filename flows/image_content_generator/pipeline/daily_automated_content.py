@@ -212,7 +212,9 @@ class DailyAutomator:
         try:
             import pandas as pd
             df = pd.read_csv(video_csv)
-            safe_states = ["UPLOADED", "COMPLETED", "SCRIPT_GENERATED", "IMAGES_GENERATED", "CLIPS_GENERATED", "AUDIO_GENERATED", "VIDEO_GENERATED"]
+            # Solo mantenemos como "seguros" los que ya están terminados o subidos
+            # Esto evita que ideas "atrapadas" en estados intermedios bloqueen nuevas ejecuciones
+            safe_states = ["UPLOADED", "COMPLETED"]
             valid_ids = df[df["state"].isin(safe_states)]["id"].tolist()
             
             for idea_path in ideas_dir.iterdir():
