@@ -76,7 +76,6 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add -f flows/image_content_generator/out_short/ideas_tracking.csv
-          git add .last_post_type
           git commit -m "chore: update state and tracking [skip ci]" || echo "No changes to commit"
           git pull --rebase origin main
           git push origin main || echo "No changes to push"
