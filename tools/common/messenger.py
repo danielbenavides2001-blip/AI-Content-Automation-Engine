@@ -15,10 +15,10 @@ class Messenger(BaseModel):
     @staticmethod
     def _safe_print(msg: str) -> None:
         try:
-            print(msg)
+            print(msg, flush=True)
         except UnicodeEncodeError:
             # Fallback for Windows consoles without UTF-8 support
-            print(msg.encode("ascii", "ignore").decode("ascii"))
+            print(msg.encode("ascii", "ignore").decode("ascii"), flush=True)
 
     @staticmethod
     def info(message: str) -> None:

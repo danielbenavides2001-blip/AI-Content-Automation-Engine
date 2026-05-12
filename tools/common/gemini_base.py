@@ -22,6 +22,7 @@ class GeminiUsage(BaseModelTool):
 
 class GeminiBase(BaseModelTool):
     _client: Client = PrivateAttr()
+    _location: str = PrivateAttr()
 
     @property
     def client(self) -> Client:
@@ -32,6 +33,7 @@ class GeminiBase(BaseModelTool):
         
         project_id = os.getenv("GCP_PROJECT_ID")
         location = os.getenv("GCP_LOCATION", "us-central1")
+        self._location = location
         api_key = os.getenv("GEMINI_API_KEY")
 
         if project_id:

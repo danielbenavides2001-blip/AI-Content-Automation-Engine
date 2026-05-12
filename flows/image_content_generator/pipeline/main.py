@@ -15,6 +15,7 @@ class PipelineStep(str, Enum):
     ALL = "all"
     STEP1 = "step1"
     STEP2 = "step2"
+    STEP2B = "step2b"
     STEP3 = "step3"
     STEP4 = "step4"
     STEP5 = "step5"
@@ -29,6 +30,7 @@ def main():
     parser.add_argument("orientation", type=VideoOrientation, choices=list(VideoOrientation))
     parser.add_argument("step", type=PipelineStep, choices=list(PipelineStep))
     parser.add_argument("--avoid", type=str, default="", help="List of topics to avoid")
+    parser.add_argument("--mode", type=str, default="standard", choices=["standard", "stickman"], help="Content generation mode")
     args = parser.parse_args()
 
     # Determine output base based on orientation
@@ -37,13 +39,15 @@ def main():
     pipeline = Pipeline(
         out_base=out_base,
         resource_base=RESOURCE_BASE,
-        orientation=args.orientation
+        orientation=args.orientation,
+        mode=args.mode
     )
 
     # Map Enum members to their corresponding pipeline methods
     step_methods = {
         PipelineStep.STEP1: pipeline.step1_generate_story,
         PipelineStep.STEP2: pipeline.step2_generate_images,
+        PipelineStep.STEP2B: pipeline.step2b_generate_video_clips,
         PipelineStep.STEP3: pipeline.step3_generate_audios,
         PipelineStep.STEP4: pipeline.step4_generate_videos,
         PipelineStep.STEP5: pipeline.step5_generate_subtitles,
@@ -61,7 +65,7 @@ def main():
         pipeline.step1_generate_story(extra_avoid=args.avoid)
         # We run PRO subtitles instead of standard if step is ALL
         steps_to_run = [
-            PipelineStep.STEP2, PipelineStep.STEP3, PipelineStep.STEP4,
+            PipelineStep.STEP2, PipelineStep.STEP2B, PipelineStep.STEP3, PipelineStep.STEP4,
             PipelineStep.STEP5_PRO, PipelineStep.STEP6, PipelineStep.STEP7, PipelineStep.STEP8
         ]
         for step in steps_to_run:

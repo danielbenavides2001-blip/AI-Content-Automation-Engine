@@ -170,48 +170,45 @@ class DailyAutomator:
                     raise e
 
     def run_daily_mix(self):
-        Messenger.info("🚀 Starting Daily Automated Content Picker (Stable Cycle)...")
+        Messenger.info("🚀 Starting Daily Automated Content Picker (STICKMAN ONLY)...")
         
-        # Determine choice: Force from Env or Cycle from file
-        force_type = os.getenv("FORCE_POST_TYPE")
-        state_file = Path(".last_post_type")
+        # We force choice 1 (Stickman Noir) as requested by the user
+        choice = 1
+        Messenger.info("🎬 GENERATING NEW STICKMAN NOIR (Steps 1-8)...")
+        avoid_msg = self.get_recent_topics()
         
-        if force_type and force_type.strip():
-            try:
-                choice = int(force_type)
-                Messenger.info(f"⚠️ Forcing post type from environment: {choice}")
-            except ValueError:
-                Messenger.warning(f"❌ Invalid FORCE_POST_TYPE '{force_type}'. Falling back to cycle.")
-                choice = None
-        else:
-            choice = None
+        # Pass the choice as FORCE_POST_TYPE to the subprocess
+        env = os.environ.copy()
+        env["FORCE_POST_TYPE"] = str(choice)
+        
+        try:
+            # Clean up stuck ideas before starting
+            self.cleanup_stuck_ideas()
 
-        if choice is None:
-            # DEFAULT: Historias Atrapantes (Choice 3)
-            choice = 3
+            cmd = [sys.executable, "-m", "flows.image_content_generator.pipeline.main", "short", "all", "--avoid", avoid_msg, "--mode", "stickman"]
+            subprocess.run(cmd, check=True, env=env)
             
-            # Guardar el nuevo estado
-            state_file.write_text(str(choice))
-            Messenger.info(f"🔄 Setting default post type to STORIES (Choice 3)")
+            Messenger.success("✅ Stickman Noir generation completed!")
+            self.sync_to_github()
+            
+        except Exception as e:
+            Messenger.error(f"Error during automated task: {e}")
+            sys.exit(1)
 
-        # --- NEW: CLEAR STUCK IDEAS ---
-        # Before running, we ensure no half-finished ideas exist in the 'ideas' folder
-        # to prevent reusing old/corrupt content.
+    def cleanup_stuck_ideas(self):
+        """
+        Cleans up incomplete ideas to prevent redundancy.
+        """
         Messenger.info("🧹 Cleaning up stuck or incomplete ideas...")
         ideas_dir = Path("flows/image_content_generator/out_short/ideas")
         if ideas_dir.exists():
             import shutil
-            # We check the ideas_tracking.csv to see what's NOT COMPLETED or UPLOADED
             video_csv = Path("flows/image_content_generator/out_short/ideas_tracking.csv")
-            tracking_titles = []
             if video_csv.exists():
                 try:
                     import pandas as pd
                     df = pd.read_csv(video_csv)
-                    # We keep track of titles but we'll be aggressive: 
-                    # If it's not in a valid state, we consider it a failed attempt.
-                    # States like SCRIPT_GENERATED, IMAGES_GENERATED, etc. are VALID if the pipeline is running.
-                    safe_states = ["UPLOADED", "COMPLETED", "SCRIPT_GENERATED", "IMAGES_GENERATED", "AUDIO_GENERATED", "VIDEO_GENERATED"]
+                    safe_states = ["UPLOADED", "COMPLETED", "SCRIPT_GENERATED", "IMAGES_GENERATED", "CLIPS_GENERATED", "AUDIO_GENERATED", "VIDEO_GENERATED"]
                     valid_ids = df[df["state"].isin(safe_states)]["id"].tolist()
                     
                     for idea_path in ideas_dir.iterdir():
@@ -225,29 +222,6 @@ class DailyAutomator:
                                 pass
                 except Exception as e:
                     Messenger.warning(f"Could not parse tracking CSV for cleanup: {e}")
-
-
-        try:
-            if choice == 0 or choice == 2:
-                # Interaction or regular image
-                Messenger.info("🧩 GENERATING INTERACTION IMAGE POST...")
-                self.generate_daily_image_post()
-            elif choice == 1 or choice == 3:
-                # Video generation (Standard or Story)
-                mode_name = "STORY REEL" if choice == 3 else "STANDARD REEL"
-                Messenger.info(f"🎬 GENERATING NEW {mode_name} (Steps 1-8)...")
-                avoid_msg = self.get_recent_topics()
-                
-                # Pass the choice as FORCE_POST_TYPE to the subprocess
-                env = os.environ.copy()
-                env["FORCE_POST_TYPE"] = str(choice)
-                
-                subprocess.run([sys.executable, "-m", "flows.image_content_generator.pipeline.main", "short", "all", "--avoid", avoid_msg], check=True, env=env)
-            else:
-                Messenger.warning(f"❓ Unknown choice {choice}. No action taken.")
-            
-            Messenger.success("✅ Automated task execution completed!")
-            self.sync_to_github()
             
         except Exception as e:
             Messenger.error(f"Error during automated task: {e}")

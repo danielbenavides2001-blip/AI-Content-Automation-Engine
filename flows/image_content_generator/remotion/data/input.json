@@ -1,0 +1,614 @@
+{
+  "words": [
+    {
+      "text": "Vivimos",
+      "start": 0,
+      "end": 940
+    },
+    {
+      "text": "persiguiendo",
+      "start": 940,
+      "end": 1960
+    },
+    {
+      "text": "ecos",
+      "start": 1960,
+      "end": 2440
+    },
+    {
+      "text": "en",
+      "start": 2440,
+      "end": 2740
+    },
+    {
+      "text": "miradas",
+      "start": 2740,
+      "end": 3280
+    },
+    {
+      "text": "ajenas,",
+      "start": 3280,
+      "end": 3900
+    },
+    {
+      "text": "una",
+      "start": 4420,
+      "end": 4740
+    },
+    {
+      "text": "confirmaci\u00f3n",
+      "start": 4740,
+      "end": 5700
+    },
+    {
+      "text": "en",
+      "start": 5700,
+      "end": 5980
+    },
+    {
+      "text": "aplausos",
+      "start": 5980,
+      "end": 6800
+    },
+    {
+      "text": "vac\u00edos.",
+      "start": 6800,
+      "end": 7540
+    },
+    {
+      "text": "Nuestra",
+      "start": 8280,
+      "end": 8800
+    },
+    {
+      "text": "br\u00fajula",
+      "start": 8800,
+      "end": 9380
+    },
+    {
+      "text": "interna",
+      "start": 9380,
+      "end": 10080
+    },
+    {
+      "text": "se",
+      "start": 10080,
+      "end": 10260
+    },
+    {
+      "text": "silencia,",
+      "start": 10260,
+      "end": 11120
+    },
+    {
+      "text": "cediendo",
+      "start": 11580,
+      "end": 12200
+    },
+    {
+      "text": "a",
+      "start": 12200,
+      "end": 12420
+    },
+    {
+      "text": "la",
+      "start": 12420,
+      "end": 12520
+    },
+    {
+      "text": "aprobaci\u00f3n",
+      "start": 12520,
+      "end": 13300
+    },
+    {
+      "text": "externa.",
+      "start": 13300,
+      "end": 14360
+    },
+    {
+      "text": "As\u00ed",
+      "start": 15040,
+      "end": 15440
+    },
+    {
+      "text": "nos",
+      "start": 15440,
+      "end": 16100
+    },
+    {
+      "text": "desdibujamos,",
+      "start": 16100,
+      "end": 17280
+    },
+    {
+      "text": "buscando",
+      "start": 17780,
+      "end": 18280
+    },
+    {
+      "text": "ser",
+      "start": 18280,
+      "end": 18800
+    },
+    {
+      "text": "el",
+      "start": 18800,
+      "end": 18980
+    },
+    {
+      "text": "reflejo",
+      "start": 18980,
+      "end": 19760
+    },
+    {
+      "text": "de",
+      "start": 19760,
+      "end": 19980
+    },
+    {
+      "text": "otros.",
+      "start": 19980,
+      "end": 20400
+    },
+    {
+      "text": "El",
+      "start": 21460,
+      "end": 21820
+    },
+    {
+      "text": "mundo,",
+      "start": 21820,
+      "end": 22300
+    },
+    {
+      "text": "con",
+      "start": 22720,
+      "end": 22960
+    },
+    {
+      "text": "su",
+      "start": 22960,
+      "end": 23180
+    },
+    {
+      "text": "incesante",
+      "start": 23180,
+      "end": 23960
+    },
+    {
+      "text": "flujo",
+      "start": 23960,
+      "end": 24660
+    },
+    {
+      "text": "de",
+      "start": 24660,
+      "end": 24780
+    },
+    {
+      "text": "juicios,",
+      "start": 24780,
+      "end": 25340
+    },
+    {
+      "text": "levanta",
+      "start": 25960,
+      "end": 26500
+    },
+    {
+      "text": "pedestales",
+      "start": 26500,
+      "end": 27340
+    },
+    {
+      "text": "invisibles.",
+      "start": 27340,
+      "end": 28380
+    },
+    {
+      "text": "Nos",
+      "start": 28380,
+      "end": 29420
+    },
+    {
+      "text": "invita",
+      "start": 29420,
+      "end": 30140
+    },
+    {
+      "text": "a",
+      "start": 30140,
+      "end": 30340
+    },
+    {
+      "text": "subir,",
+      "start": 30340,
+      "end": 30720
+    },
+    {
+      "text": "prometiendo",
+      "start": 31280,
+      "end": 32060
+    },
+    {
+      "text": "un",
+      "start": 32060,
+      "end": 32380
+    },
+    {
+      "text": "valor",
+      "start": 32380,
+      "end": 32780
+    },
+    {
+      "text": "que",
+      "start": 32780,
+      "end": 33140
+    },
+    {
+      "text": "nunca",
+      "start": 33140,
+      "end": 33640
+    },
+    {
+      "text": "reside",
+      "start": 33640,
+      "end": 34460
+    },
+    {
+      "text": "fuera.",
+      "start": 34460,
+      "end": 35080
+    },
+    {
+      "text": "Nos",
+      "start": 35760,
+      "end": 36100
+    },
+    {
+      "text": "atrapa",
+      "start": 36100,
+      "end": 36800
+    },
+    {
+      "text": "en",
+      "start": 36800,
+      "end": 36940
+    },
+    {
+      "text": "su",
+      "start": 36940,
+      "end": 37140
+    },
+    {
+      "text": "juego",
+      "start": 37140,
+      "end": 37660
+    },
+    {
+      "text": "de",
+      "start": 37660,
+      "end": 37880
+    },
+    {
+      "text": "apariencias.",
+      "start": 37880,
+      "end": 38900
+    },
+    {
+      "text": "Pero",
+      "start": 40080,
+      "end": 40520
+    },
+    {
+      "text": "una",
+      "start": 40520,
+      "end": 40900
+    },
+    {
+      "text": "grieta",
+      "start": 40900,
+      "end": 41540
+    },
+    {
+      "text": "se",
+      "start": 41540,
+      "end": 41860
+    },
+    {
+      "text": "abre,",
+      "start": 41860,
+      "end": 42260
+    },
+    {
+      "text": "la",
+      "start": 43020,
+      "end": 43180
+    },
+    {
+      "text": "voz",
+      "start": 43180,
+      "end": 43520
+    },
+    {
+      "text": "interna,",
+      "start": 43520,
+      "end": 44320
+    },
+    {
+      "text": "casi",
+      "start": 44680,
+      "end": 45040
+    },
+    {
+      "text": "olvidada,",
+      "start": 45040,
+      "end": 45880
+    },
+    {
+      "text": "susurra.",
+      "start": 46300,
+      "end": 47060
+    },
+    {
+      "text": "Tu",
+      "start": 47820,
+      "end": 47960
+    },
+    {
+      "text": "valor",
+      "start": 47960,
+      "end": 48380
+    },
+    {
+      "text": "no",
+      "start": 48380,
+      "end": 48820
+    },
+    {
+      "text": "es",
+      "start": 48820,
+      "end": 49200
+    },
+    {
+      "text": "una",
+      "start": 49200,
+      "end": 49420
+    },
+    {
+      "text": "moneda",
+      "start": 49420,
+      "end": 50000
+    },
+    {
+      "text": "que",
+      "start": 50000,
+      "end": 50480
+    },
+    {
+      "text": "el",
+      "start": 50480,
+      "end": 50720
+    },
+    {
+      "text": "mundo",
+      "start": 50720,
+      "end": 51100
+    },
+    {
+      "text": "otorga",
+      "start": 51100,
+      "end": 51900
+    },
+    {
+      "text": "o",
+      "start": 51900,
+      "end": 52180
+    },
+    {
+      "text": "quita.",
+      "start": 52180,
+      "end": 52600
+    },
+    {
+      "text": "Es",
+      "start": 52600,
+      "end": 53480
+    },
+    {
+      "text": "un",
+      "start": 53480,
+      "end": 53760
+    },
+    {
+      "text": "ancla,",
+      "start": 53760,
+      "end": 54360
+    },
+    {
+      "text": "no",
+      "start": 54900,
+      "end": 55040
+    },
+    {
+      "text": "una",
+      "start": 55040,
+      "end": 55360
+    },
+    {
+      "text": "vela,",
+      "start": 55360,
+      "end": 55940
+    },
+    {
+      "text": "a",
+      "start": 56000,
+      "end": 56100
+    },
+    {
+      "text": "merced",
+      "start": 56100,
+      "end": 56660
+    },
+    {
+      "text": "de",
+      "start": 56660,
+      "end": 57020
+    },
+    {
+      "text": "vientos",
+      "start": 57020,
+      "end": 57560
+    },
+    {
+      "text": "externos.",
+      "start": 57560,
+      "end": 58780
+    },
+    {
+      "text": "La",
+      "start": 59400,
+      "end": 59620
+    },
+    {
+      "text": "aut\u00e9ntica",
+      "start": 59620,
+      "end": 60520
+    },
+    {
+      "text": "luz",
+      "start": 60520,
+      "end": 60840
+    },
+    {
+      "text": "no",
+      "start": 60840,
+      "end": 61520
+    },
+    {
+      "text": "viene",
+      "start": 61520,
+      "end": 61980
+    },
+    {
+      "text": "de",
+      "start": 61980,
+      "end": 62220
+    },
+    {
+      "text": "un",
+      "start": 62220,
+      "end": 62440
+    },
+    {
+      "text": "foco",
+      "start": 62440,
+      "end": 62980
+    },
+    {
+      "text": "externo,",
+      "start": 62980,
+      "end": 63900
+    },
+    {
+      "text": "surge",
+      "start": 64440,
+      "end": 64780
+    },
+    {
+      "text": "de",
+      "start": 64780,
+      "end": 65180
+    },
+    {
+      "text": "dentro,",
+      "start": 65180,
+      "end": 65800
+    },
+    {
+      "text": "c\u00e1lida",
+      "start": 66280,
+      "end": 66980
+    },
+    {
+      "text": "e",
+      "start": 66980,
+      "end": 67480
+    },
+    {
+      "text": "inquebrantable.",
+      "start": 67480,
+      "end": 68800
+    },
+    {
+      "text": "Recon\u00f3cela,",
+      "start": 69620,
+      "end": 70700
+    },
+    {
+      "text": "abr\u00e1zala,",
+      "start": 71160,
+      "end": 71980
+    },
+    {
+      "text": "porque",
+      "start": 72760,
+      "end": 72940
+    },
+    {
+      "text": "solo",
+      "start": 72940,
+      "end": 73360
+    },
+    {
+      "text": "entonces",
+      "start": 73360,
+      "end": 74180
+    },
+    {
+      "text": "el",
+      "start": 74180,
+      "end": 74960
+    },
+    {
+      "text": "eco",
+      "start": 74960,
+      "end": 75360
+    },
+    {
+      "text": "de",
+      "start": 75360,
+      "end": 75540
+    },
+    {
+      "text": "tu",
+      "start": 75540,
+      "end": 75740
+    },
+    {
+      "text": "propia",
+      "start": 75740,
+      "end": 76300
+    },
+    {
+      "text": "verdad",
+      "start": 76300,
+      "end": 76820
+    },
+    {
+      "text": "se",
+      "start": 76820,
+      "end": 77520
+    },
+    {
+      "text": "volver\u00e1",
+      "start": 77520,
+      "end": 78240
+    },
+    {
+      "text": "ensordecedor.",
+      "start": 78240,
+      "end": 79620
+    }
+  ]
+}

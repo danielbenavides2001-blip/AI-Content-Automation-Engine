@@ -87,6 +87,17 @@ class CsvStore(CsvProcessor):
         }
         self.update_row(row_index, row_data)
 
+    def update_state(self, idea_id: int, state: State) -> None:
+        df = self.read_all()
+        idx = cast(Any, df.index)[df[Column.ID.value] == idea_id]
+        if len(idx) == 0:
+            raise ValueError(f"No idea found in storage with ID: {idea_id}")
+        
+        row_index = int(idx[0])
+        row_data = df.iloc[row_index].to_dict()
+        row_data[Column.STATE.value] = state.value
+        self.update_row(row_index, row_data)
+
     def _map_row(self, row: Any) -> IdeaRaw:
         idea_id = int(row[Column.ID.value])
 

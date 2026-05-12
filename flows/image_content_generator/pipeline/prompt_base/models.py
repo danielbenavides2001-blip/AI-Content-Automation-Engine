@@ -14,7 +14,13 @@ class BaseIdea(BaseModel):
     """
     title: str = Field(description="Título creativo y descriptivo de la idea")
     hook: str = Field(description="Gancho de interrupción (10-15 palabras) para detener el scroll")
-    IDEA_PROMPT: ClassVar[str]
+    IDEA_PROMPT: ClassVar[str] = ""
+
+
+class StickmanNoirIdea(BaseIdea):
+    selected_theme: str = Field(description="El eje temático de psicología conductual elegido")
+    selected_symbol: str = Field(description="El símbolo visual noir elegido")
+    category: str = "stickman_noir"
 
     @classmethod
     def get_json_format_instructions(cls) -> str:
@@ -91,6 +97,7 @@ class Scene(BaseModel):
     scene_number: int = Field(description="Sequential number of the scene (Integer)")
     image_prompt: str = Field(description="Physical description and style in ENGLISH. Use a unified block of text.")
     narration: str = Field(description="Spoken narration for this scene in SPANISH (LATAM)")
+    movement_instruction: Optional[str] = Field(default=None, description="Instructions for video animation/movement")
 
 
 class VideoScript(BaseModel):

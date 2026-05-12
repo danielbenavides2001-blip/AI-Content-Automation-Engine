@@ -7,6 +7,7 @@ from pydantic import BaseModel, PrivateAttr
 from flows.image_content_generator.pipeline.prompt_base.models import VideoScript
 from flows.image_content_generator.pipeline.prompt_longs.manager import PromptManagerLongs
 from flows.image_content_generator.pipeline.prompt_shorts.manager import PromptManagerShorts
+from flows.image_content_generator.pipeline.prompt_shorts.stories.stickman_manager import StickmanNoirManager
 from flows.image_content_generator.pipeline.schemas import AudioAlignment, State, VideoOrientation
 from flows.image_content_generator.pipeline.storage_csv import CsvStore
 from tools.audio_generation.audio_tool import AudioTool
@@ -21,9 +22,11 @@ from tools.text_generation.gemini import GeminiTextGenerator
 from tools.utils.text import slugify
 from tools.utils.time import retry
 from tools.social_media.facebook import FacebookTool
+from tools.video_generation.gemini import GeminiVideoGenerator
 from tools.video_editing.ffmpeg import FFmpegTool
 from tools.video_editing.whisper import WhisperTool
 from tools.video_editing.remotion import RemotionTool
+from tools.common.cost_tracker import CostTracker
 
 T = TypeVar("T", bound=BaseModel)
 PromptManager = Union[PromptManagerShorts, PromptManagerLongs]
@@ -37,6 +40,7 @@ class Pipeline(BaseModelTool):
     out_base: Path
     resource_base: Path
     orientation: VideoOrientation
+    mode: str = "standard"
 
     _text_gen: Optional[GeminiTextGenerator] = PrivateAttr(default=None)
     _image_gen: Optional[Union[GeminiImageGenerator, VertexAIImageGenerator]] = PrivateAttr(default=None)
@@ -44,15 +48,19 @@ class Pipeline(BaseModelTool):
     _ffmpeg: Optional[FFmpegTool] = PrivateAttr(default=None)
     _whisper: Optional[WhisperTool] = PrivateAttr(default=None)
     _prompt_manager: Optional[PromptManager] = PrivateAttr(default=None)
+    _stickman_manager: Optional[StickmanNoirManager] = PrivateAttr(default=None)
     _audio_tool: Optional[AudioTool] = PrivateAttr(default=None)
     _store: Optional[CsvStore] = PrivateAttr(default=None)
     _facebook: Optional[FacebookTool] = PrivateAttr(default=None)
     _remotion: Optional[Any] = PrivateAttr(default=None)
+    _video_gen: Optional[Any] = PrivateAttr(default=None)
+    _cost_tracker: Optional[Any] = PrivateAttr(default=None)
 
     # Standard Output Directories
     IDEAS_DIR: ClassVar[str] = "ideas"
     IMAGES_DIR: ClassVar[str] = "images"
     AUDIOS_DIR: ClassVar[str] = "audios"
+    CLIPS_DIR: ClassVar[str] = "clips"
     VIDEOS_DIR: ClassVar[str] = "videos"
     EDITIONS_DIR: ClassVar[str] = "editions"
     REMOTION_DIR: ClassVar[str] = "flows/image_content_generator/remotion"
@@ -139,6 +147,24 @@ class Pipeline(BaseModelTool):
         if self._ffmpeg is None:
             self._ffmpeg = FFmpegTool()
         return self._ffmpeg
+
+    @property
+    def video_gen(self) -> GeminiVideoGenerator:
+        if self._video_gen is None:
+            self._video_gen = GeminiVideoGenerator()
+        return self._video_gen
+
+    @property
+    def cost_tracker(self) -> CostTracker:
+        if self._cost_tracker is None:
+            self._cost_tracker = CostTracker()
+        return self._cost_tracker
+
+    @property
+    def stickman_manager(self) -> StickmanNoirManager:
+        if self._stickman_manager is None:
+            self._stickman_manager = StickmanNoirManager()
+        return self._stickman_manager
 
     @property
     def whisper(self) -> WhisperTool:
@@ -252,60 +278,64 @@ class Pipeline(BaseModelTool):
         Generate Concept & Script: Creates a cinematic idea and expands it into a storyboard.
         A/B TESTING (Fase 3): Generates two versions (A and B) with different hooks.
         """
-        Messenger.info("\n--- Generating cinematic concept and script (A/B Split) ---")
+        Messenger.info(f"\n--- Generating cinematic concept and script ({self.mode.upper()} mode) ---")
 
         # Merge tracking CSV titles with extra avoid list
         titles = self.store.get_all_titles()
 
-        # 1. Generates full story (Concept + Script) for Version A
-        idea_data, script, category = self.prompt_manager.generate_full_story(
-            self.text_gen, titles_to_avoid=titles, extra_avoid=extra_avoid
-        )
+        # 1. Selection of Manager based on mode
+        if self.mode == "stickman":
+            idea_data, script = self.stickman_manager.generate_full_story(
+                self.text_gen, titles_to_avoid=titles, extra_avoid=extra_avoid
+            )
+            category = "stickman_noir"
+        else:
+            idea_data, script, category = self.prompt_manager.generate_full_story(
+                self.text_gen, titles_to_avoid=titles, extra_avoid=extra_avoid
+            )
+
+        # Cost tracking (approx 2000 tokens)
+        self.cost_tracker.add_text_cost(2000)
 
         # --- FASE 3: A/B TESTING (Generar Gancho B) ---
-        Messenger.info("   Generating alternative Hook B...")
-        prompt_b = f"""
-        Tienes el siguiente guion de video:
-        Título: {idea_data.title}
-        Gancho A (Original): {script.scenes[0].narration}
+        # Skip A/B testing for stickman for now to keep it simple and focused on quality
+        if self.mode != "stickman":
+            Messenger.info("   Generating alternative Hook B...")
+            prompt_b = f"""
+            Tienes el siguiente guion de video:
+            Título: {idea_data.title}
+            Gancho A (Original): {script.scenes[0].narration}
 
-        Escribe un NUEVO GANCHO (Escena 1) completamente diferente. 
-        Si el original era agresivo/directo, haz este curioso/misterioso (o viceversa).
-        Debe durar máximo 3 segundos (15 palabras).
-        Responde SOLO con el texto narrativo del nuevo gancho, sin comillas ni texto extra.
-        """
-        try:
-            alt_hook_text = self.text_gen.generate(prompt_b).strip()
-            
+            Escribe un NUEVO GANCHO (Escena 1) completamente diferente. 
+            Si el original era agresivo/directo, haz este curioso/misterioso (o viceversa).
+            Debe durar máximo 3 segundos (15 palabras).
+            Responde SOLO con el texto narrativo del nuevo gancho, sin comillas ni texto extra.
+            """
+            hook_b = self.text_gen.generate(prompt_b)
+            self.cost_tracker.add_text_cost(200)
+
+            # Create alternative version B
             import copy
-            idea_b_data = copy.deepcopy(idea_data)
             script_b = copy.deepcopy(script)
-            
-            # Modificar la Versión B
-            idea_b_data.title = f"{idea_data.title} [Hook B]"
-            if "hook" in idea_b_data.model_fields:
-                setattr(idea_b_data, "hook", alt_hook_text)
-            script_b.scenes[0].narration = alt_hook_text
-            script_b.scenes[0].image_prompt = f"Variation B: {script_b.scenes[0].image_prompt}"
+            script_b.scenes[0].narration = hook_b
 
-            # 2. Registra y guarda IDEA B (Se registrará con un ID distinto)
-            idea_obj_b = self.store.add_new_idea(idea_b_data.title, category)
-            self.save_json(idea_obj_b.id, self.IDEA_JSON, idea_b_data)
+            idea_b = copy.deepcopy(idea_data)
+            idea_b.title = f"{idea_data.title} [Hook B]"
+
+            # Save Idea B
+            idea_obj_b = self.store.add_new_idea(idea_b.title, category)
+            self.save_json(idea_obj_b.id, self.IDEA_JSON, idea_b)
             self.save_json(idea_obj_b.id, self.SCRIPT_JSON, script_b)
-            idea_obj_b.state = State.SCRIPT_GENERATED
-            self.store.save(idea_obj_b)
-            Messenger.success(f"   Hook B generated and queued as Idea {idea_obj_b.id}.")
-        except Exception as e:
-            Messenger.warning(f"Failed to generate Hook B: {e}")
+            self.store.update_state(idea_obj_b.id, State.SCRIPT_GENERATED)
+            Messenger.info(f"   Hook B generated and queued as Idea {idea_obj_b.id}.")
 
-        # 3. Registra y guarda IDEA A (Original)
+        # Save Idea A (or the only one if stickman)
         idea_obj_a = self.store.add_new_idea(idea_data.title, category)
         self.save_json(idea_obj_a.id, self.IDEA_JSON, idea_data)
         self.save_json(idea_obj_a.id, self.SCRIPT_JSON, script)
-        idea_obj_a.state = State.SCRIPT_GENERATED
-        self.store.save(idea_obj_a)
-        
-        Messenger.success(f"Step 1 ready: {State.SCRIPT_GENERATED} finalized (A/B Test Created).\n")
+        self.store.update_state(idea_obj_a.id, State.SCRIPT_GENERATED)
+
+        Messenger.success(f"   Step 1 ready: State.SCRIPT_GENERATED finalized.")
 
     def step2_generate_images(self):
         """
@@ -348,11 +378,76 @@ class Pipeline(BaseModelTool):
 
         # Generate all frames
         self.image_gen.generate_images(tasks)
+        self.cost_tracker.add_image_cost(len(tasks))
 
         # Update State
         idea_obj.state = State.IMAGES_GENERATED
         self.store.save(idea_obj)
         Messenger.success(f"Step 2 ready: {State.IMAGES_GENERATED} finalized.\n")
+
+    def step2b_generate_video_clips(self):
+        """
+        Step 2b: AI Video Generation (Veo 3.1).
+        Converts static images into 5-second video clips based on movement instructions.
+        Includes safety checks and retries to avoid wasting credits on corrupt assets.
+        """
+        idea_obj = self.store.get_first_by_state(State.IMAGES_GENERATED)
+        if not idea_obj:
+            Messenger.warning("Step 2b skipped: No idea in IMAGES_GENERATED state.")
+            return
+
+        if self.mode != "stickman":
+            Messenger.info("Step 2b skipped: Only for STICKMAN mode. Moving to AUDIO.")
+            idea_obj.state = State.CLIPS_GENERATED
+            self.store.save(idea_obj)
+            return
+
+        Messenger.info(f"\n--- Step 2b started: Generating AI Video Clips for '{idea_obj.title}' ---")
+        script = self.load_json(idea_obj.id, self.SCRIPT_JSON, VideoScript)
+
+        for scene in script.scenes:
+            clip_filename = self.SCENE_VIDEO_PATTERN.format(scene.scene_number)
+            clip_path = self.get_idea_asset_path(idea_obj.id, self.CLIPS_DIR, clip_filename)
+            img_filename = f"scene_{scene.scene_number:02d}.png"
+            img_path = self.get_idea_asset_path(idea_obj.id, self.IMAGES_DIR, img_filename)
+
+            # 1. Safety Check: Verify Image
+            if not img_path.exists() or img_path.stat().st_size < 1024:
+                Messenger.error(f"   ❌ Scene {scene.scene_number} image is missing or corrupt. CRITICAL FAILURE.")
+                return # Stop pipeline to avoid wasting credits on subsequent steps
+
+            if clip_path.exists() and clip_path.stat().st_size > 10240:
+                Messenger.info(f"   Scene {scene.scene_number} clip already exists and is valid. Skipping.")
+                continue
+
+            # 2. Movement instruction fallback
+            move_prompt = scene.movement_instruction or "Slow cinematic movement, subtle animation, noir style."
+            
+            # 3. Generation with Retry Logic (Internal)
+            success = False
+            for attempt in range(3):
+                try:
+                    Messenger.info(f"   🎬 Generating Video Clip for Scene {scene.scene_number} (Attempt {attempt+1}/3)...")
+                    self.video_gen.generate_video(
+                        prompt=move_prompt,
+                        out_path=str(clip_path),
+                        img_start_path=str(img_path)
+                    )
+                    self.cost_tracker.add_video_cost(1)
+                    success = True
+                    break
+                except Exception as e:
+                    Messenger.warning(f"   ⚠️ Attempt {attempt+1} failed: {e}")
+                    import time
+                    time.sleep(5) # Cooldown
+            
+            if not success:
+                Messenger.error(f"   ❌ Failed to generate clip for Scene {scene.scene_number} after 3 attempts. Stopping pipeline.")
+                return
+
+        idea_obj.state = State.CLIPS_GENERATED
+        self.store.save(idea_obj)
+        Messenger.success(f"Step 2b ready: {State.CLIPS_GENERATED} finalized.\n")
 
     @retry(max_attempts=3)
     def step3_generate_audios(self):
@@ -360,9 +455,11 @@ class Pipeline(BaseModelTool):
         Generate Audio: Batched AI-Guided Batching (Whisper + Gemini).
         Processes scenes in groups of 10 for maximum stability and alignment precision.
         """
-        idea_obj = self.store.get_first_by_state(State.IMAGES_GENERATED)
+        # En modo stickman, esperamos a CLIPS_GENERATED. En estándar, IMAGES_GENERATED es suficiente.
+        target_state = State.CLIPS_GENERATED if self.mode == "stickman" else State.IMAGES_GENERATED
+        idea_obj = self.store.get_first_by_state(target_state)
         if not idea_obj:
-            Messenger.error("No images ready for audio generation.")
+            Messenger.error(f"No ideas ready for audio generation (target: {target_state}).")
             return
 
         Messenger.info("\n--- Generating batched audio for the script ---")
@@ -404,6 +501,7 @@ class Pipeline(BaseModelTool):
                 chunk_text = "\n\n".join([s.narration for s in chunk])
                 formatted_audio = self.prompt_manager.get_audio_prompt(chunk_text)
                 self.audio_gen.text_to_speech(formatted_audio, chunk_audio_path)
+                self.cost_tracker.add_audio_cost(len(formatted_audio))
 
                 # 3. Transcribe chunk
                 Messenger.info(f"Transcribing Batch {batch_num} for alignment...")
@@ -532,22 +630,21 @@ class Pipeline(BaseModelTool):
         for i, scene in enumerate(script_data.scenes):
             scene_num = getattr(scene, 'scene_number', i + 1)
             
-            # Check multiple naming patterns for images
-            possible_names = [
-                f"scene_{scene_num:02d}_frame_01.png",
-                f"scene_{scene_num:02d}.png",
-                f"scene_{scene_num}.png"
+            # Check multiple naming patterns for source (Video clips first, then images)
+            possible_sources = [
+                self.get_idea_asset_path(idea_obj.id, self.CLIPS_DIR, self.SCENE_VIDEO_PATTERN.format(scene_num)),
+                self.get_idea_asset_path(idea_obj.id, self.IMAGES_DIR, f"scene_{scene_num:02d}.png"),
+                self.get_idea_asset_path(idea_obj.id, self.IMAGES_DIR, f"scene_{scene_num}.png")
             ]
             
             source_path = None
-            for name in possible_names:
-                p = self.get_idea_asset_path(idea_obj.id, self.IMAGES_DIR, name)
+            for p in possible_sources:
                 if p.exists():
                     source_path = p
                     break
             
             if not source_path:
-                Messenger.error(f"Missing image for Scene {scene_num}. Skipping.")
+                Messenger.error(f"Missing source (image/clip) for Scene {scene_num}. Skipping.")
                 continue
 
             audio_seg = self.get_idea_asset_path(idea_obj.id, self.AUDIOS_DIR, self.SCENE_AUDIO_PATTERN.format(scene_num))
@@ -779,6 +876,9 @@ class Pipeline(BaseModelTool):
         idea_obj.state = State.COMPLETED
         self.store.save(idea_obj)
         Messenger.success(f"Step 7 ready: {State.COMPLETED} finalized.\n")
+        
+        # FINAL COST REPORT
+        self.cost_tracker.report()
 
     def generate_facebook_description(self, title: str) -> str:
         """
