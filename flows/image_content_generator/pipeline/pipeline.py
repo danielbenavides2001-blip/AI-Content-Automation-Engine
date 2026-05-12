@@ -2,6 +2,7 @@
 from pathlib import Path
 from typing import Any, ClassVar, List, Optional, Type, TypeVar, Union
 import concurrent.futures
+import subprocess
 
 from pydantic import BaseModel, PrivateAttr
 
@@ -440,8 +441,17 @@ class Pipeline(BaseModelTool):
                     import time
                     time.sleep(5) # Cooldown
             
-            Messenger.error(f"   ❌ Failed to generate clip for Scene {scene.scene_number} after 3 attempts.")
-            return False
+            Messenger.error(f"   ❌ Failed to generate AI clip for Scene {scene.scene_number}. Using static image fallback via FFmpeg.")
+            try:
+                subprocess.run(
+                    ["ffmpeg", "-loop", "1", "-i", str(img_path), "-c:v", "libx264", "-t", "6", "-pix_fmt", "yuv420p", "-y", str(clip_path)],
+                    check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+                )
+                Messenger.info(f"   ✅ Generated static video fallback for Scene {scene.scene_number}.")
+                return True
+            except Exception as ffmpeg_e:
+                Messenger.error(f"   ❌ FFmpeg fallback also failed: {ffmpeg_e}")
+                return False
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
             results = list(executor.map(process_scene, script.scenes))
