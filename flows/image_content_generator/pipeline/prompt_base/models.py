@@ -1,6 +1,6 @@
 import json
 import random
-from typing import Any, ClassVar, Dict, List, Sequence, Type
+from typing import Any, ClassVar, Dict, List, Optional, Sequence, Type
 
 from pydantic import BaseModel, Field
 
