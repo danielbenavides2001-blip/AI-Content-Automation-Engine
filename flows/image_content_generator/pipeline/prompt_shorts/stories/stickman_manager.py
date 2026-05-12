@@ -6,6 +6,7 @@ from flows.image_content_generator.pipeline.prompt_base.models import BaseIdea, 
 from flows.image_content_generator.pipeline.prompt_shorts.stories import stickman_constants
 from flows.image_content_generator.pipeline.prompt_base.models import StickmanNoirIdea
 from tools.text_generation.gemini import GeminiTextGenerator
+from tools.common.messenger import Messenger
 
 
 class StickmanNoirManager(BasePromptManager):
