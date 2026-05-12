@@ -12,7 +12,7 @@ from flows.image_content_generator.pipeline.prompt_base.models import (
 from flows.image_content_generator.pipeline.prompt_shorts.finances import (
     constants as finance_constants,
 )
-from flows.image_content_generator.pipeline.prompt_shorts.finances.models import FinanceHandler, MindsetFinanceIdea, InteractionImageIdea
+from flows.image_content_generator.pipeline.prompt_shorts.stories import constants as story_constants
 from flows.image_content_generator.pipeline.prompt_shorts.stories.models import StoryHandler, StoryIdea
 from tools.common.messenger import Messenger
 from tools.text_generation.gemini import GeminiTextGenerator
@@ -21,10 +21,9 @@ from tools.text_generation.gemini import GeminiTextGenerator
 class PromptManagerShorts(BasePromptManager):
     """Manager specific to Viral Content (Videos, Riddles, and Stories)."""
 
-    AUDIO_PROMPT: str = finance_constants.AUDIO_PROMPT
+    AUDIO_PROMPT: str = story_constants.AUDIO_PROMPT # Defaulting to story audio
 
     CATEGORIES: Sequence[Type[CategoryHandler]] = [
-        FinanceHandler,
         StoryHandler
     ]
 
@@ -32,34 +31,13 @@ class PromptManagerShorts(BasePromptManager):
         self, content_gen: GeminiTextGenerator, titles_to_avoid: list[str] = [], extra_avoid: str = ""
     ) -> Tuple[BaseIdea, VideoScript, str]:
         """
-        Executes the viral generation loop for either Video, Interaction Image, or Story.
+        Executes the viral generation loop for Story Reels.
         """
-        # Determine choice: Force from Env or Random
-        force_type = os.getenv("FORCE_POST_TYPE")
+        # FORCED BY USER: Only Stories
+        category = "stories"
+        idea_model = StoryIdea
         
-        if force_type == "3":
-            category = "stories"
-            idea_model = StoryIdea
-        elif force_type == "2":
-            category = "finances"
-            idea_model = InteractionImageIdea
-        elif force_type == "1":
-            category = "finances"
-            idea_model = MindsetFinanceIdea
-        else:
-            # Alternar entre historias y finanzas
-            choice = random.choice([1, 1, 3]) # Bias towards finances 2:1
-            if choice == 3:
-                category = "stories"
-                idea_model = StoryIdea
-            elif choice == 2:
-                category = "finances"
-                idea_model = InteractionImageIdea
-            else:
-                category = "finances"
-                idea_model = MindsetFinanceIdea
-        
-        idea_prompt = getattr(idea_model, "IDEA_PROMPT", finance_constants.IDEA_PROMPT_MINDSET)
+        idea_prompt = story_constants.IDEA_PROMPT_STORY
 
         # 2. Part Counter for "EnigmaIQ"
         series_name = "EnigmaIQ"
@@ -76,25 +54,17 @@ class PromptManagerShorts(BasePromptManager):
         next_part = parts_count + 1
         Messenger.info(f"🎞️ Series: {series_name} | Next Part: {next_part}")
 
-        # 3. Idea Generation with Focus Area Diversity (NEW DIVERSITY ENGINE)
-        if category == "stories":
-            focus_areas = [
-                "HISTORIAS DE REDDIT (Traiciones, venganzas empresariales, secretos familiares oscuros)",
-                "MISTERIOS HISTÓRICOS (Tesoros perdidos, desapariciones inexplicables, secretos de estado)",
-                "TRUE CRIME FINANCIERO (Estafas maestras, robos de identidad, hackers legendarios)",
-                "PARADOJAS Y MISTERIOS (Efecto mandela, coincidencias imposibles, historias reales que parecen ficción)"
-            ]
-        else:
-            focus_areas = [
-                "BIOHACKING & LONGEVITY (Ayuno intermitente, nootrópicos, protocolos de sueño, optimización celular)",
-                "IA & PRODUCTIVIDAD (Side-hustles con IA, automatización de tareas, ahorro de tiempo, herramientas disruptivas)",
-                "FINANZAS DE GUERRILLA (Minimalismo financiero, inversión en micro-acciones, hacks de ahorro extremo)",
-                "PSICOLOGÍA OSCURA (Lenguaje corporal, detección de mentiras, red flags, persuasión en negocios)",
-                "URBAN HOMESTEADING & TECH (Huertos hidropónicos, energía solar DIY, sustentabilidad tecnológica)"
-            ]
-        # Eliminamos temporalmente 'Psicología' para forzar temas técnicos y frescos
+        # 3. Idea Generation with Focus Area Diversity (STORIES FOCUS)
+        focus_areas = [
+            "HISTORIAS DE REDDIT (Traiciones, venganzas empresariales, secretos familiares oscuros)",
+            "MISTERIOS HISTÓRICOS (Tesoros perdidos, desapariciones inexplicables, secretos de estado)",
+            "TRUE CRIME (Estafas maestras, robos de identidad, asesinos en serie, casos sin resolver)",
+            "RELATOS DE TERROR PSICOLÓGICO (Fenómenos paranormales reales, experimentos humanos secretos)",
+            "HISTORIAS DE ÉXITO IMPOSIBLE (De la nada al todo, superación extrema, giros de fortuna brutales)",
+            "PARADOJAS Y COINCIDENCIAS (Efecto mandela, bucles temporales sugeridos, coincidencias imposibles)"
+        ]
         selected_area = random.choice(focus_areas)
-        Messenger.info(f"🎯 Random Focus Area: {selected_area}")
+        Messenger.info(f"🎯 Random Story Focus: {selected_area}")
 
         avoid_msg = ""
         banned_words = "Pobre, Rico, Mentalidad, Escasez, Abundancia, Mindset, Millonario"
@@ -108,27 +78,21 @@ class PromptManagerShorts(BasePromptManager):
                 f"🚫 **PALABRAS PROHIBIDAS (NO USAR):** {banned_words}"
             )
 
-        # 3. Dynamic Visual Style Selector
-        styles = {
-            "BIOHACKING": "Estilo: Vintage anatomical medical sketch on aged parchment paper. Sepia ink, detailed scientific annotations, classic medical journal look.",
-            "IA": "Estilo: Cybernetic Technical Blueprint. Deep blue background, crisp white lines, digital HUD elements, grid overlay, futuristic tech aesthetic.",
-            "FINANZAS": "Estilo: Minimalist hand-drawn ink sketch on warm cream paper. Thick black lines, high contrast, clean and professional (EnigmaIQ Classic).",
-            "PSICOLOGÍA": "Estilo: Cinematic Film Noir. Deep shadows, high contrast black and white, silhouette of a stickman, dramatic lighting, mysterious atmosphere.",
-            "URBAN": "Estilo: Organic pencil and watercolor sketch. Recycled paper texture, soft graphite lines, subtle green watercolor accents, eco-tech feel."
-        }
+        # 3. Dynamic Visual Style Selector for Stories
+        # For stories, we want CINEMATIC or DARK aesthetics
+        styles = [
+            "Estilo: Cinematic Film Noir. Deep shadows, high contrast black and white, silhouette of a stickman, dramatic lighting, mysterious atmosphere.",
+            "Estilo: Hyper-realistic cinematic lighting. Dark moody colors, misty background, high detail, professional photography style.",
+            "Estilo: Vintage anatomical/technical sketch on aged parchment. Sepia ink, detailed, mysterious journal look.",
+            "Estilo: Dark digital art. Neon accents, glitchy textures, high contrast, futuristic mystery vibe."
+        ]
+        selected_style = random.choice(styles)
         
-        # Detect style from area name
-        selected_style = styles["FINANZAS"] # Default
-        for key, value in styles.items():
-            if key in selected_area:
-                selected_style = value
-                break
-        
-        Messenger.info(f"🎨 Selected Visual Style: {selected_style}")
+        Messenger.info(f"🎨 Selected Story Visual Style: {selected_style}")
 
         # Inyectar el estilo y el área de enfoque
         full_idea_prompt = (
-            f"{idea_prompt}\n\n"
+            f"{idea_prompt.format(visual_style=selected_style)}\n\n"
             f"**TEMA CENTRAL OBLIGATORIO:** {selected_area}\n"
             f"**ESTE CONTENIDO ES LA PARTE {next_part}** de la serie '{series_name}'."
         )
