@@ -1,6 +1,7 @@
 
 from pathlib import Path
 from typing import Any, ClassVar, List, Optional, Type, TypeVar, Union
+import concurrent.futures
 
 from pydantic import BaseModel, PrivateAttr
 
@@ -405,7 +406,7 @@ class Pipeline(BaseModelTool):
         Messenger.info(f"\n--- Step 2b started: Generating AI Video Clips for '{idea_obj.title}' ---")
         script = self.load_json(idea_obj.id, self.SCRIPT_JSON, VideoScript)
 
-        for scene in script.scenes:
+        def process_scene(scene):
             clip_filename = self.SCENE_VIDEO_PATTERN.format(scene.scene_number)
             clip_path = self.get_idea_asset_path(idea_obj.id, self.CLIPS_DIR, clip_filename)
             img_filename = f"scene_{scene.scene_number:02d}.png"
@@ -414,17 +415,16 @@ class Pipeline(BaseModelTool):
             # 1. Safety Check: Verify Image
             if not img_path.exists() or img_path.stat().st_size < 1024:
                 Messenger.error(f"   ❌ Scene {scene.scene_number} image is missing or corrupt. CRITICAL FAILURE.")
-                return # Stop pipeline to avoid wasting credits on subsequent steps
+                return False # Stop pipeline to avoid wasting credits on subsequent steps
 
             if clip_path.exists() and clip_path.stat().st_size > 10240:
                 Messenger.info(f"   Scene {scene.scene_number} clip already exists and is valid. Skipping.")
-                continue
+                return True
 
             # 2. Movement instruction fallback
             move_prompt = scene.movement_instruction or "Slow cinematic movement, subtle animation, noir style."
             
             # 3. Generation with Retry Logic (Internal)
-            success = False
             for attempt in range(3):
                 try:
                     Messenger.info(f"   🎬 Generating Video Clip for Scene {scene.scene_number} (Attempt {attempt+1}/3)...")
@@ -434,16 +434,21 @@ class Pipeline(BaseModelTool):
                         img_start_path=str(img_path)
                     )
                     self.cost_tracker.add_video_cost(1)
-                    success = True
-                    break
+                    return True
                 except Exception as e:
                     Messenger.warning(f"   ⚠️ Attempt {attempt+1} failed: {e}")
                     import time
                     time.sleep(5) # Cooldown
             
-            if not success:
-                Messenger.error(f"   ❌ Failed to generate clip for Scene {scene.scene_number} after 3 attempts. Stopping pipeline.")
-                return
+            Messenger.error(f"   ❌ Failed to generate clip for Scene {scene.scene_number} after 3 attempts.")
+            return False
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+            results = list(executor.map(process_scene, script.scenes))
+
+        if not all(results):
+            Messenger.error("   ❌ One or more video clips failed to generate. Stopping pipeline.")
+            return
 
         idea_obj.state = State.CLIPS_GENERATED
         self.store.save(idea_obj)
