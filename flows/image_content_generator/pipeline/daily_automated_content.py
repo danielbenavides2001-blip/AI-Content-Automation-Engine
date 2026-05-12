@@ -201,31 +201,31 @@ class DailyAutomator:
         """
         Messenger.info("🧹 Cleaning up stuck or incomplete ideas...")
         ideas_dir = Path("flows/image_content_generator/out_short/ideas")
-        if ideas_dir.exists():
-            import shutil
-            video_csv = Path("flows/image_content_generator/out_short/ideas_tracking.csv")
-            if video_csv.exists():
-                try:
-                    import pandas as pd
-                    df = pd.read_csv(video_csv)
-                    safe_states = ["UPLOADED", "COMPLETED", "SCRIPT_GENERATED", "IMAGES_GENERATED", "CLIPS_GENERATED", "AUDIO_GENERATED", "VIDEO_GENERATED"]
-                    valid_ids = df[df["state"].isin(safe_states)]["id"].tolist()
-                    
-                    for idea_path in ideas_dir.iterdir():
-                        if idea_path.is_dir():
-                            try:
-                                idea_id = int(idea_path.name.split("_")[-1])
-                                if idea_id not in valid_ids:
-                                    Messenger.warning(f"🗑️ Deleting stuck idea: {idea_path.name}")
-                                    shutil.rmtree(idea_path)
-                            except ValueError:
-                                pass
-                except Exception as e:
-                    Messenger.warning(f"Could not parse tracking CSV for cleanup: {e}")
+        if not ideas_dir.exists():
+            return
+
+        import shutil
+        video_csv = Path("flows/image_content_generator/out_short/ideas_tracking.csv")
+        if not video_csv.exists():
+            return
+
+        try:
+            import pandas as pd
+            df = pd.read_csv(video_csv)
+            safe_states = ["UPLOADED", "COMPLETED", "SCRIPT_GENERATED", "IMAGES_GENERATED", "CLIPS_GENERATED", "AUDIO_GENERATED", "VIDEO_GENERATED"]
+            valid_ids = df[df["state"].isin(safe_states)]["id"].tolist()
             
+            for idea_path in ideas_dir.iterdir():
+                if idea_path.is_dir():
+                    try:
+                        idea_id = int(idea_path.name.split("_")[-1])
+                        if idea_id not in valid_ids:
+                            Messenger.warning(f"🗑️ Deleting stuck idea: {idea_path.name}")
+                            shutil.rmtree(idea_path)
+                    except (ValueError, IndexError):
+                        pass
         except Exception as e:
-            Messenger.error(f"Error during automated task: {e}")
-            sys.exit(1)
+            Messenger.warning(f"Could not parse tracking CSV for cleanup: {e}")
 
 if __name__ == "__main__":
     automator = DailyAutomator()
