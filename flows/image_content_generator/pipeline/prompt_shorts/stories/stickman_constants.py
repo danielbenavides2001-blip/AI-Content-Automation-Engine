@@ -1,7 +1,7 @@
 from typing import ClassVar
 
 IDEA_PROMPT_STICKMAN = """
-ROL: Eres un experto en psicología conductual, guionista de cine negro y artista conceptual. Tu misión es generar de forma infinita contenido para videos impactantes de MÁXIMO 29 segundos divididos en 4 escenas visuales exactas.
+ROL: Eres un experto en psicología conductual, guionista de cine negro y artista conceptual. Tu misión es generar de forma infinita contenido para videos EXTREMADAMENTE CORTOS e impactantes de MÁXIMO 15-20 segundos divididos en 4 escenas visuales exactas.
 
 1. MOTOR DE ORIGINALIDAD (Cero Repetición)
 Para cada nuevo video, debes elegir un Eje Temático y un Símbolo Visual.
@@ -11,13 +11,13 @@ Símbolos Visuales Prohibidos de repetir (SI YA SE USARON): Hilos de títere, Me
 TEMA CENTRAL OBLIGATORIO: {selected_area}
 ESTILO VISUAL: Estilo Noir, Minimalist 2D hand-drawn.
 
-2. REGLAS DEL GUION (Narrativa Fluida y Atractiva)
-El guion debe durar MÁXIMO 29 segundos. El texto debe ser fluido, evitar palabras rebuscadas y capturar la atención desde el primer segundo.
-Escena 1 (Planteamiento del Dolor): Una observación sobre un comportamiento humano común pero dañino.
-Escena 2 (El Juicio Externo): Cómo el mundo intenta mantenerte en ese comportamiento.
-Escena 3 (El Acto de Ruptura): Una decisión interna o cambio de perspectiva.
-Escena 4 (La Sabiduría Final): Una frase lapidaria que cierre con autoridad.
-Tono de voz: Serio, pero ATRACTIVO, FLUIDO y con carga emocional sutil.
+2. REGLAS DEL GUION (EXTREMA BREVEDAD)
+El guion debe durar MÁXIMO 18-20 segundos. El texto debe ser lapidario, ultra-corto y potente. Cero relleno.
+Escena 1 (El Dolor): Una frase corta (máx 8 palabras) sobre un error humano.
+Escena 2 (La Trampa): Por qué sigues ahí (máx 8 palabras).
+Escena 3 (La Ruptura): El cambio de mentalidad (máx 8 palabras).
+Escena 4 (La Sentencia): Frase final de poder (máx 5 palabras).
+Tono de voz: Serio, ATRACTIVO, FLUIDO.
 
 REGLA DE SEGURIDAD (IMPORTANTE): Evita descripciones de violencia explícita, sangre o daño físico extremo. Enfócate en la metáfora, la psicología y la representación simbólica del dolor emocional o la lucha interna.
 
@@ -36,13 +36,13 @@ HISTORIAL DE TEMAS A EVITAR:
 RESPONDE EXCLUSIVAMENTE EN FORMATO JSON siguiendo este esquema:
 {{
   "title": "Título corto y potente",
-  "hook": "Gancho de interrupción (10-15 palabras) para detener el scroll",
+  "hook": "Gancho de interrupción (MÁX 10 palabras)",
   "selected_theme": "El eje temático elegido",
   "selected_symbol": "El símbolo visual elegido",
   "scenes": [
     {{
       "scene_number": 1,
-      "narration": "Texto fluido de aprox 6-7 segundos",
+      "narration": "Texto ultra-corto de 4 segundos",
       "image_prompt": "Prompt en inglés siguiendo el estilo Noir",
       "movement_instruction": "Instrucción de movimiento para la IA de video"
     }},
@@ -52,9 +52,9 @@ RESPONDE EXCLUSIVAMENTE EN FORMATO JSON siguiendo este esquema:
 """
 
 AUDIO_PROMPT_STICKMAN = """
-Usa un tono barítono, serio, pero muy FLUIDO y ATRACTIVO. No debe sonar robótico. 
-Debe sonar como un narrador de cine que cuenta una historia fascinante con pausas dramáticas pero ritmo constante.
-Respeta los tiempos para que el total no supere los 29 segundos.
+Usa un tono barítono, serio, pero muy FLUIDO y ATRACTIVO. 
+El texto es muy corto, por lo que debes darle peso a cada palabra con pausas estratégicas.
+El video total debe durar entre 15 y 20 segundos. No más.
 
 TEXTO A NARRAR:
 {audio_text}
