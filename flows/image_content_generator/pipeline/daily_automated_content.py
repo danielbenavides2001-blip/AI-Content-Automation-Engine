@@ -89,10 +89,10 @@ class DailyAutomator:
             for f in existing_files:
                 subprocess.run(["git", "add", "-f", f], check=True)
             
-            # Check if there are changes to commit
-            status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True).stdout
-            if not status.strip():
-                Messenger.info("✨ No changes in history to sync.")
+            # Check if there are STAGED changes to commit
+            staged = subprocess.run(["git", "diff", "--cached", "--quiet"])
+            if staged.returncode == 0:
+                Messenger.info("✨ No staged changes in history to sync.")
                 return
 
             subprocess.run(["git", "commit", "-m", "chore: update post history and state [skip ci]"], check=True)
@@ -185,19 +185,12 @@ class DailyAutomator:
             choice = None
 
         if choice is None:
-            # Lógica de Alternancia: Video (1) vs Infografía (2)
-            if state_file.exists():
-                try:
-                    last_type = int(state_file.read_text().strip())
-                    choice = 2 if last_type == 1 else 1
-                except Exception:
-                    choice = 1
-            else:
-                choice = 1
+            # DEFAULT: Historias Atrapantes (Choice 3)
+            choice = 3
             
             # Guardar el nuevo estado
             state_file.write_text(str(choice))
-            Messenger.info(f"🔄 Cycling post type: Last was {last_type if state_file.exists() else 'None'}, Now {choice}")
+            Messenger.info(f"🔄 Setting default post type to STORIES (Choice 3)")
 
         # --- NEW: CLEAR STUCK IDEAS ---
         # Before running, we ensure no half-finished ideas exist in the 'ideas' folder
@@ -215,7 +208,7 @@ class DailyAutomator:
                     df = pd.read_csv(video_csv)
                     # We keep track of titles but we'll be aggressive: 
                     # If it's not UPLOADED, we consider it a failed attempt.
-                    valid_ids = df[df["state"] == "UPLOADED"]["id"].tolist()
+                    valid_ids = df[df["state"].isin(["UPLOADED", "COMPLETED"])]["id"].tolist()
                     for idea_path in ideas_dir.iterdir():
                         if idea_path.is_dir():
                             try:
@@ -233,11 +226,17 @@ class DailyAutomator:
                 # Interaction or regular image
                 Messenger.info("🧩 GENERATING INTERACTION IMAGE POST...")
                 self.generate_daily_image_post()
-            elif choice == 1:
-                # Video generation
-                Messenger.info("🎬 GENERATING NEW VIDEO REEL (Steps 1-8)...")
+            elif choice == 1 or choice == 3:
+                # Video generation (Standard or Story)
+                mode_name = "STORY REEL" if choice == 3 else "STANDARD REEL"
+                Messenger.info(f"🎬 GENERATING NEW {mode_name} (Steps 1-8)...")
                 avoid_msg = self.get_recent_topics()
-                subprocess.run([sys.executable, "-m", "flows.image_content_generator.pipeline.main", "short", "all", "--avoid", avoid_msg], check=True)
+                
+                # Pass the choice as FORCE_POST_TYPE to the subprocess
+                env = os.environ.copy()
+                env["FORCE_POST_TYPE"] = str(choice)
+                
+                subprocess.run([sys.executable, "-m", "flows.image_content_generator.pipeline.main", "short", "all", "--avoid", avoid_msg], check=True, env=env)
             else:
                 Messenger.warning(f"❓ Unknown choice {choice}. No action taken.")
             
