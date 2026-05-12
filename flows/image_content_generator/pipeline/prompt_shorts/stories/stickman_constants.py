@@ -19,6 +19,8 @@ Escena 3 (El Acto de Ruptura): Una decisión interna o cambio de perspectiva.
 Escena 4 (La Sabiduría Final): Una frase lapidaria que cierre con autoridad.
 Tono de voz: Serio, pero ATRACTIVO, FLUIDO y con carga emocional sutil.
 
+REGLA DE SEGURIDAD (IMPORTANTE): Evita descripciones de violencia explícita, sangre o daño físico extremo. Enfócate en la metáfora, la psicología y la representación simbólica del dolor emocional o la lucha interna.
+
 3. DIRECCIÓN DE ARTE (Prompts de Imagen para Video)
 Cada video consta de 4 imágenes que se convertirán en video.
 Estilo Visual Estricto: "Minimalist 2D hand-drawn animation, Noir aesthetic, extreme high contrast (Chiaroscuro), deep black shadows, cinematic lighting."

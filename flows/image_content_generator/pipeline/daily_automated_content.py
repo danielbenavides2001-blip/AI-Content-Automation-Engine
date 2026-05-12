@@ -68,12 +68,14 @@ class DailyAutomator:
         """
         Commits and pushes the history files back to GitHub to persist memory between runs.
         """
-        Messenger.info("🔄 Syncing history and state to GitHub...")
+        if os.getenv("GITHUB_ACTIONS"):
+            Messenger.info("🚀 Running in GitHub Actions: Skipping internal git sync (handled by workflow).")
+            return
+
         try:
             # Files to track
             files_to_sync = [
                 str(self.history_file),
-                ".last_post_type",
                 "flows/image_content_generator/out_short/ideas_tracking.csv"
             ]
             
