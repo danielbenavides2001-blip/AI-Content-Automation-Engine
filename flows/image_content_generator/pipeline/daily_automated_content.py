@@ -207,8 +207,11 @@ class DailyAutomator:
                     import pandas as pd
                     df = pd.read_csv(video_csv)
                     # We keep track of titles but we'll be aggressive: 
-                    # If it's not UPLOADED, we consider it a failed attempt.
-                    valid_ids = df[df["state"].isin(["UPLOADED", "COMPLETED"])]["id"].tolist()
+                    # If it's not in a valid state, we consider it a failed attempt.
+                    # States like SCRIPT_GENERATED, IMAGES_GENERATED, etc. are VALID if the pipeline is running.
+                    safe_states = ["UPLOADED", "COMPLETED", "SCRIPT_GENERATED", "IMAGES_GENERATED", "AUDIO_GENERATED", "VIDEO_GENERATED"]
+                    valid_ids = df[df["state"].isin(safe_states)]["id"].tolist()
+                    
                     for idea_path in ideas_dir.iterdir():
                         if idea_path.is_dir():
                             try:
@@ -220,6 +223,7 @@ class DailyAutomator:
                                 pass
                 except Exception as e:
                     Messenger.warning(f"Could not parse tracking CSV for cleanup: {e}")
+
 
         try:
             if choice == 0 or choice == 2:

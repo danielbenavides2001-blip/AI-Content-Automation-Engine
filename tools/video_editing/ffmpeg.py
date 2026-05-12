@@ -90,8 +90,18 @@ class FFmpegTool(BaseModelTool):
             "-of", "default=noprint_wrappers=1:nokey=1",
             str(audio_path)
         ]
-        output = subprocess.check_output(cmd, text=True).strip()
-        return float(output)
+        try:
+            output = subprocess.check_output(cmd, text=True).strip()
+            if not output or output == "N/A":
+                # Try getting from stream instead of format
+                cmd[3] = "stream=duration"
+                output = subprocess.check_output(cmd, text=True).strip().split('\n')[0]
+            
+            if not output or output == "N/A":
+                return 0.0
+            return float(output)
+        except Exception:
+            return 0.0
 
     def get_video_duration(self, video_path: Path) -> float:
         """
@@ -104,8 +114,13 @@ class FFmpegTool(BaseModelTool):
             "-of", "default=noprint_wrappers=1:nokey=1",
             str(video_path)
         ]
-        output = subprocess.check_output(cmd, text=True).strip()
-        return float(output)
+        try:
+            output = subprocess.check_output(cmd, text=True).strip()
+            if not output or output == "N/A":
+                return 0.0
+            return float(output)
+        except Exception:
+            return 0.0
 
     def sync_video_and_audio(
         self,

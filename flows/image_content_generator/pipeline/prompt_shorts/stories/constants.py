@@ -13,7 +13,11 @@ IMAGE_INTERACTION_PROMPT = "" # Not used for stories right now
 
 AUDIO_PROMPT = """
 Usa un tono narrativo, de suspenso, intrigante y ligeramente dramático. Como si estuvieras contando un secreto oscuro o un chisme muy grave.
+
+TEXTO A NARRAR:
+{audio_text}
 """
+
 
 SCRIPT_PROMPT = """
 Basándote en la IDEA proporcionada, escribe un guion de video para un Reel de 60 segundos.

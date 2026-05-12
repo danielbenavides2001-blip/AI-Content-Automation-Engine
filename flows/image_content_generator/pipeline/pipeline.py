@@ -318,8 +318,9 @@ class Pipeline(BaseModelTool):
             return
 
         Messenger.info(f"Step 2 started: Generating Animated Frames for '{idea_obj.title}'")
-
+        Messenger.info(f"   Loading script for Idea {idea_obj.id}...")
         script = self.load_json(idea_obj.id, self.SCRIPT_JSON, VideoScript)
+        Messenger.info(f"   Script loaded. Scenes: {len(script.scenes)}")
 
         # Determine if we are in Riddle mode or Video mode
         is_riddle = idea_obj.title.lower().startswith("acertijo") or "interaction" in str(type(idea_obj)).lower()
