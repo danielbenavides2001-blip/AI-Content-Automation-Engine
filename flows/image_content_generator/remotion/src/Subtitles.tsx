@@ -8,37 +8,14 @@ interface Word {
   end: number; // in ms
 }
 
-const IconMap: Record<string, React.ReactNode> = {
-  'dinero': <DollarSign size={140} color="#fbbf24" />,
-  'rico': <DollarSign size={140} color="#fbbf24" />,
-  'pobre': <AlertTriangle size={140} color="#ef4444" />,
-  'inversión': <TrendingUp size={140} color="#10b981" />,
-  'negocio': <Briefcase size={140} color="#3b82f6" />,
-  'seguridad': <ShieldCheck size={140} color="#8b5cf6" />,
-};
-
-// Money Chart Animation Component
-const MoneyChart: React.FC<{ progress: number }> = ({ progress }) => {
-  return (
-    <div style={{ width: 400, height: 200, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20, padding: 20, display: 'flex', alignItems: 'flex-end', gap: 10 }}>
-      {[0.2, 0.4, 0.3, 0.6, 0.8, 1.0].map((h, i) => {
-        const currentH = Math.min(h, progress * (i + 1) / 6) * 100;
-        return (
-          <div key={i} style={{ flex: 1, height: `${currentH}%`, backgroundColor: '#10b981', borderRadius: 5, transition: 'height 0.1s' }} />
-        );
-      })}
-    </div>
-  );
-};
-
 export const Subtitles: React.FC<{ words: Word[], intrigueHeader?: string }> = ({ words, intrigueHeader }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // Group words into phrases of 4 words (2 lines of 2 words)
+  // Group words into phrases of 3 words for faster impact
   const phrases: { words: Word[], start: number, end: number }[] = [];
-  for (let i = 0; i < words.length; i += 4) {
-    const chunk = words.slice(i, i + 4);
+  for (let i = 0; i < words.length; i += 3) {
+    const chunk = words.slice(i, i + 3);
     phrases.push({
       words: chunk,
       start: chunk[0].start,
@@ -93,61 +70,33 @@ export const Subtitles: React.FC<{ words: Word[], intrigueHeader?: string }> = (
               display: 'flex', 
               flexDirection: 'column', 
               alignItems: 'center', 
-              justifyContent: 'flex-end', // Moved to bottom
-              paddingBottom: 220 // Space from bottom
+              justifyContent: 'center', // Centered vertically
+              paddingTop: 100 
           }}>
-            
-            {/* Money Chart Animation */}
-            <div style={{ marginBottom: 40 }}>
-              {phrase.words.map((w, wi) => {
-                const clean = w.text.toLowerCase().replace(/[.,!]/g, '');
-                const isShowing = frame >= (w.start / 1000) * fps && frame < (w.end / 1000) * fps;
-                if (!isShowing) return null;
-                const scale = spring({ frame: frame - (w.start / 1000) * fps, fps, config: { stiffness: 200 } });
-                if (clean === 'dinero' || clean === 'rico' || clean === 'inversión' || clean === 'crecimiento') {
-                    return <MoneyChart key={wi} progress={scale} />;
-                }
-                return null;
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px 25px', maxWidth: '90%' }}>
+              {phrase.words.map((word, wi) => {
+                const wStart = (word.start / 1000) * fps;
+                const wEnd = (word.end / 1000) * fps;
+                const isCurrentWord = frame >= wStart && frame < wEnd;
+
+                return (
+                  <span
+                    key={wi}
+                    style={{
+                      fontSize: 100, // Bigger font
+                      fontFamily: 'Impact, sans-serif',
+                      fontWeight: 'bold',
+                      color: isCurrentWord ? '#FFFF00' : '#FFFFFF',
+                      textTransform: 'uppercase',
+                      display: 'inline-block',
+                      lineHeight: 1.0,
+                      textShadow: '4px 4px 5px rgba(0,0,0,1)' // Stronger shadow for readability without box
+                    }}
+                  >
+                    {word.text}
+                  </span>
+                );
               })}
-            </div>
-
-            {/* Subtitle Block (Semi-transparent black box) */}
-            <div style={{ 
-                backgroundColor: 'rgba(0, 0, 0, 0.65)', 
-                padding: '12px 35px', 
-                borderRadius: '5px', 
-                display: 'flex', 
-                flexDirection: 'column',
-                alignItems: 'center',
-                maxWidth: '85%',
-                boxShadow: '0 5px 15px rgba(0,0,0,0.5)',
-                borderBottom: '4px solid #FFFF00' // Stylish bottom border
-            }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px 25px' }}>
-                {phrase.words.map((word, wi) => {
-                  const wStart = (word.start / 1000) * fps;
-                  const wEnd = (word.end / 1000) * fps;
-                  const isCurrentWord = frame >= wStart && frame < wEnd;
-
-                  return (
-                    <span
-                      key={wi}
-                      style={{
-                        fontSize: 75, // Slightly smaller
-                        fontFamily: 'Impact, sans-serif',
-                        fontWeight: 'bold',
-                        color: isCurrentWord ? '#FFFF00' : '#FFFFFF',
-                        textTransform: 'uppercase',
-                        display: 'inline-block',
-                        lineHeight: 1.0,
-                        textShadow: '2px 2px 2px rgba(0,0,0,0.8)'
-                      }}
-                    >
-                      {word.text}
-                    </span>
-                  );
-                })}
-              </div>
             </div>
           </div>
         );

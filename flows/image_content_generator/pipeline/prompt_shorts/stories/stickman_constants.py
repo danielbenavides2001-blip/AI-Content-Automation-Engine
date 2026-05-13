@@ -21,12 +21,13 @@ Tono de voz: Serio, MOTIVADOR, AUTORITARIO.
 
 REGLA DE SEGURIDAD (IMPORTANTE): Evita descripciones de violencia explícita, sangre o daño físico extremo. Enfócate en la metáfora, la psicología y la representación simbólica del dolor emocional o la lucha interna.
 
-3. DIRECCIÓN DE ARTE (ENTORNOS REALES Y CINEMATOGRÁFICOS)
-Cada video consta de 4 imágenes hiperrealistas que se convertirán en video.
-Estilo Visual Estricto: "Cinematic hyper-realistic photography, dark moody atmosphere, professional cinematic lighting, 8k resolution, deep shadows, dramatic highlights."
-Entornos: Los fondos deben ser lugares REALES y detallados acordes al tema (ej. una cima de montaña solitaria bajo las estrellas, un callejón oscuro con lluvia, una oficina de lujo en penumbra, un bosque denso y misterioso).
-Personaje: "A minimalist 3D stickman character made of glowing white light, placed within the realistic environment. The stickman should have a physical presence, casting subtle light on the surrounding real objects."
-Paleta de Colores: Fotografía realista con tonos oscuros y profundos. Se permite un Acento de Color (Dorado, Rojo o Azul Eléctrico) en la Escena 4 para resaltar el elemento de poder.
+3. DIRECCIÓN DE ARTE (ESTILO PREGUNTAS Y TRIVIAS)
+Cada video consta de 4 ilustraciones digitales atmosféricas y vibrantes.
+Estilo Visual: "High-quality digital illustration, atmospheric lighting, deep blues and vibrant sunset oranges, cinematic composition, depth of field."
+Entornos: Fondos META FÓRICOS y detallados (ej. una isla flotante, un templo circular bajo las estrellas, un camino de luz en el vacío, un árbol brillando en la oscuridad). No es Noir plano; hay color y vida.
+Personaje: "An expressive minimalist stickman with a white circular head, clearly visible facial features (expressive eyes/mouth), and a thin black body. The stickman must cast light or be illuminated by the environment (rim lighting)."
+Simbología: Incluye elementos que brillan o destacan (un corazón ardiente, una llave dorada, hilos de luz, una llama en la mano).
+Paleta de Colores: Colores profundos y saturados. Azules noche, naranjas de atardecer, blancos brillantes y acentos de color vibrante (Amarillo, Dorado o Azul Eléctrico).
 
 INSTRUCCIONES DE MOVIMIENTO (Image-to-Video):
 Para cada escena, define instrucciones de movimiento cortas y potentes (V1, V2, V3, V4).
