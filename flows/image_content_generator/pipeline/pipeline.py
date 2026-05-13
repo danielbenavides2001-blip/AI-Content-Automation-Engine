@@ -424,14 +424,12 @@ class Pipeline(BaseModelTool):
 
             # 2. Movement instruction fallback
             move_prompt = scene.movement_instruction or "Slow cinematic movement, subtle animation, noir style."
-            
-            # --- MODO HÍBRIDO: IA Solo en Escena 1 y Escena Final (Escena 4) ---
-            total_scenes = len(script.scenes)
+                     # --- MODO ULTRA-AHORRO: IA Solo en Escena 1 (El Hook) ---
+            # Las demás escenas usan efecto Ken Burns local (gratis)
             is_hook = scene.scene_number == 1
-            is_resolution = scene.scene_number == total_scenes
 
-            if not (is_hook or is_resolution):
-                Messenger.info(f"   💡 Hybrid Mode: Skipping AI Video for Scene {scene.scene_number} (Middle scene). Using static fallback.")
+            if not is_hook:
+                Messenger.info(f"   💡 Ultra-Saving Mode: Skipping AI Video for Scene {scene.scene_number}. Using dynamic Ken Burns fallback.")
             else:
                 # 3. Generation with Retry Logic (Internal)
                 for attempt in range(3):
@@ -449,18 +447,24 @@ class Pipeline(BaseModelTool):
                         import time
                         time.sleep(5) # Cooldown
             
-            # FALLBACK (Para escenas intermedias o si la IA falla)
-            Messenger.info(f"   🎬 Generating static video fallback for Scene {scene.scene_number}...")
+            # FALLBACK DINÁMICO (Ken Burns Effect)
+            Messenger.info(f"   🎬 Generating dynamic Ken Burns fallback for Scene {scene.scene_number}...")
             try:
+                # Efecto de zoom suave (Ken Burns) usando FFmpeg localmente
+                # zoompan: aumenta el zoom de 1.0 a 1.1 durante los 6 segundos
                 subprocess.run(
-                    ["ffmpeg", "-loop", "1", "-i", str(img_path), "-c:v", "libx264", "-t", "6", "-pix_fmt", "yuv420p", "-y", str(clip_path)],
+                    [
+                        "ffmpeg", "-loop", "1", "-i", str(img_path),
+                        "-vf", "zoompan=z='min(zoom+0.0005,1.1)':d=150:s=1080x1920",
+                        "-c:v", "libx264", "-t", "6", "-pix_fmt", "yuv420p", "-y", str(clip_path)
+                    ],
                     check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
                 )
-                Messenger.info(f"   ✅ Generated static video fallback for Scene {scene.scene_number}.")
+                Messenger.info(f"   ✅ Generated dynamic Ken Burns fallback for Scene {scene.scene_number}.")
                 return True
             except Exception as ffmpeg_e:
-                Messenger.error(f"   ❌ FFmpeg fallback also failed: {ffmpeg_e}")
-                return False
+                Messenger.error(f"   ❌ FFmpeg fallback failed: {ffmpeg_e}")
+                return False           return False
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
             results = list(executor.map(process_scene, script.scenes))
