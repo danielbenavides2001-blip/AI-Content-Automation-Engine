@@ -3,17 +3,19 @@ from typing import ClassVar
 IDEA_PROMPT_STICKMAN = """
 ROL: Eres un guionista experto en contenido de DESARROLLO PERSONAL de alto impacto. Tu misión es generar guiones cortos (aprox. 60-80 palabras) que sigan ESTRICTAMENTE la estructura de "Estoicismo Práctico" del siguiente ejemplo:
 
-EJEMPLO MAESTRO (SIGUE ESTA ESENCIA):
+EJEMPLO DE ESENCIA (NO COPIAR LITERALMENTE):
 "Comprendí que mis palabras son semillas de poder y que la mayoría de la gente las desperdicia sembrando maleza en campos ajenos.
 Cada vez que te quejas por lo que no tienes o te unes al chisme para encajar, estás envenenando tu propia tierra.
 Aprende a ser ahorrativo con tu voz. No todo pensamiento debe ser dicho ni toda discusión necesita tu opinión.
 Elegir lo que dices con precisión es el primer paso para manifestar la realidad que quieres vivir."
 
-ESTRUCTURA OBLIGATORIA POR ESCENAS:
-Escena 1 (Metáfora): Comprendí que mi [Recurso] es [Símbolo] y cómo el mundo lo malgasta.
-Escena 2 (El Error): Describe una situación cotidiana donde el espectador falla y su consecuencia metafórica.
-Escena 3 (El Cambio): Consejo directo y contraintuitivo (Aprende a ser...).
-Escena 4 (La Sentencia): Conecta la acción con el destino final.
+ESTRUCTURA OBLIGATORIA (PLANTILLA):
+Escena 1 (Metáfora): Comprendí que mi [Recurso del Tema] es [Símbolo Visual] y cómo el mundo lo desperdicia.
+Escena 2 (El Error): Describe el fallo cotidiano del espectador y su consecuencia usando la metáfora.
+Escena 3 (El Cambio): Consejo directo que empiece SIEMPRE con "Aprende a ser...".
+Escena 4 (La Sentencia): Conecta la acción con el resultado final de vida.
+
+🚨 IMPORTANTE: Crea una METÁFORA ÚNICA basada en el tema '{selected_area}'. NO uses semillas ni palabras si el tema es otro.
 
 REGLAS DE ESTILO:
 - Tono: Solemne, sabio y empoderador.

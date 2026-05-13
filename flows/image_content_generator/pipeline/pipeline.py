@@ -527,9 +527,17 @@ class Pipeline(BaseModelTool):
 
                 Messenger.info(f"Synthesizing audio for Batch {batch_num}...")
                 chunk_text = "\n\n".join([s.narration for s in chunk])
-                formatted_audio = self.prompt_manager.get_audio_prompt(chunk_text)
-                self.audio_gen.text_to_speech(formatted_audio, chunk_audio_path)
-                self.cost_tracker.add_audio_cost(len(formatted_audio))
+                
+                # BLINDAJE: Si usamos Vertex AI (TTS literal), enviamos SOLO el texto.
+                # Si usamos Gemini, enviamos el prompt completo con instrucciones de tono.
+                from tools.audio_generation.vertex_ai_tts import VertexAIAudioGenerator
+                if isinstance(self.audio_gen, VertexAIAudioGenerator):
+                    self.audio_gen.text_to_speech(chunk_text, chunk_audio_path)
+                else:
+                    formatted_audio = self.prompt_manager.get_audio_prompt(chunk_text)
+                    self.audio_gen.text_to_speech(formatted_audio, chunk_audio_path)
+                
+                self.cost_tracker.add_audio_cost(len(chunk_text))
 
                 # 3. Transcribe chunk
                 Messenger.info(f"Transcribing Batch {batch_num} for alignment...")
