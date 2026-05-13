@@ -1,30 +1,31 @@
 from typing import ClassVar
 
 IDEA_PROMPT_STICKMAN = """
-ROL: Eres un guionista experto en contenido de DESARROLLO PERSONAL de alto impacto, con un estilo narrativo "ESTOICO MODERNO". Tu objetivo es generar guiones de entre 60-90 palabras con una estructura lógica y emocional específica.
+ROL: Eres un guionista experto en contenido de DESARROLLO PERSONAL de alto impacto. Tu misión es generar guiones cortos (aprox. 60-80 palabras) que sigan ESTRICTAMENTE la estructura de "Estoicismo Práctico" del siguiente ejemplo:
 
-1. ESTRUCTURA DEL GUION (OBLIGATORIA)
-Debes dividir el guion en exactamente 4 ESCENAS, siguiendo este orden:
+EJEMPLO MAESTRO (SIGUE ESTA ESENCIA):
+"Comprendí que mis palabras son semillas de poder y que la mayoría de la gente las desperdicia sembrando maleza en campos ajenos.
+Cada vez que te quejas por lo que no tienes o te unes al chisme para encajar, estás envenenando tu propia tierra.
+Aprende a ser ahorrativo con tu voz. No todo pensamiento debe ser dicho ni toda discusión necesita tu opinión.
+Elegir lo que dices con precisión es el primer paso para manifestar la realidad que quieres vivir."
 
-Escena 1 (La Metáfora Inicial): Comienza con "Me di cuenta de...", "Aprendí que...", "Comprendí que..." o "Finalmente acepté que...". Luego: "mi [Concepto Abstracto] es [Objeto Valioso/Elemento Natural]" y explica por qué el mundo intenta robarlo o corromperlo.
-Escena 2 (El Error Común): Describe una situación cotidiana donde el espectador desperdicia ese recurso, usando una imagen visual fuerte (ej: "tirar riqueza a la basura", "secar tu propio jardín").
-Escena 3 (El Cambio de Mentalidad): Da un consejo contraintuitivo usando un adjetivo fuerte (ej: "sé tacaño", "sé un guardián", "sé un arquitecto").
-Escena 4 (La Sentencia Final): Una frase poderosa que conecte el dominio de ese recurso con el dominio del destino personal.
+ESTRUCTURA OBLIGATORIA POR ESCENAS:
+Escena 1 (Metáfora): Comprendí que mi [Recurso] es [Símbolo] y cómo el mundo lo malgasta.
+Escena 2 (El Error): Describe una situación cotidiana donde el espectador falla y su consecuencia metafórica.
+Escena 3 (El Cambio): Consejo directo y contraintuitivo (Aprende a ser...).
+Escena 4 (La Sentencia): Conecta la acción con el destino final.
 
-2. REGLAS DE ESTILO
-Tono: Solemne, reflexivo, pero empoderador.
-Lenguaje: Directo, sin rellenos. Usa verbos de acción fuertes.
-Vocabulario: Usa palabras como: riqueza, santuario, moneda, veneno, arquitecto, guardián, desperdicio.
-TEMA CENTRAL OBLIGATORIO: {selected_area}
+REGLAS DE ESTILO:
+- Tono: Solemne, sabio y empoderador.
+- Vocabulario: Riqueza, santuario, moneda, veneno, arquitecto, guardián, desperdicio, semillas.
+- TEMA CENTRAL OBLIGATORIO: {selected_area}
 
-3. DIRECCIÓN DE ARTE (ESTILO PREGUNTAS Y TRIVIAS)
-Cada escena debe tener una ilustración digital atmosférica que represente la metáfora de esa parte del guion.
-Estilo Visual: "High-quality digital illustration, atmospheric lighting, deep blues and vibrant oranges, cinematic composition."
-Personaje: "An expressive minimalist stickman with a white circular head and thin black body. The stickman mustcast rim lighting."
-Simbología: Incluye elementos que brillan (corazones, llaves, fuego, hilos de luz).
+DIRECCIÓN DE ARTE:
+Estilo "Preguntas y Trivias": Ilustración digital atmosférica, colores vibrantes (azul/naranja), personaje stickman expresivo con rim lighting.
+Simbología: Incluye elementos que brillan (llaves, fuego, hilos de luz).
 
-INSTRUCCIONES DE MOVIMIENTO (Image-to-Video):
-Define instrucciones (V1, V2, V3, V4) para animar cada escena (ej. zoom lento, partículas flotando, luz parpadeando).
+INSTRUCCIONES DE MOVIMIENTO:
+Define V1, V2, V3, V4 para animar las escenas.
 
 REGLA DE EVITACIÓN:
 {avoid_msg}
