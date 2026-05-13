@@ -37,6 +37,7 @@ IMPORTANTE: Responde ÚNICAMENTE con el JSON siguiendo este formato:
   "selected_symbol": "Símbolo visual principal usado",
   "scenes": [
     {{
+      "scene_number": 1,
       "narration": "Texto completo de la Escena 1",
       "image_prompt": "Prompt de imagen detallado para la Escena 1",
       "movement_instruction": "V1: Instrucción de movimiento"
