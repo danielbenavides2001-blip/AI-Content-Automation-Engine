@@ -32,6 +32,9 @@ REGLA DE EVITACIÓN:
 IMPORTANTE: Responde ÚNICAMENTE con el JSON siguiendo este formato:
 {{
   "title": "Título del Video",
+  "hook": "Frase de gancho inicial (MÁX 10 palabras)",
+  "selected_theme": "{selected_area}",
+  "selected_symbol": "Símbolo visual principal usado",
   "scenes": [
     {{
       "audio_text": "Texto completo de la Escena 1",
