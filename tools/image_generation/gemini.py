@@ -39,8 +39,7 @@ class GeminiImageGenerator(GeminiBase):
         sequence_reference: Optional[Path] = None
     ) -> None:
         """Generates an image with Gemini and saves it to disk."""
-        time.sleep(5)
-
+        time.sleep(10)
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         contents = self._prepare_contents(prompt, style_references, sequence_reference)
@@ -49,13 +48,8 @@ class GeminiImageGenerator(GeminiBase):
             image_config=types.ImageConfig(aspect_ratio=self.aspect_ratio, image_size="1K")
         )
 
-        contents = self._prepare_contents(prompt, style_references, sequence_reference)
-        config = types.GenerateContentConfig(
-            response_modalities=['TEXT', 'IMAGE'],
-            image_config=types.ImageConfig(aspect_ratio=self.aspect_ratio, image_size="1K")
-        )
-
-        response = self.client.models.generate_content(
+        response = self._execute_with_retry(
+            self.client.models.generate_content,
             model=self.image_model,
             contents=contents,
             config=config

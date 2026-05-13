@@ -58,12 +58,14 @@ class GeminiVideoGenerator(GeminiBase):
             )
 
         # 3. Trigger Generation
+        time.sleep(10)
         Messenger.info(f"    Generating Video: {out_path_obj.name}...")
         Messenger.info(f"    Prompt: {prompt}")
         
         config = types.GenerateVideosConfig(**config_args)
         
-        operation = self.client.models.generate_videos(
+        operation = self._execute_with_retry(
+            self.client.models.generate_videos,
             model=self.video_model,
             prompt=prompt,
             image=image_input,
