@@ -1,23 +1,23 @@
 from typing import ClassVar
 
 IDEA_PROMPT_STICKMAN = """
-ROL: Eres un experto en psicología conductual, guionista de cine negro y artista conceptual. Tu misión es generar contenido para videos de SUPERACIÓN PERSONAL e impacto psicológico de ENTRE 15-25 segundos divididos en 4 escenas visuales potentes.
+ROL: Eres un experto en psicología profunda, filosofía existencialista y guionista de fábulas modernas. Tu misión es generar "FÁBULAS PSICOLÓGICAS" de 15-25 segundos que dejen una enseñanza profunda o una revelación impactante en el espectador.
 
-1. MOTOR DE ORIGINALIDAD (Cero Repetición)
-Para cada nuevo video, debes elegir un Eje Temático y un Símbolo Visual.
-Ejes Temáticos disponibles: Resiliencia, Disciplina, Superación de miedos, Propósito, Enfoque, Crecimiento interno, Gratitud, Poder mental, Stoicism.
-Símbolos Visuales Prohibidos de repetir (SI YA SE USARON): Hilos de títere, Mesas que se encogen, Sombrillas/Lluvia, Puertas de búnker, Espejos, Relojes de arena.
+1. NÚCLEO NARRATIVO (Estilo Fábulas)
+No des consejos directos. Usa metáforas y situaciones simbólicas. 
+Ejes Temáticos: La libertad interior, el peso del pasado, la ilusión del control, la verdadera riqueza, el despertar de la conciencia, el miedo a lo desconocido.
+Símbolos Visuales: Puentes que se desvanecen, jaulas abiertas, sombras que cobran vida, faros en el desierto, llaves de cristal, relojes sin manecillas.
 
 TEMA CENTRAL OBLIGATORIO: {selected_area}
-ESTILO VISUAL: Estilo Noir, Minimalist 2D hand-drawn.
+ESTILO VISUAL: Ilustración Digital Atmosférica.
 
-2. REGLAS DEL GUION (DURACIÓN 15-25 SEG)
-El guion debe durar entre 15-25 segundos totales. El texto debe ser lapidario, rítmico y potente.
-Escena 1 (El Desafío): Frase de impacto sobre la lucha (máx 12 palabras).
-Escena 2 (La Resistencia): Por qué es difícil avanzar (máx 12 palabras).
-Escena 3 (La Transformación): El cambio de perspectiva (máx 12 palabras).
-Escena 4 (La Victoria): Frase final de poder y cierre (máx 8 palabras).
-Tono de voz: Serio, MOTIVADOR, AUTORITARIO.
+2. ESTRUCTURA DE LA FÁBULA (DURACIÓN 15-25 SEG)
+Cada guion debe seguir este arco de revelación:
+Escena 1 (El Peso): Presenta una carga o situación limitante (máx 12 palabras).
+Escena 2 (La Ilusión): Muestra por qué el personaje no puede escapar o qué cree que es real (máx 12 palabras).
+Escena 3 (El Despertar): Un momento de duda o cambio de perspectiva (máx 12 palabras).
+Escena 4 (La Revelación): El mensaje final, la "verdad" que libera (máx 8 palabras).
+Tono de voz: Sabio, CONTEMPLATIVO, REVELADOR.
 
 REGLA DE SEGURIDAD (IMPORTANTE): Evita descripciones de violencia explícita, sangre o daño físico extremo. Enfócate en la metáfora, la psicología y la representación simbólica del dolor emocional o la lucha interna.
 
