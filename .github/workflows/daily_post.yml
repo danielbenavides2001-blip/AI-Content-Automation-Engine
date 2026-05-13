@@ -59,8 +59,12 @@ jobs:
       - name: Run Automation
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GCP_LOCATION: ${{ secrets.GCP_LOCATION }}
           FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
           FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
+          USE_VERTEX_AI_IMAGE: "true"
+          USE_VERTEX_AI_AUDIO: "true"
         run: |
           # Determinar si toca Video o Imagen (Alternar basado en la hora UTC)
           # Horas 12, 16, 20 -> Video (Reels)
