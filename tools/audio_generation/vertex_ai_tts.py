@@ -50,7 +50,8 @@ class VertexAIAudioGenerator(BaseModelTool):
         # Select the type of audio file you want returned
         audio_config = texttospeech.AudioConfig(
             audio_encoding=texttospeech.AudioEncoding.LINEAR16,
-            sample_rate_hertz=16000 # Native 16kHz for Whisper!
+            sample_rate_hertz=16000, # Native 16kHz for Whisper!
+            speaking_rate=1.08 # Slightly faster for a more natural, less robotic flow
         )
 
         # Perform the text-to-speech request

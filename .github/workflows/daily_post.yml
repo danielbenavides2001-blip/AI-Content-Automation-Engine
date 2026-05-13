@@ -66,6 +66,7 @@ jobs:
           FACEBOOK_APP_ID: ${{ secrets.FACEBOOK_APP_ID }}
           FACEBOOK_APP_SECRET: ${{ secrets.FACEBOOK_APP_SECRET }}
           USE_VERTEX_AI_IMAGE: "true"
+          USE_VERTEX_AI_AUDIO: "true"
           FORCE_POST_TYPE: ${{ github.event.inputs.force_type }}
         run: |
           # Run the daily content script
