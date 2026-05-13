@@ -44,12 +44,22 @@ class StickmanNoirManager(BasePromptManager):
         # DEBUG: Log raw response length
         Messenger.info(f"   Raw JSON received (length: {len(raw_json)})")
         
-        # Clean JSON
-        clean_json = raw_json.strip()
-        if "```json" in clean_json:
-            clean_json = clean_json.split("```json")[1].split("```")[0].strip()
-        elif "```" in clean_json:
-            clean_json = clean_json.split("```")[1].split("```")[0].strip()
+        # Clean JSON - Robust extraction
+        import re
+        try:
+            # Encontrar el primer '{' y el último '}'
+            match = re.search(r'(\{.*\})', raw_json, re.DOTALL)
+            if match:
+                clean_json = match.group(1).strip()
+            else:
+                clean_json = raw_json.strip()
+                # Fallback to previous logic if no braces found
+                if "```json" in clean_json:
+                    clean_json = clean_json.split("```json")[1].split("```")[0].strip()
+                elif "```" in clean_json:
+                    clean_json = clean_json.split("```")[1].split("```")[0].strip()
+        except Exception:
+            clean_json = raw_json.strip()
         
         try:
             # Parse into StickmanNoirIdea
