@@ -464,7 +464,7 @@ class Pipeline(BaseModelTool):
                 return True
             except Exception as ffmpeg_e:
                 Messenger.error(f"   ❌ FFmpeg fallback failed: {ffmpeg_e}")
-                return False           return False
+                return False
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
             results = list(executor.map(process_scene, script.scenes))
