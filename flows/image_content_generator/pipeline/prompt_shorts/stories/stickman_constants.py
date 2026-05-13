@@ -1,52 +1,42 @@
 from typing import ClassVar
 
 IDEA_PROMPT_STICKMAN = """
-ROL: Eres un experto en SUPERACIÓN PERSONAL, psicología del éxito y guionista de fábulas motivadoras. Tu misión es generar "LECCIONES DE VIDA" de 15-25 segundos que utilicen una metáfora visual para dejar un mensaje de superación personal claro y transformador.
+ROL: Eres un guionista experto en contenido de DESARROLLO PERSONAL de alto impacto, con un estilo narrativo "ESTOICO MODERNO". Tu objetivo es generar guiones de entre 60-90 palabras con una estructura lógica y emocional específica.
 
-1. NÚCLEO NARRATIVO (Superación Personal)
-Cada video debe dejar un mensaje directo que ayude al espectador a mejorar su vida.
-Ejes Temáticos: El poder de la disciplina, superar el miedo al fracaso, la importancia del enfoque, construir resiliencia, vencer la procrastinación, la mentalidad de crecimiento, el valor de la constancia.
-Símbolos Visuales: Puentes que se desvanecen, jaulas abiertas, sombras que cobran vida, faros en el desierto, llaves de cristal, relojes sin manecillas.
+1. ESTRUCTURA DEL GUION (OBLIGATORIA)
+Debes dividir el guion en exactamente 4 ESCENAS, siguiendo este orden:
 
+Escena 1 (La Metáfora Inicial): Comienza con "Me di cuenta de...", "Aprendí que...", "Comprendí que..." o "Finalmente acepté que...". Luego: "mi [Concepto Abstracto] es [Objeto Valioso/Elemento Natural]" y explica por qué el mundo intenta robarlo o corromperlo.
+Escena 2 (El Error Común): Describe una situación cotidiana donde el espectador desperdicia ese recurso, usando una imagen visual fuerte (ej: "tirar riqueza a la basura", "secar tu propio jardín").
+Escena 3 (El Cambio de Mentalidad): Da un consejo contraintuitivo usando un adjetivo fuerte (ej: "sé tacaño", "sé un guardián", "sé un arquitecto").
+Escena 4 (La Sentencia Final): Una frase poderosa que conecte el dominio de ese recurso con el dominio del destino personal.
+
+2. REGLAS DE ESTILO
+Tono: Solemne, reflexivo, pero empoderador.
+Lenguaje: Directo, sin rellenos. Usa verbos de acción fuertes.
+Vocabulario: Usa palabras como: riqueza, santuario, moneda, veneno, arquitecto, guardián, desperdicio.
 TEMA CENTRAL OBLIGATORIO: {selected_area}
-ESTILO VISUAL: Ilustración Digital Atmosférica.
-
-2. ESTRUCTURA DE LA FÁBULA (DURACIÓN 15-25 SEG)
-Cada guion debe seguir este arco de revelación:
-Escena 1 (El Peso): Presenta una carga o situación limitante (máx 12 palabras).
-Escena 2 (La Ilusión): Muestra por qué el personaje no puede escapar o qué cree que es real (máx 12 palabras).
-Escena 3 (El Despertar): Un momento de duda o cambio de perspectiva (máx 12 palabras).
-Escena 4 (La Revelación): El mensaje final, la "verdad" que libera (máx 8 palabras).
-Tono de voz: Sabio, CONTEMPLATIVO, REVELADOR.
-
-REGLA DE SEGURIDAD (IMPORTANTE): Evita descripciones de violencia explícita, sangre o daño físico extremo. Enfócate en la metáfora, la psicología y la representación simbólica del dolor emocional o la lucha interna.
 
 3. DIRECCIÓN DE ARTE (ESTILO PREGUNTAS Y TRIVIAS)
-Cada video consta de 4 ilustraciones digitales atmosféricas y vibrantes.
-Estilo Visual: "High-quality digital illustration, atmospheric lighting, deep blues and vibrant sunset oranges, cinematic composition, depth of field."
-Entornos: Fondos META FÓRICOS y detallados (ej. una isla flotante, un templo circular bajo las estrellas, un camino de luz en el vacío, un árbol brillando en la oscuridad). No es Noir plano; hay color y vida.
-Personaje: "An expressive minimalist stickman with a white circular head, clearly visible facial features (expressive eyes/mouth), and a thin black body. The stickman must cast light or be illuminated by the environment (rim lighting)."
-Simbología: Incluye elementos que brillan o destacan (un corazón ardiente, una llave dorada, hilos de luz, una llama en la mano).
-Paleta de Colores: Colores profundos y saturados. Azules noche, naranjas de atardecer, blancos brillantes y acentos de color vibrante (Amarillo, Dorado o Azul Eléctrico).
+Cada escena debe tener una ilustración digital atmosférica que represente la metáfora de esa parte del guion.
+Estilo Visual: "High-quality digital illustration, atmospheric lighting, deep blues and vibrant oranges, cinematic composition."
+Personaje: "An expressive minimalist stickman with a white circular head and thin black body. The stickman mustcast rim lighting."
+Simbología: Incluye elementos que brillan (corazones, llaves, fuego, hilos de luz).
 
 INSTRUCCIONES DE MOVIMIENTO (Image-to-Video):
-Para cada escena, define instrucciones de movimiento cortas y potentes (V1, V2, V3, V4).
+Define instrucciones (V1, V2, V3, V4) para animar cada escena (ej. zoom lento, partículas flotando, luz parpadeando).
 
-HISTORIAL DE TEMAS A EVITAR:
+REGLA DE EVITACIÓN:
 {avoid_msg}
 
-RESPONDE EXCLUSIVAMENTE EN FORMATO JSON siguiendo este esquema:
+IMPORTANTE: Responde ÚNICAMENTE con el JSON siguiendo este formato:
 {{
-  "title": "Título corto y potente",
-  "hook": "Gancho de interrupción (MÁX 10 palabras)",
-  "selected_theme": "El eje temático elegido",
-  "selected_symbol": "El símbolo visual elegido",
+  "title": "Título del Video",
   "scenes": [
     {{
-      "scene_number": 1,
-      "narration": "Texto ultra-corto de 4 segundos",
-      "image_prompt": "Prompt en inglés siguiendo el estilo Noir",
-      "movement_instruction": "Instrucción de movimiento para la IA de video"
+      "audio_text": "Texto completo de la Escena 1",
+      "image_prompt": "Prompt de imagen detallado para la Escena 1",
+      "video_instruction": "V1: Instrucción de movimiento"
     }},
     ... (total 4 escenas)
   ]
@@ -54,9 +44,9 @@ RESPONDE EXCLUSIVAMENTE EN FORMATO JSON siguiendo este esquema:
 """
 
 AUDIO_PROMPT_STICKMAN = """
-Usa un tono barítono, serio, pero muy FLUIDO y ATRACTIVO. 
-El texto es muy corto, por lo que debes darle peso a cada palabra con pausas estratégicas.
-El video total debe durar entre 15 y 25 segundos. No más.
+Usa un tono ESTOICO, SOLEMNE y PODEROSO. 
+Lee con calma, dándole peso a palabras como "riqueza", "veneno" o "arquitecto".
+Pausas marcadas entre cada párrafo para que el mensaje penetre.
 
 TEXTO A NARRAR:
 {audio_text}
