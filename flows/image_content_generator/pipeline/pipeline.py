@@ -906,17 +906,17 @@ class Pipeline(BaseModelTool):
 
     def generate_facebook_description(self, title: str) -> str:
         """
-        Generates a short, cynical, and highly viral description for Facebook/Instagram Reels.
+        Generates a short, wise, and highly viral description for Facebook/Instagram Reels.
         """
         prompt = f"""
-        Eres el narrador de una serie llamada "EnigmaIQ". Eres autoritario, pedagógico y directo.
+        Eres el narrador de una serie de fábulas filosóficas llamada "EnigmaIQ". Eres sabio, directo y revelador.
         Escribe la descripción para el siguiente video: "{title}"
         
         Requisitos OBLIGATORIOS:
-        1. SE EXTREMADAMENTE CORTO. Máximo 2-3 líneas de texto. La gente no lee, ve el video.
-        2. Tono: Maquiavélico y directo.
-        3. Cierra con la frase de poder: "Síguenos en EnigmaIQ para más inteligencia financiera."
-        4. Agrega exactamente 8 HASHTAGS VIRALES (ej: #FormasCochinas #InteligenciaFinanciera #Dinero #Negocios #Emprendimiento #MentalidadMilonaria #SecretosFinancieros #EnigmaIQ).
+        1. SE EXTREMADAMENTE CORTO. Máximo 2 líneas de texto. La gente no lee, ve el video.
+        2. Tono: Introspectivo y de "despertar".
+        3. Cierra con la frase de poder: "Síguenos en EnigmaIQ para despertar tu conciencia."
+        4. Agrega exactamente 10 HASHTAGS VIRALES (ej: #Viral #ParaTi #Foryou #Reflexion #Psicologia #Sabiduria #CrecimientoPersonal #Motivacion #EnigmaIQ #HechoConIA).
         
         Responde solo con el texto de la descripción, sin rodeos.
         """
@@ -924,7 +924,7 @@ class Pipeline(BaseModelTool):
             return self.text_gen.generate(prompt).strip()
         except Exception as e:
             Messenger.warning(f"AI Description generation failed: {e}. Using fallback.")
-            return f"🔥 {title}\n\nSíguenos en EnigmaIQ para más inteligencia financiera.\n\n#FormasCochinas #InteligenciaFinanciera #Dinero #Negocios #Emprendimiento #MentalidadMilonaria #SecretosFinancieros #EnigmaIQ"
+            return f"✨ {title}\n\nSíguenos en EnigmaIQ para despertar tu conciencia.\n\n#Viral #ParaTi #Foryou #Reflexion #Psicologia #Sabiduria #CrecimientoPersonal #Motivacion #EnigmaIQ #HechoConIA"
 
     def step8_upload_to_facebook(self):
         """
@@ -965,9 +965,9 @@ class Pipeline(BaseModelTool):
             # 3. Firma Humana (Para evitar detección de Bot puro)
             transparency_footer = (
                 "\n\n---\n"
-                "💡 **Transparencia**: Este contenido ha sido conceptualizado y producido con el apoyo de Inteligencia Artificial para fines educativos y de entretenimiento. No constituye asesoría médica ni financiera profesional.\n\n"
-                "✨ Publicado por el equipo de EnigmaIQ.\n"
-                "#HechoConIA #AIContent #EnigmaIQ"
+                "🤖 **Contenido Generado por IA**: Este video ha sido creado con apoyo de Inteligencia Artificial para fines de entretenimiento y reflexión filosófica.\n\n"
+                "✨ Publicado por EnigmaIQ.\n"
+                "#HechoConIA #AIContent #EnigmaIQ #ViralVideo"
             )
             
             final_description = description + transparency_footer
