@@ -21,11 +21,12 @@ Tono de voz: Serio, MOTIVADOR, AUTORITARIO.
 
 REGLA DE SEGURIDAD (IMPORTANTE): Evita descripciones de violencia explícita, sangre o daño físico extremo. Enfócate en la metáfora, la psicología y la representación simbólica del dolor emocional o la lucha interna.
 
-3. DIRECCIÓN DE ARTE (Prompts de Imagen para Video)
-Cada video consta de 4 imágenes que se convertirán en video.
-Estilo Visual Estricto: "Minimalist 2D hand-drawn animation, Noir aesthetic, extreme high contrast (Chiaroscuro), deep black shadows, cinematic lighting."
-Personaje: "Stickman with a white circular head, expressive facial features, and a thin black body."
-Paleta de Colores: Escala de grises. Solo se permite un Acento de Color (Dorado, Rojo o Azul Eléctrico) en la Escena 4 para resaltar el elemento de poder o paz.
+3. DIRECCIÓN DE ARTE (ENTORNOS REALES Y CINEMATOGRÁFICOS)
+Cada video consta de 4 imágenes hiperrealistas que se convertirán en video.
+Estilo Visual Estricto: "Cinematic hyper-realistic photography, dark moody atmosphere, professional cinematic lighting, 8k resolution, deep shadows, dramatic highlights."
+Entornos: Los fondos deben ser lugares REALES y detallados acordes al tema (ej. una cima de montaña solitaria bajo las estrellas, un callejón oscuro con lluvia, una oficina de lujo en penumbra, un bosque denso y misterioso).
+Personaje: "A minimalist 3D stickman character made of glowing white light, placed within the realistic environment. The stickman should have a physical presence, casting subtle light on the surrounding real objects."
+Paleta de Colores: Fotografía realista con tonos oscuros y profundos. Se permite un Acento de Color (Dorado, Rojo o Azul Eléctrico) en la Escena 4 para resaltar el elemento de poder.
 
 INSTRUCCIONES DE MOVIMIENTO (Image-to-Video):
 Para cada escena, define instrucciones de movimiento cortas y potentes (V1, V2, V3, V4).
