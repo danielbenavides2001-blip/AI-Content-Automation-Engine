@@ -1,12 +1,12 @@
-name: Daily Finance Content Automation
+name: Daily Content Automation (3 Reels + 3 Images)
 
 on:
   schedule:
-    - cron: '0 12,15,17,19,21,23 * * *'  # 6 posts between 7am and 6pm (Colombia Time UTC-5)
+    - cron: '0 12,14,16,18,20,22 * * *' # 7am, 9am, 11am, 1pm, 3pm, 5pm COT
   workflow_dispatch:
     inputs:
       force_type:
-        description: 'Forzar tipo de post (0=Imagen, 1=Video, vacío=Ciclo Normal)'
+        description: '0=Image, 1=Video'
         required: false
         type: string
 
@@ -41,7 +41,7 @@ jobs:
           cd flows/image_content_generator/remotion
           npm install
 
-      - name: Install Linux dependencies for Remotion (Chromium)
+      - name: Install Linux dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2t64
@@ -56,28 +56,34 @@ jobs:
           python -c "import os, json; f=open('gcp_credentials.json', 'w'); json.dump(json.loads(os.environ.get('GCP_JSON', '{}'), strict=False), f, indent=2)"
           echo "GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/gcp_credentials.json" >> $GITHUB_ENV
 
-      - name: Run Daily Automation
+      - name: Run Automation
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-          GCP_LOCATION: ${{ secrets.GCP_LOCATION }}
           FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
           FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
-          FACEBOOK_APP_ID: ${{ secrets.FACEBOOK_APP_ID }}
-          FACEBOOK_APP_SECRET: ${{ secrets.FACEBOOK_APP_SECRET }}
-          USE_VERTEX_AI_IMAGE: "true"
-          FORCE_POST_TYPE: ${{ github.event.inputs.force_type }}
         run: |
-          # Run the daily content script
-          poetry run python flows/image_content_generator/pipeline/daily_automated_content.py
+          # Determinar si toca Video o Imagen (Alternar basado en la hora UTC)
+          # Horas 12, 16, 20 -> Video (Reels)
+          # Horas 14, 18, 22 -> Imagen
+          HOUR=$(date +%H)
+          export POST_TYPE="video"
           
-      - name: Commit state changes
+          if [[ "${{ github.event.inputs.force_type }}" == "0" ]]; then
+            export POST_TYPE="image"
+          elif [[ "${{ github.event.inputs.force_type }}" == "1" ]]; then
+            export POST_TYPE="video"
+          elif [[ "$HOUR" == "14" || "$HOUR" == "18" || "$HOUR" == "22" ]]; then
+            export POST_TYPE="image"
+          fi
+
+          echo "🚀 Running automation for POST_TYPE: $POST_TYPE (Hour: $HOUR)"
+          poetry run python flows/image_content_generator/pipeline/daily_automated_content.py
+
+      - name: Commit and Push Changes (Tracking Repetition)
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          # Añadimos todo lo nuevo (history, tracking y assets generados)
           git add .
-          git commit -m "chore: update state and history [skip ci]" || echo "No changes to commit"
-          # Usamos autostash para evitar errores si hay cambios locales no trackeados
+          git commit -m "chore: update tracking and history [skip ci]" || echo "No changes to commit"
           git pull --rebase --autostash origin main
           git push origin main || echo "No changes to push"

@@ -110,92 +110,58 @@ class DailyAutomator:
         with open(self.history_file, "a", encoding="utf-8") as f:
             f.write(f"{datetime.now().isoformat()},{post_type},{topic.replace(',', ' ')}\n")
 
-    def generate_daily_text_post(self):
-        Messenger.info("🤖 Generating daily finance tip (Text)...")
-        avoid_msg = self.get_recent_topics()
-        prompt = f"""
-        Genera un post de Facebook corto y muy valioso sobre finanzas personales.
-        Puede ser un consejo de ahorro, una estrategia de inversión, un hack de presupuesto o un dato psicológico sobre el dinero.
-        Usa emojis y un tono cercano.
-        Responde solo con el texto del post.{avoid_msg}
+    def generate_daily_stickman_image(self):
         """
-        message = self.text_gen.generate(prompt)
-        # Extract a "topic" from the message (first 5 words)
-        topic = " ".join(message.split()[:5])
-        self.facebook.create_text_post(message)
-        self.log_post("text", topic)
-
-    def generate_daily_image_post(self):
-        Messenger.info("🤖 Generating daily finance RIDDLE image post...")
+        Generates a single high-quality Stickman Image (Seeds of Power style).
+        """
+        Messenger.info("🎨 Generating Stickman Image post (Seeds of Power essence)...")
         avoid_msg = self.get_recent_topics()
         
-        # 1. Generate Structured Riddle Data
-        prompt = finance_constants.IMAGE_INTERACTION_PROMPT + avoid_msg
-        riddle_data = self.text_gen.generate_text(prompt, RiddlePost)
-        
-        # 2. Generate Image with Vertex AI (Imagen 3)
-        Messenger.info(f"🎨 Visual Idea: {riddle_data.idea_visual}")
-        Messenger.info(f"🎯 Objective: {riddle_data.objetivo_psicologico}")
-        
-        image_path = self.out_dir / "daily_image.png"
-        self.image_gen.generate_image(
-            prompt=riddle_data.image_prompt,
-            output_path=image_path
-        )
-        
-        description = riddle_data.caption
-        
-        # 4. Upload with Retry Logic
-        Messenger.info(f"🚀 Uploading photo to Facebook: {image_path.name}")
-        
-        # Convert to JPEG for better Facebook compatibility (prevents 500 errors)
-        if image_path.suffix.lower() == ".png":
-            from PIL import Image
-            jpg_path = image_path.with_suffix(".jpg")
-            with Image.open(image_path) as img:
-                img.convert("RGB").save(jpg_path, "JPEG", quality=95)
-            image_path = jpg_path
-
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                self.facebook.upload_photo(image_path, description)
-                self.log_post("image", riddle_data.idea_visual)
-                Messenger.success("✅ Photo published successfully!")
-                break
-            except Exception as e:
-                if attempt < max_retries - 1:
-                    Messenger.warning(f"⚠️ Upload attempt {attempt+1} failed. Retrying in 10s... ({str(e)})")
-                    time.sleep(10)
-                else:
-                    Messenger.error(f"❌ Failed to upload photo after {max_retries} attempts.")
-                    raise e
+        # 1. Generate Story/Metaphor using the main pipeline (Step 1)
+        try:
+            cmd_step1 = [sys.executable, "-m", "flows.image_content_generator.pipeline.main", "short", "step1", "--avoid", avoid_msg, "--mode", "stickman"]
+            subprocess.run(cmd_step1, check=True)
+            
+            # 2. Generate the first image (Step 2)
+            cmd_step2 = [sys.executable, "-m", "flows.image_content_generator.pipeline.main", "short", "step2", "--mode", "stickman"]
+            subprocess.run(cmd_step2, check=True)
+            
+            # 3. Upload specifically as Image (New Step 8_IMAGE)
+            cmd_step8 = [sys.executable, "-m", "flows.image_content_generator.pipeline.main", "short", "step8_image", "--mode", "stickman"]
+            subprocess.run(cmd_step8, check=True)
+            
+            Messenger.success("✅ Stickman Image post completed!")
+            self.log_post("image", "Stickman Reflection")
+            self.sync_to_github()
+        except Exception as e:
+            Messenger.error(f"❌ Failed to generate/upload Stickman Image: {e}")
+            sys.exit(1)
 
     def run_daily_mix(self):
-        Messenger.info("🚀 Starting Daily Automated Content Picker (STICKMAN ONLY)...")
+        """
+        Main entry point for GitHub Actions.
+        Determines type based on POST_TYPE env var.
+        """
+        post_type = os.getenv("POST_TYPE", "video").lower()
+        Messenger.info(f"🚀 Starting Automated Post (Type: {post_type.upper()})...")
         
-        # We force choice 1 (Stickman Noir) as requested by the user
-        choice = 1
-        Messenger.info("🎬 GENERATING NEW STICKMAN NOIR (Steps 1-8)...")
-        avoid_msg = self.get_recent_topics()
-        
-        # Pass the choice as FORCE_POST_TYPE to the subprocess
-        env = os.environ.copy()
-        env["FORCE_POST_TYPE"] = str(choice)
-        
-        try:
-            # Clean up stuck ideas before starting
-            self.cleanup_stuck_ideas()
+        self.cleanup_stuck_ideas()
 
-            cmd = [sys.executable, "-m", "flows.image_content_generator.pipeline.main", "short", "all", "--avoid", avoid_msg, "--mode", "stickman"]
-            subprocess.run(cmd, check=True, env=env)
-            
-            Messenger.success("✅ Stickman Noir generation completed!")
-            self.sync_to_github()
-            
-        except Exception as e:
-            Messenger.error(f"Error during automated task: {e}")
-            sys.exit(1)
+        if post_type == "video":
+            Messenger.info("🎬 GENERATING NEW STICKMAN REEL (Full Pipeline)...")
+            avoid_msg = self.get_recent_topics()
+            try:
+                cmd = [sys.executable, "-m", "flows.image_content_generator.pipeline.main", "short", "all", "--avoid", avoid_msg, "--mode", "stickman"]
+                subprocess.run(cmd, check=True)
+                Messenger.success("✅ Stickman Reel completed!")
+                self.log_post("video", "Stickman Reel")
+                self.sync_to_github()
+            except Exception as e:
+                Messenger.error(f"Error during video task: {e}")
+                sys.exit(1)
+        else:
+            self.generate_daily_stickman_image()
+
 
     def cleanup_stuck_ideas(self):
         """

@@ -1002,3 +1002,42 @@ class Pipeline(BaseModelTool):
             except Exception as e:
                 Messenger.error(f"   Failed to upload Idea {idea_obj.id}: {str(e)}")
                 break
+
+    def step8_upload_image_to_facebook(self):
+        """
+        Upload Image to Facebook: Uploads a single image (from Scene 1) as a post.
+        Used for the '3 images daily' requirement.
+        """
+        idea_obj = self.store.get_first_by_state(State.IMAGES_GENERATED)
+        if not idea_obj:
+            Messenger.error("No image found to upload.")
+            return
+
+        Messenger.info(f"\n--- Uploading Image Post: {idea_obj.title} ---")
+
+        # 1. Path to first image
+        img_path = self.get_idea_asset_path(idea_obj.id, self.IMAGES_DIR, "scene_01.png")
+        if not img_path.exists():
+            Messenger.error(f"Image not found: {img_path}")
+            return
+
+        # 2. Description
+        description = self.generate_facebook_description(idea_obj.title)
+        
+        transparency_footer = (
+            "\n\n---\n"
+            "🤖 **Reflexión Generada por IA**: Este arte y mensaje han sido creados con Inteligencia Artificial para tu crecimiento personal.\n\n"
+            "✨ Publicado por EnigmaIQ.\n"
+            "#HechoConIA #ReflexionDiaria #EnigmaIQ #CrecimientoPersonal #Viral"
+        )
+        final_description = description + transparency_footer
+
+        # 3. Upload
+        try:
+            photo_id = self.facebook.upload_photo(img_path, caption=final_description)
+            if photo_id:
+                idea_obj.state = State.UPLOADED
+                self.store.save(idea_obj)
+                Messenger.success(f"✅ Image post successful! ID: {photo_id}")
+        except Exception as e:
+            Messenger.error(f"❌ Failed to upload image: {e}")
