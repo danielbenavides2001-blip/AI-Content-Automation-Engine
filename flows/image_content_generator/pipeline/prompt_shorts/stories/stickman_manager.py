@@ -23,8 +23,8 @@ class StickmanNoirManager(BasePromptManager):
         """
         Generates a complete Stickman Fable cycle: Idea + Script.
         """
-        # 1. Select Theme (Philosophical Fables Focus)
-        themes = ["La libertad interior", "El peso del pasado", "La ilusión del control", "La verdadera riqueza", "El despertar de la conciencia", "El miedo a lo desconocido", "La búsqueda de sentido", "El espejo del alma", "La sombra personal", "El vacío existencial"]
+        # 1. Select Theme (Practical Self-Improvement Focus)
+        themes = ["Vencer el miedo al fracaso", "La disciplina es libertad", "El poder del enfoque", "Cómo superar la procrastinación", "Resiliencia ante la adversidad", "La importancia de la constancia", "Crecimiento personal diario", "El valor del silencio", "Dominar tu mente", "El éxito comienza hoy"]
         selected_theme = random.choice(themes)
         
         # 2. Format the prompt

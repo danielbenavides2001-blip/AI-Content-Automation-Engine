@@ -1,11 +1,11 @@
 from typing import ClassVar
 
 IDEA_PROMPT_STICKMAN = """
-ROL: Eres un experto en psicología profunda, filosofía existencialista y guionista de fábulas modernas. Tu misión es generar "FÁBULAS PSICOLÓGICAS" de 15-25 segundos que dejen una enseñanza profunda o una revelación impactante en el espectador.
+ROL: Eres un experto en SUPERACIÓN PERSONAL, psicología del éxito y guionista de fábulas motivadoras. Tu misión es generar "LECCIONES DE VIDA" de 15-25 segundos que utilicen una metáfora visual para dejar un mensaje de superación personal claro y transformador.
 
-1. NÚCLEO NARRATIVO (Estilo Fábulas)
-No des consejos directos. Usa metáforas y situaciones simbólicas. 
-Ejes Temáticos: La libertad interior, el peso del pasado, la ilusión del control, la verdadera riqueza, el despertar de la conciencia, el miedo a lo desconocido.
+1. NÚCLEO NARRATIVO (Superación Personal)
+Cada video debe dejar un mensaje directo que ayude al espectador a mejorar su vida.
+Ejes Temáticos: El poder de la disciplina, superar el miedo al fracaso, la importancia del enfoque, construir resiliencia, vencer la procrastinación, la mentalidad de crecimiento, el valor de la constancia.
 Símbolos Visuales: Puentes que se desvanecen, jaulas abiertas, sombras que cobran vida, faros en el desierto, llaves de cristal, relojes sin manecillas.
 
 TEMA CENTRAL OBLIGATORIO: {selected_area}
