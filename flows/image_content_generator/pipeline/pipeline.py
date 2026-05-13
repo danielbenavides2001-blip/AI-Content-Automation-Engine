@@ -425,23 +425,32 @@ class Pipeline(BaseModelTool):
             # 2. Movement instruction fallback
             move_prompt = scene.movement_instruction or "Slow cinematic movement, subtle animation, noir style."
             
-            # 3. Generation with Retry Logic (Internal)
-            for attempt in range(3):
-                try:
-                    Messenger.info(f"   🎬 Generating Video Clip for Scene {scene.scene_number} (Attempt {attempt+1}/3)...")
-                    self.video_gen.generate_video(
-                        prompt=move_prompt,
-                        out_path=str(clip_path),
-                        img_start_path=str(img_path)
-                    )
-                    self.cost_tracker.add_video_cost(1)
-                    return True
-                except Exception as e:
-                    Messenger.warning(f"   ⚠️ Attempt {attempt+1} failed: {e}")
-                    import time
-                    time.sleep(5) # Cooldown
+            # --- MODO HÍBRIDO: IA Solo en Escena 1 y Escena Final (Escena 4) ---
+            total_scenes = len(script.scenes)
+            is_hook = scene.scene_number == 1
+            is_resolution = scene.scene_number == total_scenes
+
+            if not (is_hook or is_resolution):
+                Messenger.info(f"   💡 Hybrid Mode: Skipping AI Video for Scene {scene.scene_number} (Middle scene). Using static fallback.")
+            else:
+                # 3. Generation with Retry Logic (Internal)
+                for attempt in range(3):
+                    try:
+                        Messenger.info(f"   🎬 Generating AI Video Clip for Scene {scene.scene_number} (Attempt {attempt+1}/3)...")
+                        self.video_gen.generate_video(
+                            prompt=move_prompt,
+                            out_path=str(clip_path),
+                            img_start_path=str(img_path)
+                        )
+                        self.cost_tracker.add_video_cost(1)
+                        return True
+                    except Exception as e:
+                        Messenger.warning(f"   ⚠️ Attempt {attempt+1} failed: {e}")
+                        import time
+                        time.sleep(5) # Cooldown
             
-            Messenger.error(f"   ❌ Failed to generate AI clip for Scene {scene.scene_number}. Using static image fallback via FFmpeg.")
+            # FALLBACK (Para escenas intermedias o si la IA falla)
+            Messenger.info(f"   🎬 Generating static video fallback for Scene {scene.scene_number}...")
             try:
                 subprocess.run(
                     ["ffmpeg", "-loop", "1", "-i", str(img_path), "-c:v", "libx264", "-t", "6", "-pix_fmt", "yuv420p", "-y", str(clip_path)],

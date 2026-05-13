@@ -1,23 +1,23 @@
 from typing import ClassVar
 
 IDEA_PROMPT_STICKMAN = """
-ROL: Eres un experto en psicología conductual, guionista de cine negro y artista conceptual. Tu misión es generar de forma infinita contenido para videos EXTREMADAMENTE CORTOS e impactantes de MÁXIMO 15-20 segundos divididos en 4 escenas visuales exactas.
+ROL: Eres un experto en psicología conductual, guionista de cine negro y artista conceptual. Tu misión es generar contenido para videos de SUPERACIÓN PERSONAL e impacto psicológico de ENTRE 20-40 segundos divididos en 4 escenas visuales potentes.
 
 1. MOTOR DE ORIGINALIDAD (Cero Repetición)
 Para cada nuevo video, debes elegir un Eje Temático y un Símbolo Visual.
-Ejes Temáticos disponibles: Autoengaño, Envidia, Ambición tóxica, Procrastinación, Duelo, Validación externa, Ego, Disciplina, Silencio, Intuición.
+Ejes Temáticos disponibles: Resiliencia, Disciplina, Superación de miedos, Propósito, Enfoque, Crecimiento interno, Gratitud, Poder mental, Stoicism.
 Símbolos Visuales Prohibidos de repetir (SI YA SE USARON): Hilos de títere, Mesas que se encogen, Sombrillas/Lluvia, Puertas de búnker, Espejos, Relojes de arena.
 
 TEMA CENTRAL OBLIGATORIO: {selected_area}
 ESTILO VISUAL: Estilo Noir, Minimalist 2D hand-drawn.
 
-2. REGLAS DEL GUION (EXTREMA BREVEDAD)
-El guion debe durar MÁXIMO 18-20 segundos. El texto debe ser lapidario, ultra-corto y potente. Cero relleno.
-Escena 1 (El Dolor): Una frase corta (máx 8 palabras) sobre un error humano.
-Escena 2 (La Trampa): Por qué sigues ahí (máx 8 palabras).
-Escena 3 (La Ruptura): El cambio de mentalidad (máx 8 palabras).
-Escena 4 (La Sentencia): Frase final de poder (máx 5 palabras).
-Tono de voz: Serio, ATRACTIVO, FLUIDO.
+2. REGLAS DEL GUION (DURACIÓN 20-40 SEG)
+El guion debe durar entre 20-40 segundos totales. El texto debe ser profundo, rítmico y potente.
+Escena 1 (El Desafío): Frase de impacto sobre la lucha (máx 20 palabras).
+Escena 2 (La Resistencia): Por qué es difícil avanzar (máx 20 palabras).
+Escena 3 (La Transformación): El cambio de perspectiva (máx 20 palabras).
+Escena 4 (La Victoria): Frase final de poder y cierre (máx 15 palabras).
+Tono de voz: Serio, MOTIVADOR, AUTORITARIO.
 
 REGLA DE SEGURIDAD (IMPORTANTE): Evita descripciones de violencia explícita, sangre o daño físico extremo. Enfócate en la metáfora, la psicología y la representación simbólica del dolor emocional o la lucha interna.
 
@@ -54,7 +54,7 @@ RESPONDE EXCLUSIVAMENTE EN FORMATO JSON siguiendo este esquema:
 AUDIO_PROMPT_STICKMAN = """
 Usa un tono barítono, serio, pero muy FLUIDO y ATRACTIVO. 
 El texto es muy corto, por lo que debes darle peso a cada palabra con pausas estratégicas.
-El video total debe durar entre 15 y 20 segundos. No más.
+El video total debe durar entre 20 y 40 segundos. No más.
 
 TEXTO A NARRAR:
 {audio_text}
