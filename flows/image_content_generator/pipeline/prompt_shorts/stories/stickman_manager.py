@@ -11,8 +11,8 @@ from tools.common.messenger import Messenger
 
 class StickmanNoirManager(BasePromptManager):
     """
-    Manager for the high-quality Stickman Noir format (Option 1).
-    Focuses on behavioral psychology and noir aesthetics.
+    Manager for the high-quality Stickman Fables format.
+    Focuses on philosophical reflections and introspective storytelling.
     """
     IDEA_PROMPT: ClassVar[str] = stickman_constants.IDEA_PROMPT_STICKMAN
     AUDIO_PROMPT: ClassVar[str] = stickman_constants.AUDIO_PROMPT_STICKMAN
@@ -21,10 +21,10 @@ class StickmanNoirManager(BasePromptManager):
         self, content_gen: GeminiTextGenerator, titles_to_avoid: List[str] = [], extra_avoid: str = ""
     ) -> Tuple[StickmanNoirIdea, VideoScript]:
         """
-        Generates a complete Stickman Noir cycle: Idea + Script.
+        Generates a complete Stickman Fable cycle: Idea + Script.
         """
-        # 1. Select Theme
-        themes = ["Autoengaño", "Envidia", "Ambición tóxica", "Procrastinación", "Duelo", "Validación externa", "Ego", "Disciplina", "Silencio", "Intuición"]
+        # 1. Select Theme (Philosophical Fables Focus)
+        themes = ["La libertad interior", "El peso del pasado", "La ilusión del control", "La verdadera riqueza", "El despertar de la conciencia", "El miedo a lo desconocido", "La búsqueda de sentido", "El espejo del alma", "La sombra personal", "El vacío existencial"]
         selected_theme = random.choice(themes)
         
         # 2. Format the prompt
