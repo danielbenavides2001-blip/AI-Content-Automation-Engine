@@ -54,13 +54,8 @@ class PromptManagerShorts(BasePromptManager):
         next_part = parts_count + 1
         Messenger.info(f"🎞️ Series: {series_name} | Next Part: {next_part}")
 
-        # 3. Idea Generation with Focus Area Diversity (CURIOSITIES FOCUS)
         focus_areas = [
-            "MISTERIOS DEL DÍA A DÍA: Preguntas muy específicas sobre cosas comunes (Ej: ¿Por qué los gatos ronronean realmente?, ¿Por qué cerramos los ojos al estornudar?, ¿Por qué el cielo se vuelve rojo al atardecer?)",
-            "CURIOSIDADES BIOLÓGICAS EXTREMAS: Comportamientos extraños explicados (Ej: ¿Por qué las moscas se frotan las manos?, ¿Cómo duermen los delfines sin ahogarse?, ¿Por qué nos pica el cuerpo cuando vemos a alguien rascarse?)",
-            "HISTORIA OCULTA Y ESPECÍFICA: Anécdotas cortas y sorprendentes (Ej: ¿Por qué las estatuas romanas no tienen pupilas?, ¿Por qué los botones de las camisas de hombre y mujer están en lados opuestos?)",
-            "CIENCIA DE LO COTIDIANO: Explicaciones fascinantes (Ej: ¿Por qué el agua caliente se congela más rápido que la fría?, ¿Por qué nuestra voz suena distinta en las grabaciones?)",
-            "PSICOLOGÍA Y MENTE: Explicaciones directas (Ej: ¿Por qué sentimos que ya vivimos algo (Déjà vu)?, ¿Por qué nos dan escalofríos al escuchar ciertas canciones?)"
+            "CURIOSIDADES BIOLÓGICAS EXTREMAS SOBRE ANIMALES: Comportamientos extraños explicados (Ej: ¿Por qué las moscas se frotan las manos?, ¿Cómo duermen los delfines sin ahogarse?, ¿Por qué los perros dan vueltas antes de acostarse?)"
         ]
         selected_area = random.choice(focus_areas)
         Messenger.info(f"🎯 Random Story Focus: {selected_area}")
