@@ -22,3 +22,5 @@ models
 **/video_content_generator
 gcp_credentials.json
 *.json
+!package.json
+!package-lock.json
