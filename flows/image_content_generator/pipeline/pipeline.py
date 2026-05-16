@@ -808,8 +808,8 @@ class Pipeline(BaseModelTool):
         
         fc = (
             f"[0:v]noise=alls=5:allf=t+u[v_grain];"
-            f"[v_grain]drawbox=y=ih-10:w=iw:h=10:color=black@0.5:t=fill[v_bar_bg];"
-            f"[v_bar_bg]drawbox=y=ih-10:w=iw*t/{duration}:h=10:color=#FFFF00@0.8:t=fill[v_composed];"
+            f"[v_grain]drawbox=y=0:w=iw:h=25:color=black@0.5:t=fill[v_bar_bg];"
+            f"[v_bar_bg]drawbox=y=0:w=iw*t/{duration}:h=25:color=#FFFF00@1.0:t=fill[v_composed];"
             f"[v_composed][1:v]overlay=shortest=1[out]"
         )
         
