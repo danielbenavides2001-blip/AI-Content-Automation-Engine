@@ -464,8 +464,8 @@ class Pipeline(BaseModelTool):
         Generate Audio: Batched AI-Guided Batching (Whisper + Gemini).
         Processes scenes in groups of 10 for maximum stability and alignment precision.
         """
-        # En modo stickman, esperamos a CLIPS_GENERATED. En estándar, IMAGES_GENERATED es suficiente.
-        target_state = State.CLIPS_GENERATED if self.mode == "stickman" else State.IMAGES_GENERATED
+        # Ambos modos (Stickman y Curiosidades) pasan ahora por step2b
+        target_state = State.CLIPS_GENERATED
         idea_obj = self.store.get_first_by_state(target_state)
         if not idea_obj:
             Messenger.error(f"No ideas ready for audio generation (target: {target_state}).")
