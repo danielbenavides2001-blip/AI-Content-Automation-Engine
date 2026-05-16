@@ -2,16 +2,16 @@ import os
 import requests
 import random
 from pathlib import Path
+from pydantic import Field
 from tools.common.messenger import Messenger
 from tools.common.base_model import BaseModelTool
+from typing import Optional
 
 class PexelsTool(BaseModelTool):
     """
     Herramienta para interactuar con la API de Pexels y descargar videos de stock gratuitos.
     """
-    def __init__(self):
-        super().__init__()
-        self.api_key = os.getenv("PEXELS_API_KEY")
+    api_key: Optional[str] = Field(default_factory=lambda: os.getenv("PEXELS_API_KEY"))
 
     def fetch_video(self, query: str, out_path: Path) -> bool:
         """
