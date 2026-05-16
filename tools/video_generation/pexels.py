@@ -29,10 +29,14 @@ class PexelsTool(BaseModelTool):
         Messenger.info(f"🔎 Buscando video en Pexels para: '{query}'...")
         url = "https://api.pexels.com/videos/search"
         headers = {"Authorization": self.api_key}
+        
+        # Aleatoriedad fuerte: página al azar entre 1 y 3 para evitar repetir siempre los mismos clips top.
+        random_page = random.randint(1, 3)
         params = {
             "query": query,
             "orientation": "portrait",
-            "per_page": 10,
+            "per_page": 15,
+            "page": random_page,
             "size": "large"
         }
 
@@ -43,11 +47,19 @@ class PexelsTool(BaseModelTool):
 
             videos = data.get("videos", [])
             if not videos:
-                Messenger.warning(f"⚠️ No se encontraron videos verticales para '{query}' en Pexels.")
-                return False
+                # Fallback a la pagina 1 si la pagina random no tiene resultados
+                if random_page > 1:
+                    params["page"] = 1
+                    response = requests.get(url, headers=headers, params=params)
+                    data = response.json()
+                    videos = data.get("videos", [])
+                    
+                if not videos:
+                    Messenger.warning(f"⚠️ No se encontraron videos verticales para '{query}' en Pexels.")
+                    return False
 
-            # Elegir uno al azar de los primeros para variar
-            selected_video = random.choice(videos[:5])
+            # Elegir uno al azar de la lista completa
+            selected_video = random.choice(videos)
             
             # Buscar el archivo de video de mejor calidad
             video_files = selected_video.get("video_files", [])

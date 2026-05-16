@@ -31,11 +31,13 @@ class PixabayTool(BaseModelTool):
         Messenger.info(f"🔎 Buscando video en Pixabay para: '{query}'...")
         
         url = "https://pixabay.com/api/videos/"
+        random_page = random.randint(1, 3)
         params = {
             "key": self.api_key,
             "q": formatted_query,
             "video_type": "film",
-            "per_page": 10,
+            "per_page": 15,
+            "page": random_page,
             "safesearch": "true"
         }
 
@@ -46,11 +48,19 @@ class PixabayTool(BaseModelTool):
 
             hits = data.get("hits", [])
             if not hits:
-                Messenger.warning(f"⚠️ No se encontraron videos para '{query}' en Pixabay.")
-                return False
+                # Fallback a la pagina 1 si la pagina random no tiene resultados
+                if random_page > 1:
+                    params["page"] = 1
+                    response = requests.get(url, params=params)
+                    data = response.json()
+                    hits = data.get("hits", [])
+                    
+                if not hits:
+                    Messenger.warning(f"⚠️ No se encontraron videos para '{query}' en Pixabay.")
+                    return False
 
-            # Elegir uno al azar de los 5 primeros para variar
-            selected_video = random.choice(hits[:5])
+            # Elegir uno al azar de la lista completa (hasta 15 opciones diferentes)
+            selected_video = random.choice(hits)
             
             videos_data = selected_video.get("videos", {})
             if not videos_data:
