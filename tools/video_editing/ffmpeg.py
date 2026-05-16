@@ -240,6 +240,7 @@ class FFmpegTool(BaseModelTool):
                 "-r", "30",
                 "-fps_mode", "cfr",
                 "-video_track_timescale", "30000",
+                "-map", "0:v:0", "-map", "1:a:0",
                 "-c:v", "libx264", "-c:a", "aac", "-pix_fmt", "yuv420p",
                 "-v", "error", str(out_path)
             ]
