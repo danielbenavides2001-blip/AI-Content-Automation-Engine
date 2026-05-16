@@ -913,25 +913,25 @@ class Pipeline(BaseModelTool):
 
     def generate_facebook_description(self, title: str) -> str:
         """
-        Generates a short, wise, and highly viral description for Facebook/Instagram Reels.
+        Generates a short, highly viral description for Facebook/Instagram Reels.
         """
         prompt = f"""
-        Eres el narrador de una serie de fábulas filosóficas llamada "EnigmaIQ". Eres sabio, directo y revelador.
-        Escribe la descripción para el siguiente video: "{title}"
+        Eres el experto en redes sociales de "EnigmaIQ", un canal súper viral de datos curiosos, misterios y ciencia.
+        Escribe el "Caption" (descripción) para el siguiente video: "{title}"
         
         Requisitos OBLIGATORIOS:
-        1. SE EXTREMADAMENTE CORTO. Máximo 2 líneas de texto. La gente no lee, ve el video.
-        2. Tono: Introspectivo y de "despertar".
-        3. Cierra con la frase de poder: "Síguenos en EnigmaIQ para despertar tu conciencia."
-        4. Agrega exactamente 10 HASHTAGS VIRALES (ej: #Viral #ParaTi #Foryou #Reflexion #Psicologia #Sabiduria #CrecimientoPersonal #Motivacion #EnigmaIQ #HechoConIA).
+        1. SE EXTREMADAMENTE CORTO. Máximo 2 líneas atractivas que inviten a comentar.
+        2. Tono: Intrigante, dinámico y que rompa la mente (Ej: "¿Sabías esto? Déjalo en los comentarios 👇").
+        3. No uses lenguaje poético ni filosófico, usa lenguaje de creador de contenido de TikTok/Reels.
+        4. Agrega exactamente 10 HASHTAGS VIRALES relevantes al tema del video y siempre incluye: #Curiosidades #DatosCuriosos #EnigmaIQ
         
-        Responde solo con el texto de la descripción, sin rodeos.
+        Responde solo con el texto de la descripción y los hashtags, sin texto adicional.
         """
         try:
             return self.text_gen.generate(prompt).strip()
         except Exception as e:
             Messenger.warning(f"AI Description generation failed: {e}. Using fallback.")
-            return f"✨ {title}\n\nSíguenos en EnigmaIQ para despertar tu conciencia.\n\n#Viral #ParaTi #Foryou #Reflexion #Psicologia #Sabiduria #CrecimientoPersonal #Motivacion #EnigmaIQ #HechoConIA"
+            return f"🤯 {title}\n\n¿Tú qué opinas? Déjalo en los comentarios 👇\n\n#Curiosidades #DatosCuriosos #Viral #ParaTi #Foryou #Misterios #SabiasQue #EnigmaIQ #AprendeConTikTok #Interesante"
 
     def step8_upload_to_facebook(self):
         """

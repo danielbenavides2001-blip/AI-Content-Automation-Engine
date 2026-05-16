@@ -2,7 +2,7 @@ name: Daily Content Automation (3 Reels + 3 Images)
 
 on:
   schedule:
-    - cron: '0 12,15,18,21 * * *' # 7am, 10am, 1pm, 4pm COT (2 Reels + 2 Images)
+    - cron: '0 13,16,19,22,1 * * *' # 8am, 11am, 2pm, 5pm, 8pm COT
   workflow_dispatch:
     inputs:
       force_type:
@@ -66,12 +66,12 @@ jobs:
           USE_VERTEX_AI_IMAGE: "true"
           USE_VERTEX_AI_AUDIO: "true"
         run: |
-          # FORZANDO MODO IMAGEN (Se detuvieron los videos animados por instrucción)
+          # FORZANDO MODO VIDEO PARA CRECIMIENTO VIRAL
           HOUR=$(date +%H)
-          export POST_TYPE="image"
+          export POST_TYPE="video"
           
-          if [[ "${{ github.event.inputs.force_type }}" == "1" ]]; then
-            export POST_TYPE="video" # Permitir forzar video manualmente si es necesario
+          if [[ "${{ github.event.inputs.force_type }}" == "0" ]]; then
+            export POST_TYPE="image" # Permitir forzar imagen manualmente si es necesario
           fi
 
           echo "🚀 Running automation for POST_TYPE: $POST_TYPE (Hour: $HOUR)"
