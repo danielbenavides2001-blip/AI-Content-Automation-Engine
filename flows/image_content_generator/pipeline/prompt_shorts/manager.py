@@ -81,8 +81,8 @@ class PromptManagerShorts(BasePromptManager):
         # 3. Dynamic Visual Style Selector for Stories
         # For stories, we want CINEMATIC or DARK aesthetics
         styles = [
-            "Estilo: Cinematic Film Noir. Deep shadows, high contrast black and white, silhouette of a stickman, dramatic lighting, mysterious atmosphere.",
             "Estilo: Hyper-realistic cinematic lighting. Dark moody colors, misty background, high detail, professional photography style.",
+            "Estilo: Cinematic National Geographic style documentary. Vibrant colors, ultra-detailed, mysterious and awe-inspiring atmosphere.",
             "Estilo: Vintage anatomical/technical sketch on aged parchment. Sepia ink, detailed, mysterious journal look.",
             "Estilo: Dark digital art. Neon accents, glitchy textures, high contrast, futuristic mystery vibe."
         ]

@@ -110,31 +110,31 @@ class DailyAutomator:
         with open(self.history_file, "a", encoding="utf-8") as f:
             f.write(f"{datetime.now().isoformat()},{post_type},{topic.replace(',', ' ')}\n")
 
-    def generate_daily_stickman_image(self):
+    def generate_daily_standard_image(self):
         """
-        Generates a single high-quality Stickman Image (Seeds of Power style).
+        Generates a single high-quality Curiosity Image.
         """
-        Messenger.info("🎨 Generating Stickman Image post (Seeds of Power essence)...")
+        Messenger.info("🎨 Generating Curiosity Image post...")
         avoid_msg = self.get_recent_topics()
         
         # 1. Generate Story/Metaphor using the main pipeline (Step 1)
         try:
-            cmd_step1 = [sys.executable, "-m", "flows.image_content_generator.pipeline.main", "short", "step1", "--avoid", avoid_msg, "--mode", "stickman"]
+            cmd_step1 = [sys.executable, "-m", "flows.image_content_generator.pipeline.main", "short", "step1", "--avoid", avoid_msg, "--mode", "standard"]
             subprocess.run(cmd_step1, check=True)
             
             # 2. Generate the first image (Step 2)
-            cmd_step2 = [sys.executable, "-m", "flows.image_content_generator.pipeline.main", "short", "step2", "--mode", "stickman"]
+            cmd_step2 = [sys.executable, "-m", "flows.image_content_generator.pipeline.main", "short", "step2", "--mode", "standard"]
             subprocess.run(cmd_step2, check=True)
             
             # 3. Upload specifically as Image (New Step 8_IMAGE)
-            cmd_step8 = [sys.executable, "-m", "flows.image_content_generator.pipeline.main", "short", "step8_image", "--mode", "stickman"]
+            cmd_step8 = [sys.executable, "-m", "flows.image_content_generator.pipeline.main", "short", "step8_image", "--mode", "standard"]
             subprocess.run(cmd_step8, check=True)
             
-            Messenger.success("✅ Stickman Image post completed!")
-            self.log_post("image", "Stickman Reflection")
+            Messenger.success("✅ Curiosity Image post completed!")
+            self.log_post("image", "Curiosity Image")
             self.sync_to_github()
         except Exception as e:
-            Messenger.error(f"❌ Failed to generate/upload Stickman Image: {e}")
+            Messenger.error(f"❌ Failed to generate/upload Curiosity Image: {e}")
             sys.exit(1)
 
     def run_daily_mix(self):
@@ -148,19 +148,19 @@ class DailyAutomator:
         self.cleanup_stuck_ideas()
 
         if post_type == "video":
-            Messenger.info("🎬 GENERATING NEW STICKMAN REEL (Full Pipeline)...")
+            Messenger.info("🎬 GENERATING NEW CURIOSITY REEL (Full Pipeline)...")
             avoid_msg = self.get_recent_topics()
             try:
-                cmd = [sys.executable, "-m", "flows.image_content_generator.pipeline.main", "short", "all", "--avoid", avoid_msg, "--mode", "stickman"]
+                cmd = [sys.executable, "-m", "flows.image_content_generator.pipeline.main", "short", "all", "--avoid", avoid_msg, "--mode", "standard"]
                 subprocess.run(cmd, check=True)
-                Messenger.success("✅ Stickman Reel completed!")
-                self.log_post("video", "Stickman Reel")
+                Messenger.success("✅ Curiosity Reel completed!")
+                self.log_post("video", "Curiosity Reel")
                 self.sync_to_github()
             except Exception as e:
                 Messenger.error(f"Error during video task: {e}")
                 sys.exit(1)
         else:
-            self.generate_daily_stickman_image()
+            self.generate_daily_standard_image()
 
 
     def cleanup_stuck_ideas(self):
