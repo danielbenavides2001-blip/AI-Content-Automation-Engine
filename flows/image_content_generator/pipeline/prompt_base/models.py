@@ -96,6 +96,7 @@ class Scene(BaseModel):
     model_config = ConfigDict(extra='ignore')
     scene_number: int = Field(description="Sequential number of the scene (Integer)")
     image_prompt: str = Field(description="Physical description and style in ENGLISH. Use a unified block of text.")
+    pexels_query: str = Field(default="", description="1-3 English keywords to search for a free stock video on Pexels (e.g. 'cat sleeping', 'sunset sky').")
     narration: str = Field(description="Spoken narration for this scene in SPANISH (LATAM)")
     movement_instruction: Optional[str] = Field(default=None, description="Instructions for video animation/movement")
 

@@ -54,14 +54,14 @@ class PromptManagerShorts(BasePromptManager):
         next_part = parts_count + 1
         Messenger.info(f"🎞️ Series: {series_name} | Next Part: {next_part}")
 
-        # 3. Idea Generation with Focus Area Diversity (STORIES FOCUS)
+        # 3. Idea Generation with Focus Area Diversity (CURIOSITIES FOCUS)
         focus_areas = [
-            "HISTORIAS DE REDDIT (Traiciones, venganzas empresariales, secretos familiares oscuros)",
-            "MISTERIOS HISTÓRICOS (Tesoros perdidos, desapariciones inexplicables, secretos de estado)",
-            "TRUE CRIME (Estafas maestras, robos de identidad, asesinos en serie, casos sin resolver)",
-            "RELATOS DE TERROR PSICOLÓGICO (Fenómenos paranormales reales, experimentos humanos secretos)",
-            "HISTORIAS DE ÉXITO IMPOSIBLE (De la nada al todo, superación extrema, giros de fortuna brutales)",
-            "PARADOJAS Y COINCIDENCIAS (Efecto mandela, bucles temporales sugeridos, coincidencias imposibles)"
+            "MISTERIOS DEL UNIVERSO (Agujeros negros, materia oscura, paradojas espaciales)",
+            "CURIOSIDADES BIOLÓGICAS (Por qué soñamos, animales con habilidades increíbles, el cerebro)",
+            "DATOS HISTÓRICOS FASCINANTES (Inventos por accidente, civilizaciones perdidas, secretos de estado)",
+            "FENÓMENOS NATURALES BIZARROS (Lluvias de animales, luces de terremotos, lugares extremos)",
+            "PSICOLOGÍA Y MENTE HUMANA (Efectos psicológicos extraños, ilusiones ópticas, comportamiento)",
+            "CURIOSIDADES DE LA VIDA DIARIA (Por qué bostezamos, origen de cosas comunes, mitos desmentidos)"
         ]
         selected_area = random.choice(focus_areas)
         Messenger.info(f"🎯 Random Story Focus: {selected_area}")

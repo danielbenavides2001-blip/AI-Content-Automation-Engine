@@ -63,21 +63,17 @@ jobs:
           GCP_LOCATION: ${{ secrets.GCP_LOCATION }}
           FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
           FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
           USE_VERTEX_AI_IMAGE: "true"
           USE_VERTEX_AI_AUDIO: "true"
         run: |
-          # Determinar si toca Video o Imagen (Alternar basado en la hora UTC)
-          # Horas 12, 18 -> Video (Reels)
-          # Horas 15, 21 -> Imagen
+          # FORZANDO MODO IMAGEN (Se detuvieron los videos animados por instrucción)
           HOUR=$(date +%H)
-          export POST_TYPE="video"
+          export POST_TYPE="image"
           
-          if [[ "${{ github.event.inputs.force_type }}" == "0" ]]; then
-            export POST_TYPE="image"
-          elif [[ "${{ github.event.inputs.force_type }}" == "1" ]]; then
-            export POST_TYPE="video"
-          elif [[ "$HOUR" == "15" || "$HOUR" == "21" ]]; then
-            export POST_TYPE="image"
+          if [[ "${{ github.event.inputs.force_type }}" == "1" ]]; then
+            export POST_TYPE="video" # Permitir forzar video manualmente si es necesario
           fi
 
           echo "🚀 Running automation for POST_TYPE: $POST_TYPE (Hour: $HOUR)"

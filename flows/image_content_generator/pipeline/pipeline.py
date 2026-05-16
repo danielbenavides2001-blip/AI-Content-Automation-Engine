@@ -389,23 +389,21 @@ class Pipeline(BaseModelTool):
 
     def step2b_generate_video_clips(self):
         """
-        Step 2b: AI Video Generation (Veo 3.1).
-        Converts static images into 5-second video clips based on movement instructions.
-        Includes safety checks and retries to avoid wasting credits on corrupt assets.
+        Step 2b: Pexels API + Dynamic Ken Burns Fallback.
+        Ahorra créditos al no usar generación de video por IA.
         """
         idea_obj = self.store.get_first_by_state(State.IMAGES_GENERATED)
         if not idea_obj:
             Messenger.warning("Step 2b skipped: No idea in IMAGES_GENERATED state.")
             return
 
-        if self.mode != "stickman":
-            Messenger.info("Step 2b skipped: Only for STICKMAN mode. Moving to AUDIO.")
-            idea_obj.state = State.CLIPS_GENERATED
-            self.store.save(idea_obj)
-            return
-
-        Messenger.info(f"\n--- Step 2b started: Generating AI Video Clips for '{idea_obj.title}' ---")
+        Messenger.info(f"\n--- Step 2b started: Fetching Videos for '{idea_obj.title}' ---")
         script = self.load_json(idea_obj.id, self.SCRIPT_JSON, VideoScript)
+        
+        from tools.video_generation.pexels import PexelsTool
+        from tools.video_generation.pixabay import PixabayTool
+        pexels_tool = PexelsTool()
+        pixabay_tool = PixabayTool()
 
         def process_scene(scene):
             clip_filename = self.SCENE_VIDEO_PATTERN.format(scene.scene_number)
@@ -413,45 +411,29 @@ class Pipeline(BaseModelTool):
             img_filename = f"scene_{scene.scene_number:02d}.png"
             img_path = self.get_idea_asset_path(idea_obj.id, self.IMAGES_DIR, img_filename)
 
-            # 1. Safety Check: Verify Image
-            if not img_path.exists() or img_path.stat().st_size < 1024:
-                Messenger.error(f"   ❌ Scene {scene.scene_number} image is missing or corrupt. CRITICAL FAILURE.")
-                return False # Stop pipeline to avoid wasting credits on subsequent steps
-
             if clip_path.exists() and clip_path.stat().st_size > 10240:
-                Messenger.info(f"   Scene {scene.scene_number} clip already exists and is valid. Skipping.")
+                Messenger.info(f"   Scene {scene.scene_number} clip already exists. Skipping.")
                 return True
 
-            # 2. Movement instruction fallback
-            move_prompt = scene.movement_instruction or "Slow cinematic movement, subtle animation, noir style."
-                     # --- MODO ULTRA-AHORRO: IA Solo en Escena 1 (El Hook) ---
-            # Las demás escenas usan efecto Ken Burns local (gratis)
-            is_hook = scene.scene_number == 1
+            query = getattr(scene, "pexels_query", "")
 
-            if not is_hook:
-                Messenger.info(f"   💡 Ultra-Saving Mode: Skipping AI Video for Scene {scene.scene_number}. Using dynamic Ken Burns fallback.")
-            else:
-                # 3. Generation with Retry Logic (Internal)
-                for attempt in range(3):
-                    try:
-                        Messenger.info(f"   🎬 Generating AI Video Clip for Scene {scene.scene_number} (Attempt {attempt+1}/3)...")
-                        self.video_gen.generate_video(
-                            prompt=move_prompt,
-                            out_path=str(clip_path),
-                            img_start_path=str(img_path)
-                        )
-                        self.cost_tracker.add_video_cost(1)
-                        return True
-                    except Exception as e:
-                        Messenger.warning(f"   ⚠️ Attempt {attempt+1} failed: {e}")
-                        import time
-                        time.sleep(5) # Cooldown
-            
-            # FALLBACK DINÁMICO (Ken Burns Effect)
-            Messenger.info(f"   🎬 Generating dynamic Ken Burns fallback for Scene {scene.scene_number}...")
+            # 1. Intentar Pexels (Prioridad 1)
+            if pexels_tool.fetch_video(query, clip_path):
+                if clip_path.exists() and clip_path.stat().st_size > 1024:
+                    return True
+
+            # 2. Intentar Pixabay (Prioridad 2)
+            if pixabay_tool.fetch_video(query, clip_path):
+                if clip_path.exists() and clip_path.stat().st_size > 1024:
+                    return True
+
+            # 3. Fallback: Ken Burns sobre imagen (Último recurso)
+            if not img_path.exists() or img_path.stat().st_size < 1024:
+                Messenger.error(f"   ❌ Scene {scene.scene_number} missing image and stock video APIs failed. CRITICAL.")
+                return False
+                
+            Messenger.info(f"   🎬 Generating Ken Burns fallback for Scene {scene.scene_number}...")
             try:
-                # Efecto de zoom suave (Ken Burns) usando FFmpeg localmente
-                # zoompan: aumenta el zoom de 1.0 a 1.1 durante los 6 segundos
                 subprocess.run(
                     [
                         "ffmpeg", "-loop", "1", "-i", str(img_path),
@@ -460,17 +442,16 @@ class Pipeline(BaseModelTool):
                     ],
                     check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
                 )
-                Messenger.info(f"   ✅ Generated dynamic Ken Burns fallback for Scene {scene.scene_number}.")
                 return True
             except Exception as ffmpeg_e:
                 Messenger.error(f"   ❌ FFmpeg fallback failed: {ffmpeg_e}")
                 return False
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
             results = list(executor.map(process_scene, script.scenes))
 
         if not all(results):
-            Messenger.error("   ❌ One or more video clips failed to generate. Stopping pipeline.")
+            Messenger.error("   ❌ One or more video clips failed. Stopping pipeline.")
             return
 
         idea_obj.state = State.CLIPS_GENERATED
