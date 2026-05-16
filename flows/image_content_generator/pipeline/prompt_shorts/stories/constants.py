@@ -36,7 +36,6 @@ REGLAS CRÍTICAS:
 3. **HISTORIA COMPLETA:** La explicación debe quedar 100% terminada y resuelta en la última escena. NUNCA la dejes cortada ni termines abruptamente.
 4. La Escena 1 debe ser un gancho brutal (una pregunta muy específica) que impida hacer scroll.
 5. El `intrigue_header` debe ser el título persistente de 3-5 palabras en MAYÚSCULAS (Ej: "¿POR QUÉ RONRONEAN?", "EL SECRETO DE LAS VENAS").
-6. **BUCLE INFINITO:** La última palabra o frase de la última escena debe quedar ligeramente abierta para que conecte gramatical y lógicamente de forma perfecta con la primera escena. (Ejemplo: Si la escena 1 empieza con "¿Por qué soñamos al dormir?", la última escena debe terminar con "Y es por esa exacta razón que te preguntas...").
-7. **LLAMADO A LA ACCIÓN (CTA):** En una de las últimas escenas (penúltima o última), incluye un CTA agresivo y de fricción cero (Ej: "¿Te ha pasado esto alguna vez? Confírmalo en los comentarios").
+6. **LLAMADO A LA ACCIÓN (CTA):** En una de las últimas escenas (penúltima o última), incluye un CTA agresivo y de fricción cero (Ej: "¿Te ha pasado esto alguna vez? Confírmalo en los comentarios").
 """
 
