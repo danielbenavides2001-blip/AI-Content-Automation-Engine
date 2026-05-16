@@ -55,7 +55,7 @@ class PromptManagerShorts(BasePromptManager):
         Messenger.info(f"🎞️ Series: {series_name} | Next Part: {next_part}")
 
         focus_areas = [
-            "MISTERIOS DE CIVILIZACIONES ANTIGUAS: Curiosidades históricas fascinantes y poco conocidas (Ej: ¿Por qué los egipcios se afeitaban las cejas cuando moría su gato?, ¿Cómo hacían hielo en el desierto en la antigüedad?, ¿Por qué las estatuas romanas siempre tienen los ojos en blanco?)"
+            "FENÓMENOS NATURALES BIZARROS: Curiosidades increíbles de la Tierra y el clima (Ej: ¿Por qué llueven peces en Honduras?, ¿Qué es el relámpago del Catatumbo que nunca se apaga?, ¿Por qué hay lagos de color rosa brillante?)"
         ]
         selected_area = random.choice(focus_areas)
         Messenger.info(f"🎯 Random Story Focus: {selected_area}")
