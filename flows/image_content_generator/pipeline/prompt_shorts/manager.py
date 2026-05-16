@@ -55,7 +55,7 @@ class PromptManagerShorts(BasePromptManager):
         Messenger.info(f"🎞️ Series: {series_name} | Next Part: {next_part}")
 
         focus_areas = [
-            "FENÓMENOS NATURALES BIZARROS: Curiosidades increíbles de la Tierra y el clima (Ej: ¿Por qué llueven peces en Honduras?, ¿Qué es el relámpago del Catatumbo que nunca se apaga?, ¿Por qué hay lagos de color rosa brillante?)"
+            "DATOS PSICOLÓGICOS INQUIETANTES: Curiosidades sobre cómo funciona nuestra mente (Ej: ¿Por qué nos gusta escuchar música triste cuando estamos tristes?, ¿Qué es el efecto Mandela y por qué recordamos cosas que nunca pasaron?, ¿Por qué sentimos que alguien nos mira por la espalda?)"
         ]
         selected_area = random.choice(focus_areas)
         Messenger.info(f"🎯 Random Story Focus: {selected_area}")
