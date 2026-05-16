@@ -55,7 +55,7 @@ class PromptManagerShorts(BasePromptManager):
         Messenger.info(f"🎞️ Series: {series_name} | Next Part: {next_part}")
 
         focus_areas = [
-            "MISTERIOS DEL CUERPO HUMANO: Cosas hiper específicas que todos hacemos o sentimos pero nadie sabe por qué (Ej: ¿Por qué cuando cerramos los ojos fuerte vemos colores y luces?, ¿Por qué bostezamos al ver a otro bostezar?, ¿Por qué la voz nos suena tan diferente al grabarnos?, ¿Por qué se nos pone la piel de gallina con el frío?)"
+            "MISTERIOS DE CIVILIZACIONES ANTIGUAS: Curiosidades históricas fascinantes y poco conocidas (Ej: ¿Por qué los egipcios se afeitaban las cejas cuando moría su gato?, ¿Cómo hacían hielo en el desierto en la antigüedad?, ¿Por qué las estatuas romanas siempre tienen los ojos en blanco?)"
         ]
         selected_area = random.choice(focus_areas)
         Messenger.info(f"🎯 Random Story Focus: {selected_area}")
