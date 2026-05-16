@@ -237,6 +237,9 @@ class FFmpegTool(BaseModelTool):
                 "-i", str(audio_path),
                 "-t", str(duration),
                 "-vf", f"{vf_fill},format=yuv420p{glitch_filter}",
+                "-r", "30",
+                "-fps_mode", "cfr",
+                "-video_track_timescale", "30000",
                 "-c:v", "libx264", "-c:a", "aac", "-pix_fmt", "yuv420p",
                 "-v", "error", str(out_path)
             ]
@@ -256,9 +259,10 @@ class FFmpegTool(BaseModelTool):
                 "-i", str(source_path),
                 "-i", str(audio_path),
                 "-vf", vf,
-                "-r", "25",
+                "-r", "30",
                 "-fps_mode", "cfr",
-                "-shortest",
+                "-video_track_timescale", "30000",
+                "-t", str(duration),
                 "-c:v", "libx264", "-c:a", "aac", "-pix_fmt", "yuv420p",
                 "-v", "error", str(out_path)
             ]
