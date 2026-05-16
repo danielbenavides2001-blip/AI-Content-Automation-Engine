@@ -30,7 +30,7 @@ export const Subtitles: React.FC<{ words: Word[], intrigueHeader?: string }> = (
       {intrigueHeader && (
         <div style={{
           position: 'absolute',
-          top: 150,
+          top: 280, // Bajado para evitar cortes con el notch del teléfono
           left: '50%',
           transform: 'translateX(-50%)',
           backgroundColor: '#ff0000',
@@ -70,8 +70,8 @@ export const Subtitles: React.FC<{ words: Word[], intrigueHeader?: string }> = (
               display: 'flex', 
               flexDirection: 'column', 
               alignItems: 'center', 
-              justifyContent: 'center', // Centered vertically
-              paddingTop: 100 
+              justifyContent: 'flex-end', // Alinear en la parte inferior de la pantalla
+              paddingBottom: 350 // Dejar espacio para la interfaz de Facebook (likes/comentarios)
           }}>
             <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px 25px', maxWidth: '90%' }}>
               {phrase.words.map((word, wi) => {
@@ -83,7 +83,7 @@ export const Subtitles: React.FC<{ words: Word[], intrigueHeader?: string }> = (
                   <span
                     key={wi}
                     style={{
-                      fontSize: 100, // Bigger font
+                      fontSize: 70, // Tamaño más moderado para no tapar el video
                       fontFamily: 'Impact, sans-serif',
                       fontWeight: 'bold',
                       color: isCurrentWord ? '#FFFF00' : '#FFFFFF',
