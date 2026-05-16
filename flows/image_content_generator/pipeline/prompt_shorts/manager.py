@@ -55,7 +55,7 @@ class PromptManagerShorts(BasePromptManager):
         Messenger.info(f"🎞️ Series: {series_name} | Next Part: {next_part}")
 
         focus_areas = [
-            "CURIOSIDADES BIOLÓGICAS EXTREMAS SOBRE ANIMALES: Comportamientos extraños explicados (Ej: ¿Por qué las moscas se frotan las manos?, ¿Cómo duermen los delfines sin ahogarse?, ¿Por qué los perros dan vueltas antes de acostarse?)"
+            "MISTERIOS DEL CUERPO HUMANO: Cosas hiper específicas que todos hacemos o sentimos pero nadie sabe por qué (Ej: ¿Por qué cuando cerramos los ojos fuerte vemos colores y luces?, ¿Por qué bostezamos al ver a otro bostezar?, ¿Por qué la voz nos suena tan diferente al grabarnos?, ¿Por qué se nos pone la piel de gallina con el frío?)"
         ]
         selected_area = random.choice(focus_areas)
         Messenger.info(f"🎯 Random Story Focus: {selected_area}")
