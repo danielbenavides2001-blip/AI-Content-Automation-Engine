@@ -24,14 +24,17 @@ TEXTO A NARRAR:
 SCRIPT_PROMPT = """
 Basándote en la IDEA proporcionada, escribe un guion de video para un Reel que dure MÁXIMO 50 segundos.
 Divide la historia en **6 a 8 escenas cortas** (alta densidad visual, cambios rápidos de clip).
-Cada escena debe tener una narración en español, un prompt de imagen en inglés, y MUY IMPORTANTE: un `pexels_query` en inglés.
+Para cada escena debes definir:
+1. `visual_type`: Escoge `"stock_video"` si es algo común que se puede grabar en la vida real (ej: agua hirviendo, un gato durmiendo). Escoge `"ai_image"` si es histórico, fantasioso o imposible de grabar (ej: un cavernícola peludo, el interior de una célula).
+2. `pexels_query`: Solo si elegiste "stock_video", escribe 1 a 3 palabras clave EN INGLÉS.
+3. `image_prompt`: La descripción detallada EN INGLÉS (siempre obligatoria como respaldo).
+4. `narration`: Lo que dirá el locutor.
 
 REGLAS CRÍTICAS:
-1. **LÍMITE ESTRICTO DE TIEMPO:** La narración total de TODO el video sumado debe tener **máximo 120 palabras**. Escribe de forma muy resumida, directa al grano, sin pausas largas ni rodeos.
-2. **HISTORIA COMPLETA:** La explicación debe quedar 100% terminada y resuelta en la última escena. NUNCA la dejes cortada ni termines abruptamente.
-3. El narrador debe sonar fluido, dinámico y amigable, revelando el dato como algo fascinante.
+1. **CRITERIO VISUAL:** Sé muy inteligente decidiendo el `visual_type`. Si hablas de dinosaurios o ancestros peludos, NO busques stock, usa "ai_image".
+2. **LÍMITE ESTRICTO DE TIEMPO:** La narración total de TODO el video sumado debe tener **máximo 120 palabras**. Escribe de forma muy resumida, directa al grano, sin pausas largas ni rodeos.
+3. **HISTORIA COMPLETA:** La explicación debe quedar 100% terminada y resuelta en la última escena. NUNCA la dejes cortada ni termines abruptamente.
 4. La Escena 1 debe ser un gancho brutal (una pregunta muy específica) que impida hacer scroll.
 5. El `intrigue_header` debe ser el título persistente de 3-5 palabras en MAYÚSCULAS (Ej: "¿POR QUÉ RONRONEAN?", "EL SECRETO DE LAS VENAS").
-6. **VARIEDAD VISUAL:** El `pexels_query` debe ser de 1 a 3 palabras exactas en INGLÉS. Como tienes 6-8 escenas, asegúrate de que **CADA escena tenga un query visualmente diferente** para que el video sea muy fluido y no se repitan los mismos planos de fondo.
 """
 

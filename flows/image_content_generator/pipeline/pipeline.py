@@ -415,19 +415,25 @@ class Pipeline(BaseModelTool):
                 Messenger.info(f"   Scene {scene.scene_number} clip already exists. Skipping.")
                 return True
 
+            visual_type = getattr(scene, "visual_type", "stock_video")
             query = getattr(scene, "pexels_query", "")
 
-            # 1. Intentar Pexels (Prioridad 1)
-            if pexels_tool.fetch_video(query, clip_path):
-                if clip_path.exists() and clip_path.stat().st_size > 1024:
-                    return True
+            if visual_type != "ai_image":
+                # 1. Intentar Pexels (Prioridad 1)
+                if pexels_tool.fetch_video(query, clip_path):
+                    if clip_path.exists() and clip_path.stat().st_size > 1024:
+                        return True
 
-            # 2. Intentar Pixabay (Prioridad 2)
-            if pixabay_tool.fetch_video(query, clip_path):
-                if clip_path.exists() and clip_path.stat().st_size > 1024:
-                    return True
+                # 2. Intentar Pixabay (Prioridad 2)
+                if pixabay_tool.fetch_video(query, clip_path):
+                    if clip_path.exists() and clip_path.stat().st_size > 1024:
+                        return True
+                
+                Messenger.warning(f"   ⚠️ APIs failed for query '{query}'. Falling back to AI Image.")
+            else:
+                Messenger.info(f"   🎨 Scene {scene.scene_number} explicitly requested 'ai_image'. Skipping stock video search.")
 
-            # 3. Fallback: Ken Burns sobre imagen (Último recurso)
+            # 3. Fallback: Ken Burns sobre imagen (Último recurso o forzado)
             if not img_path.exists() or img_path.stat().st_size < 1024:
                 Messenger.error(f"   ❌ Scene {scene.scene_number} missing image and stock video APIs failed. CRITICAL.")
                 return False
