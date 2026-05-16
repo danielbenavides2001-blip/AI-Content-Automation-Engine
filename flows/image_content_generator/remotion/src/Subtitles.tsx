@@ -90,9 +90,7 @@ export const Subtitles: React.FC<{ words: Word[], intrigueHeader?: string }> = (
                       textTransform: 'uppercase',
                       display: 'inline-block',
                       lineHeight: 1.0,
-                      textShadow: '4px 4px 5px rgba(0,0,0,1)', // Stronger shadow for readability without box
-                      transform: isCurrentWord ? 'scale(1.2)' : 'scale(1)',
-                      transition: 'transform 0.1s ease-out'
+                      textShadow: '4px 4px 5px rgba(0,0,0,1)' // Stronger shadow for readability without box
                     }}
                   >
                     {word.text}
