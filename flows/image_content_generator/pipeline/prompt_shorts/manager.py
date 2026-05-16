@@ -115,9 +115,8 @@ class PromptManagerShorts(BasePromptManager):
         # --- BLINDAJE CONTRA BANEOS (TRANS-STORY) ---
         transparency_footer = (
             "\n\n---\n"
-            "💡 **Transparencia**: Este contenido narrativo ha sido producido con el apoyo de Inteligencia Artificial para fines de entretenimiento. Las historias pueden basarse en hechos reales, ficción o leyendas urbanas.\n\n"
-            "✨ Producido por el equipo de EnigmaIQ.\n"
-            "#EnigmaIQ #HechoConIA #Storytelling #Misterios #HistoriasAtrapantes"
+            "💡 **Transparencia**: Este contenido narrativo ha sido producido con el apoyo de Inteligencia Artificial para fines educativos y de entretenimiento.\n\n"
+            "✨ Creado por el equipo de EnigmaIQ."
         )
         
         # Inyectar el footer en el caption o hook (Blindaje)
