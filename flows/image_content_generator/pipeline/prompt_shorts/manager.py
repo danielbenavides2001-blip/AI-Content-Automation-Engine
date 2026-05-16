@@ -55,7 +55,12 @@ class PromptManagerShorts(BasePromptManager):
         Messenger.info(f"🎞️ Series: {series_name} | Next Part: {next_part}")
 
         focus_areas = [
-            "DATOS PSICOLÓGICOS INQUIETANTES: Curiosidades sobre cómo funciona nuestra mente (Ej: ¿Por qué nos gusta escuchar música triste cuando estamos tristes?, ¿Qué es el efecto Mandela y por qué recordamos cosas que nunca pasaron?, ¿Por qué sentimos que alguien nos mira por la espalda?)"
+            "MISTERIOS DEL CUERPO HUMANO: Cosas hiper específicas que todos hacemos o sentimos pero nadie sabe por qué.",
+            "CURIOSIDADES BIOLÓGICAS EXTREMAS: Comportamientos animales extraños y fascinantes explicados.",
+            "MISTERIOS DE CIVILIZACIONES ANTIGUAS: Curiosidades históricas poco conocidas y bizarras.",
+            "FENÓMENOS NATURALES BIZARROS: Curiosidades increíbles de la Tierra y el clima.",
+            "DATOS PSICOLÓGICOS INQUIETANTES: Curiosidades sobre cómo funciona y nos engaña nuestra propia mente.",
+            "SECRETOS DEL UNIVERSO Y EL ESPACIO: Fenómenos cósmicos aterradores o fascinantes explicados de forma sencilla."
         ]
         selected_area = random.choice(focus_areas)
         Messenger.info(f"🎯 Random Story Focus: {selected_area}")
