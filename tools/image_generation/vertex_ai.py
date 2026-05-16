@@ -107,17 +107,18 @@ class VertexAIImageGenerator:
 
     def generate_images(self, tasks: List[ImageTask]) -> None:
         """
-        Batch processing for Vertex AI Images.
+        Batch processing for Vertex AI Images using ThreadPoolExecutor.
         """
         total = len(tasks)
-        Messenger.info(f"Vertex AI Image Generation Batch: {total} images")
+        Messenger.info(f"Vertex AI Image Generation Batch: {total} images (Parallel)")
 
-        for i, task in enumerate(tasks, start=1):
+        def process_task(item):
+            i, task = item
             out_path = task.output_path
             
             if out_path.exists():
                 Messenger.info(f"Skipping {out_path.name}: File already exists.")
-                continue
+                return True
 
             Messenger.info(f"Processing Scene {i}/{total}: {out_path.name}")
             try:
@@ -131,11 +132,13 @@ class VertexAIImageGenerator:
                         prompt=task.prompt,
                         output_path=out_path
                     )
-                # Delay to avoid 429 quota exhaustion (10 RPM limit for images, and video is slow anyway)
-                time.sleep(7)
+                return True
             except Exception as e:
                 Messenger.error(f"Error in scene {i}: {str(e)}")
-                # Continue with next scene instead of crashing the whole batch
-                continue
+                return False
 
-        Messenger.step_success(f"Batch complete: {total} scenes processed.")
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+            results = list(executor.map(process_task, enumerate(tasks, start=1)))
+
+        Messenger.step_success(f"Batch complete: {sum(results)}/{total} scenes processed successfully.")

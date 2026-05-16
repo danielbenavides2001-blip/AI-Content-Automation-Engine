@@ -453,7 +453,7 @@ class Pipeline(BaseModelTool):
                 Messenger.error(f"   ❌ FFmpeg fallback failed: {ffmpeg_e}")
                 return False
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
             results = list(executor.map(process_scene, script.scenes))
 
         if not all(results):
@@ -658,7 +658,9 @@ class Pipeline(BaseModelTool):
 
         # 4. Merges assets into scene clips (Visual only)
         scene_videos: List[Path] = []
-        for i, scene in enumerate(script_data.scenes):
+        
+        def process_video_scene(item):
+            i, scene = item
             scene_num = getattr(scene, 'scene_number', i + 1)
             
             # Check multiple naming patterns for source (Video clips first, then images)
@@ -676,23 +678,28 @@ class Pipeline(BaseModelTool):
             
             if not source_path:
                 Messenger.error(f"Missing source (image/clip) for Scene {scene_num}. Skipping.")
-                continue
-
+                return None
+                
             audio_seg = self.get_idea_asset_path(idea_obj.id, self.AUDIOS_DIR, self.SCENE_AUDIO_PATTERN.format(scene_num))
             video_path = self.get_idea_asset_path(idea_obj.id, self.VIDEOS_DIR, self.SCENE_VIDEO_PATTERN.format(scene_num))
 
             if not audio_seg.exists():
                 Messenger.error(f"Missing audio for Scene {scene_num}. Skipping.")
-                continue
+                return None
 
             Messenger.info(f"Stitching Scene {scene_num}...")
             if "_frame_" in str(source_path):
                 image_sequence_pattern = str(source_path).replace("_frame_01.png", "_frame_%02d.png")
-                # Animating sequence doesn't support glitch filter directly in this version, so we skip it for sequences
                 self.ffmpeg.create_animated_scene_video(image_sequence_pattern, audio_seg, video_path)
             else:
                 self.ffmpeg.create_composite_scene_video(source_path, audio_seg, video_path, apply_glitch=(i > 0))
-            scene_videos.append(video_path)
+            return video_path
+
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+            results = list(executor.map(process_video_scene, enumerate(script_data.scenes)))
+            
+        scene_videos = [r for r in results if r is not None]
 
         if not scene_videos:
             Messenger.error("No scene videos generated.")
