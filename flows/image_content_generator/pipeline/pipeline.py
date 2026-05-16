@@ -547,9 +547,12 @@ class Pipeline(BaseModelTool):
                     )
                     raise RuntimeError(error_msg)
 
+                # Get total duration of the chunk
+                total_chunk_dur = self.ffmpeg.get_audio_duration(chunk_audio_path)
+
                 # 6. Split and Save
                 Messenger.info(f"Splitting Batch {batch_num} into {len(chunk)} scene audios...")
-                for al in alignment.alignments:
+                for idx, al in enumerate(alignment.alignments):
                     # al.scene_number is 1-indexed relative to the chunk (1 to 10)
                     absolute_scene_num = start_idx + al.scene_number
                     out_path = self.get_idea_asset_path(
@@ -558,7 +561,12 @@ class Pipeline(BaseModelTool):
                         self.SCENE_AUDIO_PATTERN.format(absolute_scene_num)
                     )
 
-                    duration = al.end_time - al.start_time
+                    # Si es la última escena del lote, aseguramos capturar todo el audio restante (sin cortes "mochos")
+                    if idx == len(alignment.alignments) - 1:
+                        duration = total_chunk_dur - al.start_time
+                    else:
+                        duration = al.end_time - al.start_time
+                        
                     if duration < 0.5:
                         chunk_audio_path.unlink(missing_ok=True)
                         chunk_audio_path.with_name(
