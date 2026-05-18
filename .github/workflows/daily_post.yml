@@ -68,16 +68,30 @@ jobs:
           USE_VERTEX_AI_IMAGE: "true"
           USE_VERTEX_AI_AUDIO: "true"
         run: |
-          # FORZANDO MODO VIDEO PARA CRECIMIENTO VIRAL
-          HOUR=$(date +%H)
-          export POST_TYPE="video"
+          # Determine what to run (Dual execution for maximum weekly engagement: Reels + Sabias Que Images)
+          RUN_VIDEO=true
+          RUN_IMAGE=true
           
           if [[ "${{ github.event.inputs.force_type }}" == "0" ]]; then
-            export POST_TYPE="image" # Permitir forzar imagen manualmente si es necesario
+            RUN_VIDEO=false
+            RUN_IMAGE=true
+          elif [[ "${{ github.event.inputs.force_type }}" == "1" ]]; then
+            RUN_VIDEO=true
+            RUN_IMAGE=false
           fi
-
-          echo "🚀 Running automation for POST_TYPE: $POST_TYPE (Hour: $HOUR)"
-          poetry run python flows/image_content_generator/pipeline/daily_automated_content.py
+          
+          if [ "$RUN_VIDEO" = true ]; then
+            echo "🎬 GENERATING VIRAL CURIOSITY REEL..."
+            export POST_TYPE="video"
+            poetry run python flows/image_content_generator/pipeline/daily_automated_content.py
+            sleep 5
+          fi
+          
+          if [ "$RUN_IMAGE" = true ]; then
+            echo "🎨 GENERATING ¿SABÍAS QUE...? COMPOSITE IMAGE..."
+            export POST_TYPE="image"
+            poetry run python flows/image_content_generator/pipeline/daily_automated_content.py
+          fi
 
       - name: Commit and Push Changes (Tracking Repetition)
         run: |

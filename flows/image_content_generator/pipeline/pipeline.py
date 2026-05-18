@@ -223,6 +223,16 @@ class Pipeline(BaseModelTool):
             raise FileNotFoundError(f"Missing {filename} for project {idea_id}")
         return model_class.model_validate_json(path.read_text(encoding="utf-8"))
 
+    def load_script(self, idea_obj) -> VideoScript:
+        """
+        Dynamically loads the script JSON using the correct Pydantic model
+        based on the idea's category.
+        """
+        if getattr(idea_obj, "category", "") == "geography":
+            from flows.image_content_generator.pipeline.prompt_shorts.geography.models import GeographyHandler
+            return self.load_json(idea_obj.id, self.SCRIPT_JSON, GeographyHandler)
+        return self.load_json(idea_obj.id, self.SCRIPT_JSON, VideoScript)
+
     def save_json(self, idea_id: int, filename: str, data: BaseModel):
         """
         Saves a Pydantic model as a JSON file in the idea's root directory.
@@ -293,7 +303,7 @@ class Pipeline(BaseModelTool):
             category = "stickman_noir"
         else:
             idea_data, script, category = self.prompt_manager.generate_full_story(
-                self.text_gen, titles_to_avoid=titles, extra_avoid=extra_avoid
+                self.text_gen, titles_to_avoid=titles, extra_avoid=extra_avoid, mode=self.mode
             )
 
         # Cost tracking (approx 2000 tokens)
@@ -351,7 +361,7 @@ class Pipeline(BaseModelTool):
 
         Messenger.info(f"Step 2 started: Generating Animated Frames for '{idea_obj.title}'")
         Messenger.info(f"   Loading script for Idea {idea_obj.id}...")
-        script = self.load_json(idea_obj.id, self.SCRIPT_JSON, VideoScript)
+        script = self.load_script(idea_obj)
         Messenger.info(f"   Script loaded. Scenes: {len(script.scenes)}")
 
         # Determine if we are in Riddle mode or Video mode
@@ -398,7 +408,7 @@ class Pipeline(BaseModelTool):
             return
 
         Messenger.info(f"\n--- Step 2b started: Fetching Videos for '{idea_obj.title}' ---")
-        script = self.load_json(idea_obj.id, self.SCRIPT_JSON, VideoScript)
+        script = self.load_script(idea_obj)
         
         from tools.video_generation.pexels import PexelsTool
         from tools.video_generation.pixabay import PixabayTool
@@ -417,6 +427,48 @@ class Pipeline(BaseModelTool):
 
             visual_type = getattr(scene, "visual_type", "stock_video")
             query = getattr(scene, "pexels_query", "")
+
+            if visual_type == "map_3d":
+                Messenger.info(f"   🗺️ Scene {scene.scene_number} requested 'map_3d'. Rendering Mapbox GL JS animation via Remotion...")
+                
+                # Extract camera settings
+                camera = getattr(scene, "camera", None)
+                lat = camera.latitude if camera else 4.570868
+                lon = camera.longitude if camera else -74.297333
+                zoom = camera.zoom if camera else 5.2
+                pitch = camera.pitch if camera else 45.0
+                bearing = camera.bearing if camera else -10.0
+                
+                highlight_region = getattr(scene, "highlight_region", "none")
+                arrow_direction = getattr(scene, "arrow_direction", "none")
+                floating_label = getattr(scene, "floating_label", "none")
+                
+                props = {
+                    "latitude": lat,
+                    "longitude": lon,
+                    "zoom": zoom,
+                    "pitch": pitch,
+                    "bearing": bearing,
+                    "highlightRegion": highlight_region,
+                    "arrowDirection": arrow_direction,
+                    "floatingLabel": floating_label,
+                    "durationInFrames": 240, # 8 seconds at 30 fps
+                    "fps": 30
+                }
+                
+                try:
+                    remotion_root = Path(self.REMOTION_DIR)
+                    self.remotion.render_composition(
+                        remotion_path=remotion_root,
+                        output_path=clip_path,
+                        composition_id="MapRender",
+                        props=props
+                    )
+                    if clip_path.exists() and clip_path.stat().st_size > 1024:
+                        return True
+                except Exception as remotion_e:
+                    Messenger.error(f"   ❌ Remotion MapRender failed: {remotion_e}")
+                    Messenger.warning("   ⚠️ Falling back to stock video search...")
 
             if visual_type != "ai_image":
                 # 1. Intentar Pexels (Prioridad 1)
@@ -478,7 +530,7 @@ class Pipeline(BaseModelTool):
             return
 
         Messenger.info("\n--- Generating batched audio for the script ---")
-        script_data = self.load_json(idea_obj.id, self.SCRIPT_JSON, VideoScript)
+        script_data = self.load_script(idea_obj)
 
         total_scenes = len(script_data.scenes)
         batch_size = 15
@@ -610,7 +662,7 @@ class Pipeline(BaseModelTool):
         Messenger.info("\n--- Generating videos for the script ---")
 
         # 2. Loads script.json
-        script_data = self.load_json(idea_obj.id, self.SCRIPT_JSON, VideoScript)
+        script_data = self.load_script(idea_obj)
         
         # 3. Create Master Audio (Source of Truth)
         audio_segments = []
@@ -620,15 +672,25 @@ class Pipeline(BaseModelTool):
             seg = self.get_idea_asset_path(idea_obj.id, self.AUDIOS_DIR, self.SCENE_AUDIO_PATTERN.format(scene_num))
             
             # --- FASE 1: SFX TRANSITION LOGIC ---
-            sfx_path = Path("flows/image_content_generator/resources/sfx/swoosh.mp3")
-            if i > 0 and sfx_path.exists() and seg.exists():
+            sfx_name = getattr(script_data.scenes[i], 'sfx', 'swoosh')
+            if not sfx_name or sfx_name == 'none':
+                sfx_name = 'swoosh'
+            sfx_name = sfx_name.lower().strip()
+            
+            sfx_path = Path("flows/image_content_generator/resources/sfx") / f"{sfx_name}.mp3"
+            if not sfx_path.exists():
+                sfx_path = Path("flows/image_content_generator/resources/sfx") / f"{sfx_name}.wav"
+            if not sfx_path.exists():
+                sfx_path = Path("flows/image_content_generator/resources/sfx/swoosh.mp3")
+
+            if sfx_path.exists() and seg.exists():
                 sfx_seg = self.get_idea_asset_path(idea_obj.id, self.AUDIOS_DIR, f"scene_{scene_num:02d}_sfx.wav")
                 try:
                     self.ffmpeg.mix_sfx(seg, sfx_path, sfx_seg, volume=0.35)
                     if sfx_seg.exists():
                         seg = sfx_seg  # Use the version with SFX injected
                 except Exception as e:
-                    Messenger.warning(f"Failed to mix SFX for scene {scene_num}: {e}")
+                    Messenger.warning(f"Failed to mix SFX '{sfx_name}' for scene {scene_num}: {e}")
 
             if seg.exists():
                 audio_segments.append(seg)
@@ -798,7 +860,7 @@ class Pipeline(BaseModelTool):
         remotion_frames_dir.mkdir(parents=True, exist_ok=True)
         
         # --- NUEVO: Obtener encabezado de intriga del script ---
-        script_data = self.load_json(idea_obj.id, self.SCRIPT_JSON, VideoScript)
+        script_data = self.load_script(idea_obj)
         intrigue_text = getattr(script_data, "intrigue_header", None)
         
         self.remotion.render_subtitles(
@@ -1017,17 +1079,247 @@ class Pipeline(BaseModelTool):
                 Messenger.error(f"   Failed to upload Idea {idea_obj.id}: {str(e)}")
                 break
 
+    def generate_sabias_que_content(self, title: str) -> dict:
+        """
+        Generates the visual curiosity text (for drawing on the image) and the post description using Gemini.
+        """
+        prompt = f"""
+        Eres un redactor creativo estrella para el canal "EnigmaIQ" en Facebook.
+        Vamos a crear una publicación de tipo "¿Sabías que...?" basada en este tema: "{title}"
+        
+        Necesitamos dos textos:
+        1. **Texto de la Tarjeta Visual (card_text)**: Un dato curioso súper interesante, breve y fascinante sobre el tema. 
+           Debe ser de máximo 25-30 palabras (2-3 líneas). Debe estar perfectamente redactado, sin errores ortográficos, fácil de entender y extremadamente impactante.
+           Ejemplo: "Los pulpos tienen tres corazones, nueve cerebros y su sangre es de color azul brillante debido a una proteína basada en cobre."
+        
+        2. **Descripción del Post (post_description)**: El caption para acompañar la imagen en Facebook. Debe ser intrigante, corto (máximo 2 líneas), invitar a comentar (CTA) y contener exactamente 10 hashtags virales relevantes, incluyendo siempre: #SabiasQue #Curiosidades #DatosCuriosos #EnigmaIQ
+        
+        Formato de salida obligatorio en JSON:
+        {{
+          "card_text": "Texto exacto que se dibujará en la imagen",
+          "post_description": "Texto exacto de la descripción del post"
+        }}
+        """
+        try:
+            res_raw = self._text_gen.generate(prompt).strip() if self._text_gen else ""
+            if not res_raw:
+                from tools.text_generation.gemini import GeminiTextGenerator
+                text_gen = GeminiTextGenerator()
+                res_raw = text_gen.generate(prompt).strip()
+            
+            # Clean JSON block if present
+            if "```json" in res_raw:
+                res_raw = res_raw.split("```json")[1].split("```")[0].strip()
+            elif "```" in res_raw:
+                res_raw = res_raw.split("```")[1].split("```")[0].strip()
+            
+            import json
+            data = json.loads(res_raw)
+            return {
+                "card_text": data.get("card_text", "").strip(),
+                "post_description": data.get("post_description", "").strip()
+            }
+        except Exception as e:
+            Messenger.warning(f"Failed to generate custom Sabias Que content: {e}. Using fallback.")
+            return {
+                "card_text": f"El increíble fenómeno detrás de: {title}.",
+                "post_description": f"🤯 ¿Sabías esto sobre {title}? Déjalo en los comentarios 👇\n\n#SabiasQue #Curiosidades #DatosCuriosos #Misterios #EnigmaIQ"
+            }
+
+    def compose_sabias_que_card(self, original_img_path: Path, output_path: Path, card_text: str):
+        """
+        Composes a highly professional, stunning vertical ¿Sabías que...? card (1080x1350)
+        from a raw generated image.
+        """
+        from PIL import Image, ImageDraw, ImageFont, ImageFilter
+        
+        # 1. Download premium fonts if not already cached
+        font_dir = self.resource_base / "fonts"
+        font_dir.mkdir(parents=True, exist_ok=True)
+        
+        font_bold_path = font_dir / "Montserrat-Bold.ttf"
+        font_medium_path = font_dir / "Montserrat-Medium.ttf"
+        
+        url_bold = "https://raw.githubusercontent.com/JulietaUla/Montserrat/master/fonts/ttf/Montserrat-Bold.ttf"
+        url_medium = "https://raw.githubusercontent.com/JulietaUla/Montserrat/master/fonts/ttf/Montserrat-Medium.ttf"
+        
+        def download_font(url: str, dest: Path):
+            if not dest.exists():
+                import urllib.request
+                try:
+                    Messenger.info(f"Downloading premium font for layout: {dest.name}...")
+                    urllib.request.urlretrieve(url, dest)
+                except Exception as e:
+                    Messenger.warning(f"Could not download font {dest.name}: {e}")
+        
+        download_font(url_bold, font_bold_path)
+        download_font(url_medium, font_medium_path)
+        
+        # Fallback to default if download fails
+        try:
+            font_title = ImageFont.truetype(str(font_bold_path), 64)
+            font_body = ImageFont.truetype(str(font_medium_path), 32)
+        except Exception:
+            font_title = ImageFont.load_default()
+            font_body = ImageFont.load_default()
+            Messenger.warning("Using fallback default fonts for card composition.")
+            
+        # 2. Dimensions
+        canvas_w, canvas_h = 1080, 1350
+        
+        # Load and scale original image (originally 9:16)
+        if not original_img_path.exists():
+            raise FileNotFoundError(f"Original image not found: {original_img_path}")
+            
+        orig_img = Image.open(original_img_path).convert("RGBA")
+        
+        # 3. Create context-aware blurred background
+        # Resize to fill canvas
+        bg_img = orig_img.resize((canvas_w, canvas_h), Image.Resampling.LANCZOS)
+        # Apply strong blur for aesthetic depth
+        bg_img = bg_img.filter(ImageFilter.GaussianBlur(radius=40))
+        
+        # Apply elegant dark color overlay (semi-transparent black)
+        overlay = Image.new("RGBA", (canvas_w, canvas_h), (11, 15, 25, 180)) # deep navy dark overlay
+        canvas = Image.alpha_composite(bg_img, overlay)
+        draw = ImageDraw.Draw(canvas)
+        
+        # 4. Draw Header "¿SABÍAS QUE...?"
+        title_text = "¿SABÍAS QUE...?"
+        title_bbox = font_title.getbbox(title_text)
+        title_w = title_bbox[2] - title_bbox[0]
+        title_x = (canvas_w - title_w) // 2
+        title_y = 80
+        
+        # Draw soft drop shadow for title
+        draw.text((title_x + 3, title_y + 3), title_text, font=font_title, fill=(0, 0, 0, 120))
+        # Draw glowing yellow title
+        draw.text((title_x, title_y), title_text, font=font_title, fill=(255, 255, 0, 255))
+        
+        # Draw elegant golden accent bar under title
+        bar_w, bar_h = 180, 5
+        bar_x = (canvas_w - bar_w) // 2
+        bar_y = title_y + 80
+        draw.rectangle([bar_x, bar_y, bar_x + bar_w, bar_y + bar_h], fill=(255, 255, 0, 255))
+        
+        # 5. Place Center Image Card (960x650 px)
+        card_w, card_h = 960, 650
+        card_x = (canvas_w - card_w) // 2
+        card_y = 200
+        
+        # Crop & scale original image to fit center card exactly (centered crop)
+        orig_w, orig_h = orig_img.size
+        target_ratio = card_w / card_h
+        orig_ratio = orig_w / orig_h
+        
+        if orig_ratio > target_ratio:
+            # Crop width
+            new_w = int(orig_h * target_ratio)
+            left = (orig_w - new_w) // 2
+            cropped = orig_img.crop((left, 0, left + new_w, orig_h))
+        else:
+            # Crop height
+            new_h = int(orig_w / target_ratio)
+            top = (orig_h - new_h) // 2
+            cropped = orig_img.crop((0, top, orig_w, top + new_h))
+            
+        center_img = cropped.resize((card_w, card_h), Image.Resampling.LANCZOS)
+        
+        # Add smooth rounded corners to the center image
+        def add_corners(im, rad):
+            circle = Image.new('L', (rad * 2, rad * 2), 0)
+            draw_circle = ImageDraw.Draw(circle)
+            draw_circle.ellipse((0, 0, rad * 2 - 1, rad * 2 - 1), fill=255)
+            alpha = Image.new('L', im.size, 255)
+            w, h = im.size
+            alpha.paste(circle.crop((0, 0, rad, rad)), (0, 0))
+            alpha.paste(circle.crop((rad, 0, rad * 2, rad)), (w - rad, 0))
+            alpha.paste(circle.crop((rad, rad, rad * 2, rad * 2)), (w - rad, h - rad))
+            alpha.paste(circle.crop((0, rad, rad, rad * 2)), (0, h - rad))
+            im.putalpha(alpha)
+            return im
+            
+        center_img = add_corners(center_img, 24)
+        
+        # Draw rounded backing card for the image
+        glow_padding = 4
+        draw.rounded_rectangle(
+            [card_x - glow_padding, card_y - glow_padding, card_x + card_w + glow_padding, card_y + card_h + glow_padding],
+            radius=28,
+            fill=(255, 255, 255, 15), # subtle transparent white border
+            outline=(255, 255, 255, 30),
+            width=2
+        )
+        
+        # Paste the centered image card
+        canvas.paste(center_img, (card_x, card_y), center_img)
+        
+        # 6. Draw Text Card Area at the Bottom (y = 890px to 1270px)
+        text_card_y = 890
+        text_card_h = 360
+        text_card_w = 960
+        text_card_x = (canvas_w - text_card_w) // 2
+        
+        # Semi-transparent dark card behind the text
+        draw.rounded_rectangle(
+            [text_card_x, text_card_y, text_card_x + text_card_w, text_card_y + text_card_h],
+            radius=24,
+            fill=(0, 0, 0, 160), # darker background for high legibility
+            outline=(255, 255, 255, 20),
+            width=1
+        )
+        
+        # Text wrapping
+        max_text_width = text_card_w - 80 # margin inside card
+        words = card_text.split(' ')
+        lines = []
+        current_line = []
+        
+        for word in words:
+            test_line = ' '.join(current_line + [word])
+            bbox = font_body.getbbox(test_line)
+            w = bbox[2] - bbox[0]
+            if w <= max_text_width:
+                current_line.append(word)
+            else:
+                if current_line:
+                    lines.append(' '.join(current_line))
+                current_line = [word]
+        if current_line:
+            lines.append(' '.join(current_line))
+            
+        # Draw wrapped lines
+        line_height = 48
+        total_text_h = len(lines) * line_height
+        start_y = text_card_y + (text_card_h - total_text_h) // 2 # center vertically inside text card
+        
+        for i, line in enumerate(lines):
+            line_bbox = font_body.getbbox(line)
+            line_w = line_bbox[2] - line_bbox[0]
+            line_x = text_card_x + (text_card_w - line_w) // 2 # center horizontally
+            
+            fill_color = (255, 255, 255, 255) # white
+            if i == 0:
+                fill_color = (255, 255, 0, 255) # yellow highlight
+                
+            draw.text((line_x, start_y + i * line_height), line, font=font_body, fill=fill_color)
+            
+        # Save composed canvas
+        canvas = canvas.convert("RGB")
+        canvas.save(output_path, "JPEG", quality=95)
+        Messenger.success(f"🎨 Composed beautifully styled ¿Sabías que...? image at: {output_path}")
+
     def step8_upload_image_to_facebook(self):
         """
-        Upload Image to Facebook: Uploads a single image (from Scene 1) as a post.
-        Used for the '3 images daily' requirement.
+        Upload Image to Facebook: Uploads a single beautifully composed "¿Sabías que...?" image.
+        Used for the '30 images weekly' requirement.
         """
         idea_obj = self.store.get_first_by_state(State.IMAGES_GENERATED)
         if not idea_obj:
             Messenger.error("No image found to upload.")
             return
 
-        Messenger.info(f"\n--- Uploading Image Post: {idea_obj.title} ---")
+        Messenger.info(f"\n--- Composing and Uploading Image Post: {idea_obj.title} ---")
 
         # 1. Path to first image
         img_path = self.get_idea_asset_path(idea_obj.id, self.IMAGES_DIR, "scene_01.png")
@@ -1035,23 +1327,36 @@ class Pipeline(BaseModelTool):
             Messenger.error(f"Image not found: {img_path}")
             return
 
-        # 2. Description
-        description = self.generate_facebook_description(idea_obj.title)
+        # 2. Generate customized content for card and post
+        Messenger.info("Generating customized ¿Sabías que...? text content via Gemini...")
+        content_data = self.generate_sabias_que_content(idea_obj.title)
         
+        card_text = content_data["card_text"]
+        post_description = content_data["post_description"]
+        
+        # 3. Path to composed card output
+        composed_img_path = self.get_idea_asset_path(idea_obj.id, self.IMAGES_DIR, "sabias_que_composed.jpg")
+        
+        # 4. Compose card
+        Messenger.info("Composing premium card canvas with Pillow...")
+        self.compose_sabias_que_card(img_path, composed_img_path, card_text)
+
+        # 5. Append Transparency Footer to Description
         transparency_footer = (
             "\n\n---\n"
-            "🤖 **Reflexión Generada por IA**: Este arte y mensaje han sido creados con Inteligencia Artificial para tu crecimiento personal.\n\n"
+            "🤖 **Contenido Generado por IA**: Esta infografía y mensaje han sido creados con Inteligencia Artificial para fines educativos y recreativos.\n\n"
             "✨ Publicado por EnigmaIQ.\n"
-            "#HechoConIA #ReflexionDiaria #EnigmaIQ #CrecimientoPersonal #Viral"
+            "#HechoConIA #SabiasQue #Curiosidades #EnigmaIQ #AprenderEsDivertido"
         )
-        final_description = description + transparency_footer
+        final_description = post_description + transparency_footer
 
-        # 3. Upload
+        # 6. Upload composed photo
         try:
-            photo_id = self.facebook.upload_photo(img_path, caption=final_description)
+            Messenger.info("Uploading composed card photo to Facebook...")
+            photo_id = self.facebook.upload_photo(composed_img_path, caption=final_description)
             if photo_id:
                 idea_obj.state = State.UPLOADED
                 self.store.save(idea_obj)
-                Messenger.success(f"✅ Image post successful! ID: {photo_id}")
+                Messenger.success(f"✅ Composed image post successful! ID: {photo_id}")
         except Exception as e:
             Messenger.error(f"❌ Failed to upload image: {e}")
