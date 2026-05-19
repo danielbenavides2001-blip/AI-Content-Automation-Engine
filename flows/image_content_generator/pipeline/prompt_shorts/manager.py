@@ -14,8 +14,16 @@ from flows.image_content_generator.pipeline.prompt_shorts.finances import (
 )
 from flows.image_content_generator.pipeline.prompt_shorts.stories import constants as story_constants
 from flows.image_content_generator.pipeline.prompt_shorts.stories.models import StoryHandler, StoryIdea
-from flows.image_content_generator.pipeline.prompt_shorts.geography.models import GeographyHandler, GeographyIdea
-from flows.image_content_generator.pipeline.prompt_shorts.geography import constants as geo_constants
+try:
+    from flows.image_content_generator.pipeline.prompt_shorts.geography.models import GeographyHandler, GeographyIdea
+    from flows.image_content_generator.pipeline.prompt_shorts.geography import constants as geo_constants
+    HAS_GEOGRAPHY = True
+except ImportError:
+    GeographyHandler = None
+    GeographyIdea = None
+    geo_constants = None
+    HAS_GEOGRAPHY = False
+
 from tools.common.messenger import Messenger
 from tools.text_generation.gemini import GeminiTextGenerator
 
@@ -25,10 +33,7 @@ class PromptManagerShorts(BasePromptManager):
 
     AUDIO_PROMPT: str = story_constants.AUDIO_PROMPT # Defaulting to story audio
 
-    CATEGORIES: Sequence[Type[CategoryHandler]] = [
-        StoryHandler,
-        GeographyHandler
-    ]
+    CATEGORIES: Sequence[Type[CategoryHandler]] = [StoryHandler] + ([GeographyHandler] if (HAS_GEOGRAPHY and GeographyHandler) else [])
 
     def generate_full_story(
         self, content_gen: GeminiTextGenerator, titles_to_avoid: list[str] = [], extra_avoid: str = "", mode: str = "standard"
@@ -37,6 +42,8 @@ class PromptManagerShorts(BasePromptManager):
         Executes the viral generation loop for Story/Geography Reels.
         """
         if mode == "geography":
+            if not HAS_GEOGRAPHY or geo_constants is None or GeographyIdea is None:
+                raise ValueError("Geography mode is not available in this environment (local-only module missing).")
             category = "geography"
             idea_model = GeographyIdea
             idea_prompt = geo_constants.IDEA_PROMPT_GEOGRAPHY
