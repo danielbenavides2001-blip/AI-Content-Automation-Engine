@@ -78,12 +78,16 @@ class PromptManagerShorts(BasePromptManager):
             ]
         else:
             focus_areas = [
-                "MISTERIOS DEL CUERPO HUMANO: Cosas hiper específicas que todos hacemos o sentimos pero nadie sabe por qué.",
-                "CURIOSIDADES BIOLÓGICAS EXTREMAS: Comportamientos animales extraños y fascinantes explicados.",
-                "MISTERIOS DE CIVILIZACIONES ANTIGUAS: Curiosidades históricas poco conocidas y bizarras.",
-                "FENÓMENOS NATURALES BIZARROS: Curiosidades increíbles de la Tierra y el clima.",
-                "DATOS PSICOLÓGICOS INQUIETANTES: Curiosidades sobre cómo funciona y nos engaña nuestra propia mente.",
-                "SECRETOS DEL UNIVERSO Y EL ESPACIO: Fenómenos cósmicos aterradores o fascinantes explicados de forma sencilla."
+                "CURIOSIDADES DE EGIPTO ANTIGUO: Secretos insólitos, medicina bizarra (como el uso de miel como antibiótico), babuinos policías o el maquillaje protector.",
+                "MISTERIOS DEL IMPERIO ROMANO: Hábitos curiosos y poco conocidos como el impuesto a la orina, la lavandería con amoníaco o el uso de sangre de gladiador.",
+                "SECRETOS DE LA ANTIGUA GRECIA: La vida extrema en Esparta, el misterioso mecanismo de Anticitera (la primera computadora) o rituales extraños.",
+                "CURIOSIDADES DE LAS CIVILIZACIONES MAYAS Y AZTECAS: El chocolate como moneda, odontología decorativa con jade o el juego de pelota sagrado.",
+                "MISTERIOS DE MESOPOTAMIA Y BABILONIA: Leyes bizarras del Código de Hammurabi, la receta de cerveza más antigua o inventos olvidados.",
+                "CURIOSIDADES DEL IMPERIO CHINO ANTIGUO: Secretos de los guerreros de terracota, usos mágicos de la pólvora o invenciones peculiares.",
+                "SECRETOS DEL ANTIGUO JAPÓN Y SAMURÁIS: Costumbres cotidianas insólitas, el origen real de los ninjas y tácticas de guerra psicológicas.",
+                "CURIOSIDADES DE LA CULTURA VIKINGA: Métodos peculiares de higiene, blanqueamiento de cabello con lejía o cómo usaban orina para hacer fuego.",
+                "MISTERIOS DE LA INDIA ANTIGUA: Cirugías plásticas pioneras de Sushruta, medicina ayurvédica antigua o tácticas de elefantes de guerra.",
+                "SECRETOS DEL IMPERIO INCA Y CULTURAS ANDINAS: El sistema de nudos quipu, los mensajeros veloces chasquis o técnicas de momificación andinas."
             ]
         selected_area = random.choice(focus_areas)
         Messenger.info(f"🎯 Random Focus Area: {selected_area}")
