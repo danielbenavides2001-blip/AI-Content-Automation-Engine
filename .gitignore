@@ -16,7 +16,8 @@ models
 **/out
 **/out_long
 **/out_short
-
+**/node_modules/
+**/scratch/
 
 # future versions
 **/video_content_generator
