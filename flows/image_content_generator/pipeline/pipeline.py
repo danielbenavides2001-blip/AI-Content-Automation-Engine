@@ -602,8 +602,9 @@ class Pipeline(BaseModelTool):
                 # Get total duration of the chunk
                 total_chunk_dur = self.ffmpeg.get_audio_duration(chunk_audio_path)
 
-                # 6. Split and Save
+                # 6. Split and Save (continuous without gaps or overlaps)
                 Messenger.info(f"Splitting Batch {batch_num} into {len(chunk)} scene audios...")
+                last_end_time = 0.0
                 for idx, al in enumerate(alignment.alignments):
                     # al.scene_number is 1-indexed relative to the chunk (1 to 10)
                     absolute_scene_num = start_idx + al.scene_number
@@ -613,11 +614,13 @@ class Pipeline(BaseModelTool):
                         self.SCENE_AUDIO_PATTERN.format(absolute_scene_num)
                     )
 
-                    # Si es la última escena del lote, aseguramos capturar todo el audio restante (sin cortes "mochos")
+                    start_time = last_end_time
                     if idx == len(alignment.alignments) - 1:
-                        duration = total_chunk_dur - al.start_time
+                        duration = total_chunk_dur - start_time
                     else:
-                        duration = al.end_time - al.start_time
+                        end_time = max(start_time + 0.5, min(al.end_time, total_chunk_dur))
+                        duration = end_time - start_time
+                        last_end_time = end_time
                         
                     if duration < 0.5:
                         chunk_audio_path.unlink(missing_ok=True)
@@ -632,7 +635,7 @@ class Pipeline(BaseModelTool):
                     self.ffmpeg.split_audio(
                         audio_in=chunk_audio_path,
                         audio_out=out_path,
-                        start_time=al.start_time,
+                        start_time=start_time,
                         duration=duration
                     )
 
@@ -821,9 +824,11 @@ class Pipeline(BaseModelTool):
         Messenger.info("Extracting audio for transcription...")
         self.ffmpeg.extract_audio(raw_video, audio_wav)
 
-        # 4. Generate srt
-        Messenger.info("Transcribing audio via Whisper.cpp...")
-        self.whisper.generate_srt(audio_wav, subs_srt)
+        # 4. Generate srt with script context for perfect spelling
+        Messenger.info("Transcribing audio via Whisper...")
+        script_data = self.load_script(idea_obj)
+        full_narration = " ".join([s.narration for s in script_data.scenes])
+        self.whisper.generate_srt(audio_wav, subs_srt, prompt=full_narration)
 
         # 5. Add Subtitles
         Messenger.info("Adding subtitles to final video...")
@@ -851,7 +856,9 @@ class Pipeline(BaseModelTool):
         
         # 2. Transcription (Master Audio already exists from Step 4)
         Messenger.info(f"Transcribing {self.FINAL_AUDIO} with OpenAI Whisper...")
-        words = self.whisper.get_word_tokens(audio_wav)
+        script_data = self.load_script(idea_obj)
+        full_narration = " ".join([s.narration for s in script_data.scenes])
+        words = self.whisper.get_word_tokens(audio_wav, prompt=full_narration)
         word_data = [{"text": w.text, "start": w.start, "end": w.end} for w in words]
 
         # 3. Render Remotion
@@ -860,7 +867,6 @@ class Pipeline(BaseModelTool):
         remotion_frames_dir.mkdir(parents=True, exist_ok=True)
         
         # --- NUEVO: Obtener encabezado de intriga del script ---
-        script_data = self.load_script(idea_obj)
         intrigue_text = getattr(script_data, "intrigue_header", None)
         
         self.remotion.render_subtitles(

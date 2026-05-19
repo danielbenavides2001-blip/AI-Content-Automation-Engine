@@ -36,6 +36,7 @@ class WhisperTool(BaseModelTool):
     def _get_transcription_json(
         self,
         audio_path: Path,
+        prompt: str = None
     ) -> WhisperTranscription:
         """
         Transcribes audio and returns a structured WhisperTranscription object.
@@ -50,8 +51,13 @@ class WhisperTool(BaseModelTool):
         self._load_model()
         Messenger.info(f"Transcribing {audio_path.name} with OpenAI Whisper...")
         
-        # Run transcription with word-level timestamps
-        result = self._model.transcribe(str(audio_path), language="es", word_timestamps=True)
+        # Run transcription with word-level timestamps and initial prompt context
+        result = self._model.transcribe(
+            str(audio_path),
+            language="es",
+            word_timestamps=True,
+            initial_prompt=prompt
+        )
         
         # Convert result to our custom schema
         segments = []
@@ -80,12 +86,13 @@ class WhisperTool(BaseModelTool):
 
     def get_transcription_segments(
         self,
-        audio_path: Path
+        audio_path: Path,
+        prompt: str = None
     ) -> List[WhisperTranscriptionSegment]:
         """
         Returns a list of segments with text and timestamps (seconds).
         """
-        data = self._get_transcription_json(audio_path)
+        data = self._get_transcription_json(audio_path, prompt=prompt)
         return [
             WhisperTranscriptionSegment(
                 text=s.text.strip(),
@@ -97,12 +104,13 @@ class WhisperTool(BaseModelTool):
 
     def get_word_tokens(
         self,
-        audio_path: Path
+        audio_path: Path,
+        prompt: str = None
     ) -> List[WhisperWord]:
         """
         Returns a list of all words with their start/end timestamps (ms).
         """
-        data = self._get_transcription_json(audio_path)
+        data = self._get_transcription_json(audio_path, prompt=prompt)
         words: List[WhisperWord] = []
         for s in data.transcription:
             for t in s.tokens:
@@ -117,11 +125,12 @@ class WhisperTool(BaseModelTool):
         self,
         audio_path: Path,
         output_srt: Path,
+        prompt: str = None
     ) -> None:
         """
         Generates an SRT file with dynamic word grouping.
         """
-        data = self._get_transcription_json(audio_path)
+        data = self._get_transcription_json(audio_path, prompt=prompt)
 
         # Extract words from tokens
         words: List[WhisperWord] = []
