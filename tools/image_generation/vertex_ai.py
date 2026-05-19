@@ -7,6 +7,7 @@ from google.genai import types
 
 from tools.common.messenger import Messenger
 from tools.image_generation.midjourney import ImageTask
+from tools.utils.time import retry
 
 
 class VertexAIImageGenerator:
@@ -33,6 +34,7 @@ class VertexAIImageGenerator:
             location=self.location
         )
 
+    @retry(max_attempts=3, delay=5.0)
     def generate_image(
         self,
         prompt: str,
@@ -61,6 +63,7 @@ class VertexAIImageGenerator:
         
         Messenger.image(f"Imagen generada con éxito: {output_path}")
 
+    @retry(max_attempts=3, delay=10.0)
     def generate_video(
         self,
         prompt: str,
@@ -110,7 +113,7 @@ class VertexAIImageGenerator:
         Batch processing for Vertex AI Images using ThreadPoolExecutor.
         """
         total = len(tasks)
-        Messenger.info(f"Vertex AI Image Generation Batch: {total} images (Parallel)")
+        Messenger.info(f"Vertex AI Image Generation Batch: {total} images (Parallel with max_workers=2)")
 
         def process_task(item):
             i, task = item
@@ -138,7 +141,11 @@ class VertexAIImageGenerator:
                 return False
 
         import concurrent.futures
-        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
             results = list(executor.map(process_task, enumerate(tasks, start=1)))
 
-        Messenger.step_success(f"Batch complete: {sum(results)}/{total} scenes processed successfully.")
+        successful = sum(results)
+        Messenger.step_success(f"Batch complete: {successful}/{total} scenes processed successfully.")
+
+        if successful < total:
+            raise RuntimeError(f"❌ Failed to generate {total - successful} images in batch. Stopping pipeline.")
