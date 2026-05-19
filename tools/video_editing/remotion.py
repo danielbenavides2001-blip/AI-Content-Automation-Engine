@@ -70,3 +70,48 @@ class RemotionTool(BaseModelTool):
         except subprocess.CalledProcessError as e:
             Messenger.error(f"Remotion failed: {e.stderr}")
             raise RuntimeError(f"Remotion rendering failed: {e.stderr}")
+
+    def render_composition(
+        self,
+        remotion_path: Path,
+        output_path: Path,
+        composition_id: str,
+        props: Dict[str, Any]
+    ) -> None:
+        """
+        Renders any Remotion composition with the given props.
+        """
+        data_dir = remotion_path / "data"
+        data_dir.mkdir(exist_ok=True)
+        input_json = data_dir / f"input_{composition_id.lower()}.json"
+        
+        with open(input_json, "w", encoding="utf-8") as f:
+            json.dump(props, f, indent=2)
+
+        Messenger.info(f"Rendering Remotion composition '{composition_id}'...")
+        
+        import platform
+        npx_cmd = "npx.cmd" if platform.system() == "Windows" else "npx"
+        
+        cmd = [
+            npx_cmd, "remotion", "render",
+            "src/index.ts",
+            composition_id,
+            str(output_path.absolute()),
+            f"--props={input_json.absolute()}",
+            "--codec=h264",
+            "-y"
+        ]
+
+        try:
+            subprocess.run(
+                cmd,
+                cwd=str(remotion_path),
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            Messenger.success(f"Remotion render completed: {output_path.name}")
+        except subprocess.CalledProcessError as e:
+            Messenger.error(f"Remotion failed: {e.stderr}")
+            raise RuntimeError(f"Remotion rendering failed: {e.stderr}")

@@ -148,13 +148,14 @@ class DailyAutomator:
         self.cleanup_stuck_ideas()
 
         if post_type == "video":
-            Messenger.info("🎬 GENERATING NEW CURIOSITY REEL (Full Pipeline)...")
+            mode = os.getenv("MODE", random.choice(["standard", "geography"]))
+            Messenger.info(f"🎬 GENERATING NEW CURIOSITY REEL (Full Pipeline | Mode: {mode.upper()})...")
             avoid_msg = self.get_recent_topics()
             try:
-                cmd = [sys.executable, "-m", "flows.image_content_generator.pipeline.main", "short", "all", "--avoid", avoid_msg, "--mode", "standard"]
+                cmd = [sys.executable, "-m", "flows.image_content_generator.pipeline.main", "short", "all", "--avoid", avoid_msg, "--mode", mode]
                 subprocess.run(cmd, check=True)
-                Messenger.success("✅ Curiosity Reel completed!")
-                self.log_post("video", "Curiosity Reel")
+                Messenger.success(f"✅ Curiosity Reel ({mode.upper()}) completed!")
+                self.log_post("video", f"Curiosity Reel ({mode})")
                 self.sync_to_github()
             except Exception as e:
                 Messenger.error(f"Error during video task: {e}")
