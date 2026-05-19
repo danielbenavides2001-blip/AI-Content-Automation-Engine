@@ -1081,23 +1081,29 @@ class Pipeline(BaseModelTool):
 
     def generate_sabias_que_content(self, title: str) -> dict:
         """
-        Generates the visual curiosity text (for drawing on the image) and the post description using Gemini.
+        Generates the visual curiosity text (for drawing on the image), the post description,
+        and a matching dedicated image prompt using Gemini.
         """
         prompt = f"""
         Eres un redactor creativo estrella para el canal "EnigmaIQ" en Facebook.
         Vamos a crear una publicación de tipo "¿Sabías que...?" basada en este tema: "{title}"
         
-        Necesitamos dos textos:
-        1. **Texto de la Tarjeta Visual (card_text)**: Un dato curioso súper interesante, breve y fascinante sobre el tema. 
+        Necesitamos tres textos en formato JSON:
+        1. **card_text**: Un dato curioso súper interesante, breve y fascinante sobre el tema. 
            Debe ser de máximo 25-30 palabras (2-3 líneas). Debe estar perfectamente redactado, sin errores ortográficos, fácil de entender y extremadamente impactante.
            Ejemplo: "Los pulpos tienen tres corazones, nueve cerebros y su sangre es de color azul brillante debido a una proteína basada en cobre."
         
-        2. **Descripción del Post (post_description)**: El caption para acompañar la imagen en Facebook. Debe ser intrigante, corto (máximo 2 líneas), invitar a comentar (CTA) y contener exactamente 10 hashtags virales relevantes, incluyendo siempre: #SabiasQue #Curiosidades #DatosCuriosos #EnigmaIQ
+        2. **post_description**: El caption para acompañar la imagen en Facebook. Debe ser intrigante, corto (máximo 2 líneas), invitar a comentar (CTA) y contener exactamente 10 hashtags virales relevantes, incluyendo siempre: #SabiasQue #Curiosidades #DatosCuriosos #EnigmaIQ
         
+        3. **image_prompt**: Un prompt altamente descriptivo y detallado en inglés para generar una imagen fotorrealista de altísima calidad que represente EXACTAMENTE el dato curioso explicado en `card_text`. 
+           El prompt debe ser extremadamente específico sobre el animal o tema exacto de `card_text` para que no haya ninguna incoherencia. El sujeto principal debe estar centrado y no demasiado cerca de los bordes para permitir un recorte horizontal.
+           Ejemplo: "A highly detailed close-up shot of a colorful chameleon on a green branch, focusing on its unique rotating eyes looking in different directions. Cinematic lighting, photorealistic, 8k resolution, depth of field."
+
         Formato de salida obligatorio en JSON:
         {{
           "card_text": "Texto exacto que se dibujará en la imagen",
-          "post_description": "Texto exacto de la descripción del post"
+          "post_description": "Texto exacto de la descripción del post",
+          "image_prompt": "Prompt en inglés para la generación de la imagen"
         }}
         """
         try:
@@ -1117,13 +1123,15 @@ class Pipeline(BaseModelTool):
             data = json.loads(res_raw)
             return {
                 "card_text": data.get("card_text", "").strip(),
-                "post_description": data.get("post_description", "").strip()
+                "post_description": data.get("post_description", "").strip(),
+                "image_prompt": data.get("image_prompt", "").strip()
             }
         except Exception as e:
             Messenger.warning(f"Failed to generate custom Sabias Que content: {e}. Using fallback.")
             return {
                 "card_text": f"El increíble fenómeno detrás de: {title}.",
-                "post_description": f"🤯 ¿Sabías esto sobre {title}? Déjalo en los comentarios 👇\n\n#SabiasQue #Curiosidades #DatosCuriosos #Misterios #EnigmaIQ"
+                "post_description": f"🤯 ¿Sabías esto sobre {title}? Déjalo en los comentarios 👇\n\n#SabiasQue #Curiosidades #DatosCuriosos #Misterios #EnigmaIQ",
+                "image_prompt": f"A beautiful artistic representing the mysterious concept of {title}, cinematic, photorealistic."
             }
 
     def compose_sabias_que_card(self, original_img_path: Path, output_path: Path, card_text: str):
@@ -1321,27 +1329,60 @@ class Pipeline(BaseModelTool):
 
         Messenger.info(f"\n--- Composing and Uploading Image Post: {idea_obj.title} ---")
 
-        # 1. Path to first image
-        img_path = self.get_idea_asset_path(idea_obj.id, self.IMAGES_DIR, "scene_01.png")
-        if not img_path.exists():
-            Messenger.error(f"Image not found: {img_path}")
-            return
-
-        # 2. Generate customized content for card and post
-        Messenger.info("Generating customized ¿Sabías que...? text content via Gemini...")
+        # 1. Generate customized content for card and post (including dedicated image prompt!)
+        Messenger.info("Generating customized ¿Sabías que...? text content and dedicated image prompt via Gemini...")
         content_data = self.generate_sabias_que_content(idea_obj.title)
         
         card_text = content_data["card_text"]
         post_description = content_data["post_description"]
+        image_prompt = content_data.get("image_prompt", "")
         
-        # 3. Path to composed card output
+        # 2. Path to the dedicated image to use
+        img_path = self.get_idea_asset_path(idea_obj.id, self.IMAGES_DIR, "sabias_que_source.png")
+        
+        # 3. Generate the dedicated coherent image if prompt is present
+        if image_prompt:
+            Messenger.info(f"Generating dedicated coherent image via Vertex AI Imagen 3...")
+            Messenger.info(f"   Prompt: {image_prompt}")
+            try:
+                task = ImageTask(
+                    prompt=image_prompt,
+                    output_path=img_path
+                )
+                self.image_gen.generate_images([task])
+                self.cost_tracker.add_image_cost(1)
+            except Exception as gen_e:
+                Messenger.error(f"   ❌ Dedicated image generation failed: {gen_e}. Falling back to default scene_01.png")
+                # Fallback to scene_01.png
+                img_path = self.get_idea_asset_path(idea_obj.id, self.IMAGES_DIR, "scene_01.png")
+        else:
+            Messenger.warning("No image prompt generated. Falling back to default scene_01.png")
+            img_path = self.get_idea_asset_path(idea_obj.id, self.IMAGES_DIR, "scene_01.png")
+
+        if not img_path.exists():
+            # Second-level fallback to any scene image if scene_01.png is also missing
+            fallback_img = None
+            for idx in range(1, 10):
+                possible_path = self.get_idea_asset_path(idea_obj.id, self.IMAGES_DIR, f"scene_{idx:02d}.png")
+                if possible_path.exists():
+                    fallback_img = possible_path
+                    break
+            
+            if fallback_img:
+                img_path = fallback_img
+                Messenger.warning(f"Using secondary fallback image: {img_path}")
+            else:
+                Messenger.error(f"Image not found (and all fallbacks failed): {img_path}")
+                return
+        
+        # 4. Path to composed card output
         composed_img_path = self.get_idea_asset_path(idea_obj.id, self.IMAGES_DIR, "sabias_que_composed.jpg")
         
-        # 4. Compose card
+        # 5. Compose card
         Messenger.info("Composing premium card canvas with Pillow...")
         self.compose_sabias_que_card(img_path, composed_img_path, card_text)
 
-        # 5. Append Transparency Footer to Description
+        # 6. Append Transparency Footer to Description
         transparency_footer = (
             "\n\n---\n"
             "🤖 **Contenido Generado por IA**: Esta infografía y mensaje han sido creados con Inteligencia Artificial para fines educativos y recreativos.\n\n"
@@ -1350,7 +1391,7 @@ class Pipeline(BaseModelTool):
         )
         final_description = post_description + transparency_footer
 
-        # 6. Upload composed photo
+        # 7. Upload composed photo
         try:
             Messenger.info("Uploading composed card photo to Facebook...")
             photo_id = self.facebook.upload_photo(composed_img_path, caption=final_description)
