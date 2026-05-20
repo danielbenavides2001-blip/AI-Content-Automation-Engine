@@ -1,4 +1,5 @@
 import os
+import random
 import time
 from pathlib import Path
 from typing import Optional
@@ -114,6 +115,7 @@ class FacebookTool(BaseModelTool):
     def upload_photo(self, file_path: Path, caption: str = "") -> str:
         """
         Uploads a photo to the Facebook Page and PUBLISHES it immediately.
+        Includes robust exponential backoff to handle transient Facebook 500 errors.
         """
         if not file_path.exists():
             raise FileNotFoundError(f"Photo file not found: {file_path}")
@@ -121,41 +123,73 @@ class FacebookTool(BaseModelTool):
         Messenger.info(f"📸 Uploading photo: {file_path.name}")
         
         url = f"{self.base_url}/{self.page_id}/photos"
-        files = {"source": open(file_path, "rb")}
-        data = {
-            "caption": caption,
-            "access_token": self.access_token
-        }
         
-        response = requests.post(url, data=data, files=files)
-        response.raise_for_status()
+        max_attempts = 4
+        base_delay = 5.0
         
-        photo_id = response.json().get("id")
-        Messenger.success(f"✅ Photo published! ID: {photo_id}")
-        return photo_id
+        for attempt in range(1, max_attempts + 1):
+            try:
+                with open(file_path, "rb") as photo_file:
+                    files = {"source": photo_file}
+                    data = {
+                        "caption": caption,
+                        "access_token": self.access_token
+                    }
+                    
+                    response = requests.post(url, data=data, files=files)
+                    response.raise_for_status()
+                    
+                    photo_id = response.json().get("id")
+                    Messenger.success(f"✅ Photo published! ID: {photo_id}")
+                    return photo_id
+            except Exception as e:
+                Messenger.warning(f"⚠️ Attempt {attempt}/{max_attempts} failed to upload photo: {str(e)}")
+                if attempt == max_attempts:
+                    raise e
+                
+                sleep_time = (base_delay * (2 ** (attempt - 1))) + random.uniform(1.0, 3.0)
+                Messenger.warning(f"🔄 Sleeping for {sleep_time:.2f}s before retrying photo upload...")
+                time.sleep(sleep_time)
 
     def upload_photo_unpublished(self, file_path: Path) -> str:
         """
         Uploads a photo to Facebook but keeps it UNPUBLISHED.
         Returns the photo ID for use in multi-photo posts.
+        Includes robust exponential backoff to handle transient Facebook 500 errors.
         """
         if not file_path.exists():
             raise FileNotFoundError(f"Photo file not found: {file_path}")
 
         url = f"{self.base_url}/{self.page_id}/photos"
-        files = {"source": open(file_path, "rb")}
-        data = {
-            "published": "false",
-            "access_token": self.access_token
-        }
         
-        response = requests.post(url, data=data, files=files)
-        response.raise_for_status()
-        return response.json().get("id")
+        max_attempts = 4
+        base_delay = 5.0
+        
+        for attempt in range(1, max_attempts + 1):
+            try:
+                with open(file_path, "rb") as photo_file:
+                    files = {"source": photo_file}
+                    data = {
+                        "published": "false",
+                        "access_token": self.access_token
+                    }
+                    
+                    response = requests.post(url, data=data, files=files)
+                    response.raise_for_status()
+                    return response.json().get("id")
+            except Exception as e:
+                Messenger.warning(f"⚠️ Attempt {attempt}/{max_attempts} failed to upload unpublished photo: {str(e)}")
+                if attempt == max_attempts:
+                    raise e
+                
+                sleep_time = (base_delay * (2 ** (attempt - 1))) + random.uniform(1.0, 3.0)
+                Messenger.warning(f"🔄 Sleeping for {sleep_time:.2f}s before retrying unpublished photo upload...")
+                time.sleep(sleep_time)
 
     def create_carousel_post(self, description: str, photo_ids: list[str]) -> str:
         """
         Creates a single post with multiple photos (Carousel style).
+        Includes robust exponential backoff to handle transient Facebook 500 errors.
         """
         Messenger.info(f"📸 Creating carousel post with {len(photo_ids)} photos...")
         
@@ -172,16 +206,30 @@ class FacebookTool(BaseModelTool):
             "access_token": self.access_token
         }
         
-        response = requests.post(url, data=data)
-        response.raise_for_status()
+        max_attempts = 4
+        base_delay = 5.0
         
-        post_id = response.json().get("id")
-        Messenger.success(f"✅ Carousel post published! ID: {post_id}")
-        return post_id
+        for attempt in range(1, max_attempts + 1):
+            try:
+                response = requests.post(url, data=data)
+                response.raise_for_status()
+                
+                post_id = response.json().get("id")
+                Messenger.success(f"✅ Carousel post published! ID: {post_id}")
+                return post_id
+            except Exception as e:
+                Messenger.warning(f"⚠️ Attempt {attempt}/{max_attempts} failed to create carousel post: {str(e)}")
+                if attempt == max_attempts:
+                    raise e
+                
+                sleep_time = (base_delay * (2 ** (attempt - 1))) + random.uniform(1.0, 3.0)
+                Messenger.warning(f"🔄 Sleeping for {sleep_time:.2f}s before retrying carousel post...")
+                time.sleep(sleep_time)
 
     def create_text_post(self, message: str) -> str:
         """
         Creates a text-only post on the Facebook Page.
+        Includes robust exponential backoff to handle transient Facebook 500 errors.
         """
         Messenger.info("📝 Creating text post...")
         
@@ -191,12 +239,25 @@ class FacebookTool(BaseModelTool):
             "access_token": self.access_token
         }
         
-        response = requests.post(url, data=data)
-        response.raise_for_status()
+        max_attempts = 4
+        base_delay = 5.0
         
-        post_id = response.json().get("id")
-        Messenger.success(f"✅ Text post published! ID: {post_id}")
-        return post_id
+        for attempt in range(1, max_attempts + 1):
+            try:
+                response = requests.post(url, data=data)
+                response.raise_for_status()
+                
+                post_id = response.json().get("id")
+                Messenger.success(f"✅ Text post published! ID: {post_id}")
+                return post_id
+            except Exception as e:
+                Messenger.warning(f"⚠️ Attempt {attempt}/{max_attempts} failed to create text post: {str(e)}")
+                if attempt == max_attempts:
+                    raise e
+                
+                sleep_time = (base_delay * (2 ** (attempt - 1))) + random.uniform(1.0, 3.0)
+                Messenger.warning(f"🔄 Sleeping for {sleep_time:.2f}s before retrying text post...")
+                time.sleep(sleep_time)
 
     def add_comment(self, post_id: str, message: str) -> str:
         """
