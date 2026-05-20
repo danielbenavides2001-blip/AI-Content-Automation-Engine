@@ -1,4 +1,5 @@
 import os
+import httpx
 from typing import Any, Callable, Optional
 
 from dotenv import load_dotenv
@@ -52,9 +53,9 @@ class GeminiBase(BaseModelTool):
     @retry(
         wait=wait_fixed(60),
         stop=stop_after_attempt(5),
-        retry=retry_if_exception_type((errors.ServerError, errors.ClientError)),
+        retry=retry_if_exception_type((errors.ServerError, errors.ClientError, httpx.RequestError, httpx.RemoteProtocolError, httpx.HTTPError)),
         before_sleep=lambda retry_state: Messenger.info(
-            f"⏳ Gemini bloqueado (Saturación o Cuota 429). Reintentando en 60s... "
+            f"⏳ Gemini bloqueado (Saturación o Error de Red). Reintentando en 60s... "
             f"(Intento {retry_state.attempt_number}/5)"
         ),
         reraise=True,
