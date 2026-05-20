@@ -1,3 +1,4 @@
+import random
 import time
 from pathlib import Path
 from typing import Any, List, Optional
@@ -34,7 +35,6 @@ class VertexAIImageGenerator:
             location=self.location
         )
 
-    @retry(max_attempts=3, delay=5.0)
     def generate_image(
         self,
         prompt: str,
@@ -42,26 +42,50 @@ class VertexAIImageGenerator:
     ) -> None:
         """
         Generates a static image using Imagen 3 via Vertex AI.
+        Includes robust exponential backoff to handle 429 RESOURCE_EXHAUSTED errors.
         """
         Messenger.info(f"Generating Vertex AI Image: {prompt[:50]}...")
         
-        response = self.client.models.generate_images(
-            model='imagen-3.0-generate-001',
-            prompt=prompt,
-            config=types.GenerateImagesConfig(
-                number_of_images=1,
-                aspect_ratio=self.aspect_ratio,
-            )
-        )
-
-        if not response or not response.generated_images:
-            raise RuntimeError("❌ Vertex AI Imagen no devolvió imágenes")
-
-        # Save the image
-        with open(output_path, "wb") as f:
-            f.write(response.generated_images[0].image.image_bytes)
+        max_attempts = 5
+        base_delay = 5.0
         
-        Messenger.image(f"Imagen generada con éxito: {output_path}")
+        for attempt in range(1, max_attempts + 1):
+            try:
+                response = self.client.models.generate_images(
+                    model='imagen-3.0-generate-001',
+                    prompt=prompt,
+                    config=types.GenerateImagesConfig(
+                        number_of_images=1,
+                        aspect_ratio=self.aspect_ratio,
+                    )
+                )
+
+                if not response or not response.generated_images:
+                    raise RuntimeError("❌ Vertex AI Imagen no devolvió imágenes")
+
+                # Save the image
+                with open(output_path, "wb") as f:
+                    f.write(response.generated_images[0].image.image_bytes)
+                
+                Messenger.image(f"Imagen generada con éxito: {output_path}")
+                return
+            except Exception as e:
+                error_str = str(e)
+                Messenger.warning(f"⚠️ Attempt {attempt}/{max_attempts} failed: {error_str}")
+                
+                if attempt == max_attempts:
+                    raise e
+                
+                # Check for rate limits / 429
+                is_rate_limit = "429" in error_str or "RESOURCE_EXHAUSTED" in error_str or "quota" in error_str.lower()
+                sleep_time = (base_delay * (2 ** (attempt - 1))) + random.uniform(1.0, 3.0)
+                
+                if is_rate_limit:
+                    Messenger.warning(f"🛑 Rate limit/Quota exhausted. Sleeping for {sleep_time:.2f}s before retrying...")
+                else:
+                    Messenger.warning(f"🔄 General exception. Sleeping for {sleep_time:.2f}s before retrying...")
+                
+                time.sleep(sleep_time)
 
     @retry(max_attempts=3, delay=10.0)
     def generate_video(
@@ -113,7 +137,7 @@ class VertexAIImageGenerator:
         Batch processing for Vertex AI Images using ThreadPoolExecutor.
         """
         total = len(tasks)
-        Messenger.info(f"Vertex AI Image Generation Batch: {total} images (Parallel with max_workers=2)")
+        Messenger.info(f"Vertex AI Image Generation Batch: {total} images (Sequential with max_workers=1 to prevent rate limits)")
 
         def process_task(item):
             i, task = item
@@ -135,13 +159,15 @@ class VertexAIImageGenerator:
                         prompt=task.prompt,
                         output_path=out_path
                     )
+                # Add a brief delay between sequential requests to prevent triggering rate limits
+                time.sleep(2.0)
                 return True
             except Exception as e:
                 Messenger.error(f"Error in scene {i}: {str(e)}")
                 return False
 
         import concurrent.futures
-        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
             results = list(executor.map(process_task, enumerate(tasks, start=1)))
 
         successful = sum(results)
