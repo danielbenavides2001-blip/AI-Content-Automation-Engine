@@ -63,12 +63,18 @@ class WhisperTool(BaseModelTool):
         segments = []
         for s in result["segments"]:
             tokens = []
-            if "words" in s:
+            if "words" in s and s["words"]:
                 for w in s["words"]:
                     tokens.append(WhisperToken(
                         text=w["word"],
                         offsets=WhisperOffsets(**{"from": int(w["start"] * 1000), "to": int(w["end"] * 1000)})
                     ))
+            else:
+                # FALLBACK: If Whisper fails to align words, keep the text so subtitles don't disappear
+                tokens.append(WhisperToken(
+                    text=s["text"].strip(),
+                    offsets=WhisperOffsets(**{"from": int(s["start"] * 1000), "to": int(s["end"] * 1000)})
+                ))
             
             segments.append(WhisperSegment(
                 text=s["text"],
