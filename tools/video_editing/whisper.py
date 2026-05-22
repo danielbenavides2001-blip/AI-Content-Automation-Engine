@@ -56,7 +56,9 @@ class WhisperTool(BaseModelTool):
             str(audio_path),
             language="es",
             word_timestamps=True,
-            initial_prompt=prompt
+            initial_prompt=prompt,
+            condition_on_previous_text=False, # Previene que Whisper alucine o se quede en un bucle infinito repitiendo letras raras
+            no_speech_threshold=0.6
         )
         
         # Convert result to our custom schema
