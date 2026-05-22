@@ -40,7 +40,7 @@ class DailyAutomator:
         if self.history_file.exists():
             try:
                 df_auto = pd.read_csv(self.history_file)
-                topics.extend(df_auto["topic"].tail(50).tolist())
+                topics.extend(df_auto["topic"].tolist())
             except Exception:
                 pass
         
@@ -49,7 +49,7 @@ class DailyAutomator:
         if video_csv.exists():
             try:
                 df_video = pd.read_csv(video_csv)
-                topics.extend(df_video["title"].tail(50).tolist())
+                topics.extend(df_video["title"].tolist())
             except Exception:
                 pass
             
@@ -58,8 +58,8 @@ class DailyAutomator:
         
         # Deduplicate and format
         unique_topics = list(set([str(t).strip() for t in topics if str(t).strip()]))
-        # Limit to 15 to avoid command line limits and prompt saturation
-        avoid_list = "\n- ".join(unique_topics[-15:]) 
+        # Pass up to 250 topics (enough memory without breaking CLI limits)
+        avoid_list = "\n- ".join(unique_topics[-250:]) 
         
         return f"\n\n**CRITICAL - ANTI-REPETITION RULES:**\nDO NOT repeat, reuse or get inspired by the following themes, metaphors or titles (THEY ARE ALREADY POSTED):\n- {avoid_list}\n\nBe creative. EXPLORE NEW VISUAL TERRITORIES."
 

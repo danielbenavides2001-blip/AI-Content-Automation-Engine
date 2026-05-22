@@ -94,13 +94,19 @@ class PromptManagerShorts(BasePromptManager):
 
         avoid_msg = ""
         banned_words = "Pobre, Rico, Mentalidad, Escasez, Abundancia, Mindset, Millonario"
+        
+        combined_avoid = list(titles_to_avoid)
         if extra_avoid:
-            avoid_msg = f"\n\n🚨 **REGLA DE ORO DE NO REPETICIÓN:** 🚨\nEstá PROHIBIDO repetir temas anteriores como:\n{extra_avoid}\n\n🚫 **PALABRAS PROHIBIDAS (NO USAR):** {banned_words}"
-        elif titles_to_avoid:
-            avoid_list_str = "\n- ".join(titles_to_avoid)
+            # extra_avoid already comes as a formatted string from get_recent_topics
+            combined_avoid.append(extra_avoid)
+            
+        if combined_avoid:
+            avoid_list_str = "\n".join([str(t) for t in combined_avoid])
             avoid_msg = (
-                f"\n\n🚨 **REGLA DE ORO DE NO REPETICIÓN:** 🚨\n"
-                f"Está ESTRICTAMENTE PROHIBIDO repetir cualquiera de estos temas o conceptos:\n- {avoid_list_str}\n\n"
+                f"\n\n🚨 **REGLA DE ORO DE NO REPETICIÓN ABSOLUTA:** 🚨\n"
+                f"Está ESTRICTAMENTE PROHIBIDO repetir CUALQUIERA de estos temas, historias o conceptos que ya fueron publicados:\n"
+                f"{avoid_list_str}\n\n"
+                f"Si generas una historia similar a las anteriores, el sistema fallará. DEBES INVENTAR UN TEMA COMPLETAMENTE NUEVO.\n"
                 f"🚫 **PALABRAS PROHIBIDAS (NO USAR):** {banned_words}"
             )
 
