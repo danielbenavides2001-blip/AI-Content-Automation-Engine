@@ -1,9 +1,6 @@
 name: Daily Content Automation (3 Reels + 3 Images)
 
 on:
-  schedule:
-    # 5 AM, 7 AM, 9 AM, 11 AM, 1 PM, 4 PM, 7 PM COT (UTC-5)
-    - cron: '0 10,12,14,16,18,21,0 * * *'
   workflow_dispatch:
     inputs:
       force_type:
