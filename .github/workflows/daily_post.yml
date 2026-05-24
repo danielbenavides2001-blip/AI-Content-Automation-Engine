@@ -2,7 +2,8 @@ name: Daily Content Automation (3 Reels + 3 Images)
 
 on:
   schedule:
-    - cron: '0 13,16,19,22,1 * * *' # 8am, 11am, 2pm, 5pm, 8pm COT
+    # 5 AM, 7 AM, 9 AM, 11 AM, 1 PM, 4 PM, 7 PM COT (UTC-5)
+    - cron: '0 10,12,14,16,18,21,0 * * *'
   workflow_dispatch:
     inputs:
       force_type:
@@ -68,9 +69,9 @@ jobs:
           USE_VERTEX_AI_IMAGE: "true"
           USE_VERTEX_AI_AUDIO: "true"
         run: |
-          # Determine what to run (Dual execution for maximum weekly engagement: Reels + Sabias Que Images)
+          # Solo videos por defecto, imágenes desactivadas
           RUN_VIDEO=true
-          RUN_IMAGE=true
+          RUN_IMAGE=false
           
           if [[ "${{ github.event.inputs.force_type }}" == "0" ]]; then
             RUN_VIDEO=false
