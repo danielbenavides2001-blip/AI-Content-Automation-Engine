@@ -54,3 +54,41 @@ class GeminiTextGenerator(GeminiBase):
             raise RuntimeError("No hay respuesta de Gemini")
 
         return response.text.strip()
+
+    def translate_srt(self, srt_content: str, target_language: str = "English") -> str:
+        """
+        Translates an SRT subtitle file to the target language while strictly preserving timestamps and SRT format.
+        """
+        prompt = f"""
+You are a professional subtitle translator. Translate the following SRT file to {target_language}.
+CRITICAL RULES:
+1. Preserve the exact SRT format (subtitle number, timestamps).
+2. DO NOT change or modify the timestamps (e.g. 00:00:01,000 --> 00:00:04,000).
+3. Translate ONLY the subtitle text.
+4. Keep the translation concise so it fits the timing on screen.
+5. Do NOT add any markdown formatting, headers, or conversational text. Output ONLY the raw SRT format.
+
+SRT CONTENT:
+{srt_content}
+"""
+        response = self._execute_with_retry(
+            self.client.models.generate_content,
+            model=self.text_model,
+            contents=[prompt]
+        )
+        self._extract_usage(response, self.text_model)
+        
+        if not response.text:
+            raise RuntimeError("❌ No hay respuesta de Gemini en la traducción.")
+            
+        translated_srt = response.text.strip()
+        # Remove markdown code blocks if gemini added them accidentally
+        if translated_srt.startswith("```srt"):
+            translated_srt = translated_srt[6:]
+        if translated_srt.startswith("```"):
+            translated_srt = translated_srt[3:]
+        if translated_srt.endswith("```"):
+            translated_srt = translated_srt[:-3]
+            
+        return translated_srt.strip()
+

@@ -1062,8 +1062,22 @@ class Pipeline(BaseModelTool):
                     title=video_title
                 )
                 
-                # --- FASE 4: AUTO-COMENTARIO (Cebo de engagement) ---
                 if video_id:
+                    # --- FASE 5: MULTILINGUAL CAPTIONS ---
+                    try:
+                        subs_srt = self.get_idea_asset_path(idea_obj.id, self.EDITIONS_DIR, self.FINAL_SUBS)
+                        if subs_srt.exists():
+                            Messenger.info("   Translating subtitles to English...")
+                            en_srt_content = self.text_gen.translate_srt(subs_srt.read_text(encoding="utf-8"))
+                            en_srt_path = self.get_idea_asset_path(idea_obj.id, self.EDITIONS_DIR, "final_subs.en_US.srt")
+                            en_srt_path.write_text(en_srt_content, encoding="utf-8")
+                            
+                            # Upload to Facebook
+                            self.facebook.upload_captions(video_id, en_srt_path, locale="en_US")
+                    except Exception as cap_e:
+                        Messenger.warning(f"   ⚠️ Failed to process/upload English captions: {cap_e}")
+
+                    # --- FASE 4: AUTO-COMENTARIO (Cebo de engagement) ---
                     Messenger.info("   Generating polemic auto-comment...")
                     prompt_comment = f"""
                     Eres el creador de la serie "EnigmaIQ". Acabas de subir un video titulado: "{video_title}".

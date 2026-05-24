@@ -280,3 +280,40 @@ class FacebookTool(BaseModelTool):
         comment_id = response.json().get("id")
         Messenger.success(f"✅ Comment added successfully! ID: {comment_id}")
         return comment_id
+
+    def upload_captions(self, video_id: str, srt_file_path: Path, locale: str = "en_US") -> bool:
+        """
+        Uploads an SRT caption file to an existing video.
+        The file must be named strictly as filename.locale.srt (e.g., subtitles.en_US.srt).
+        """
+        if not srt_file_path.exists():
+            Messenger.warning(f"⚠️ Caption file not found: {srt_file_path}")
+            return False
+
+        Messenger.info(f"📝 Uploading {locale} captions to video {video_id}...")
+        url = f"{self.video_url}/{video_id}/captions"
+        
+        try:
+            with open(srt_file_path, "rb") as f:
+                # Facebook requires the file name to match the locale format exactly
+                filename = f"{video_id}.{locale}.srt"
+                files = {"captions_file": (filename, f, "text/plain")}
+                
+                # Para subir archivos a Graph API a veces se envía access_token como data
+                data = {
+                    "access_token": self.access_token,
+                    "default_locale": "none"  # "none" para que no sobreescriba el por defecto si no queremos
+                }
+                
+                response = requests.post(url, data=data, files=files)
+                response.raise_for_status()
+                
+                if response.json().get("success"):
+                    Messenger.success(f"✅ Captions ({locale}) attached successfully!")
+                    return True
+                else:
+                    Messenger.error(f"❌ Failed to attach captions: {response.text}")
+                    return False
+        except Exception as e:
+            Messenger.error(f"❌ Exception uploading captions: {str(e)}")
+            return False
