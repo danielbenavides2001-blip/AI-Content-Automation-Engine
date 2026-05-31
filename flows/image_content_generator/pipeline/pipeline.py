@@ -931,8 +931,8 @@ class Pipeline(BaseModelTool):
             idea_obj.id, self.EDITIONS_DIR, self.FINAL_VIDEO
         )
 
-        # 3. Picks a random audio file
-        selected_music = self.audio_tool.get_random_audio()
+        # 3. Picks a random audio file matching the current pipeline mode
+        selected_music = self.audio_tool.get_random_audio(mode=self.mode)
         if not selected_music:
             return
 
