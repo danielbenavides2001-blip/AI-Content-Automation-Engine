@@ -24,6 +24,16 @@ except ImportError:
     geo_constants = None
     HAS_GEOGRAPHY = False
 
+try:
+    from flows.image_content_generator.pipeline.prompt_shorts.football.models import FootballHandler, FootballIdea
+    from flows.image_content_generator.pipeline.prompt_shorts.football import constants as football_constants
+    HAS_FOOTBALL = True
+except ImportError:
+    FootballHandler = None
+    FootballIdea = None
+    football_constants = None
+    HAS_FOOTBALL = False
+
 from tools.common.messenger import Messenger
 from tools.text_generation.gemini import GeminiTextGenerator
 
@@ -32,14 +42,19 @@ class PromptManagerShorts(BasePromptManager):
     """Manager specific to Viral Content (Videos, Riddles, and Stories)."""
 
     AUDIO_PROMPT: str = story_constants.AUDIO_PROMPT # Defaulting to story audio
+    FOOTBALL_AUDIO_PROMPT: str = football_constants.AUDIO_PROMPT_FOOTBALL if football_constants else story_constants.AUDIO_PROMPT
 
-    CATEGORIES: Sequence[Type[CategoryHandler]] = [StoryHandler] + ([GeographyHandler] if (HAS_GEOGRAPHY and GeographyHandler) else [])
+    CATEGORIES: Sequence[Type[CategoryHandler]] = (
+        [StoryHandler] 
+        + ([GeographyHandler] if (HAS_GEOGRAPHY and GeographyHandler) else [])
+        + ([FootballHandler] if (HAS_FOOTBALL and FootballHandler) else [])
+    )
 
     def generate_full_story(
         self, content_gen: GeminiTextGenerator, titles_to_avoid: list[str] = [], extra_avoid: str = "", mode: str = "standard"
     ) -> Tuple[BaseIdea, VideoScript, str]:
         """
-        Executes the viral generation loop for Story/Geography Reels.
+        Executes the viral generation loop for Story/Geography/Football Reels.
         """
         if mode == "geography":
             if not HAS_GEOGRAPHY or geo_constants is None or GeographyIdea is None:
@@ -49,6 +64,14 @@ class PromptManagerShorts(BasePromptManager):
             idea_prompt = geo_constants.IDEA_PROMPT_GEOGRAPHY
             script_prompt = geo_constants.SCRIPT_PROMPT_GEOGRAPHY
             series_name = "EnigmaIQ Geografía"
+        elif mode == "football":
+            if not HAS_FOOTBALL or football_constants is None or FootballIdea is None:
+                raise ValueError("Football mode is not available in this environment.")
+            category = "football"
+            idea_model = FootballIdea
+            idea_prompt = football_constants.IDEA_PROMPT_FOOTBALL
+            script_prompt = football_constants.SCRIPT_PROMPT_FOOTBALL
+            series_name = "EnigmaIQ Football"
         else:
             category = "stories"
             idea_model = StoryIdea
@@ -76,6 +99,8 @@ class PromptManagerShorts(BasePromptManager):
                 "BIODIVERSIDAD Y CORDILLERAS: Cómo las tres cordilleras de los Andes dividen un solo país en mundos ecológicos aislados.",
                 "GEOGRAFÍA HISTÓRICA E INSÓLITA: Fronteras absurdas formadas por ríos caprichosos o montañas intransitables."
             ]
+        elif mode == "football":
+            focus_areas = football_constants.FOCUS_AREAS_FOOTBALL
         else:
             focus_areas = [
                 # 🧠 PSICOLOGÍA Y COMPORTAMIENTO HUMANO
@@ -124,7 +149,7 @@ class PromptManagerShorts(BasePromptManager):
                 "HISTORIAS REALES DE SUPERVIVENCIA EXTREMA: Personas que sobrevivieron a situaciones imposibles. Perdidos en el mar, atrapados en montañas, abandonados en la nada.",
                 "CASOS DE RESILIENCIA HUMANA QUE PAREN FICCIÓN: Personas que superaron condiciones brutales y salieron adelante contra todo pronóstico.",
                 "LOS ERRORES HUMANOS MÁS COSTOSOS DE LA HISTORIA: Errores simples que tuvieron consecuencias catastróficas. Un clic, una palabra, una decisión que cambió todo.",
-                "ACTOS DE HEROÍSMO ANÓNIMO QUE SALVARON MILES DE VIDAS: Personas comunes que hicieron algo extraordinario sin buscar reconocimiento.",
+                "ACTOS DE HEROÍSMO ANÓNIMO QUE SALVARON MILES DE VIDA: Personas comunes que hicieron algo extraordinario sin buscar reconocimiento.",
                 "FRAUDES Y ESTAFAS QUE ENGAÑARON A TODO EL MUNDO: Los timos más grandes de la historia. Gente que vendió la Torre Eiffel, islas falsas, engaños que duraron décadas.",
                 # 💡 CURIOSIDADES DE LA VIDA COTIDIANA
                 "EL ORIGEN SECRETO DE LAS COSAS COTIDIANAS: Cómo se inventaron objetos que usas a diario. El tenedor, el papel higiénico, el cepillo de dientes. Historias bizarras.",
@@ -189,6 +214,10 @@ class PromptManagerShorts(BasePromptManager):
                 "Style: Stylized infographic map. High-contrast dark blue background, vibrant neon borders, sharp glowing vector lines.",
                 "Style: Cinematic National Geographic 3D terrain flight. Vibrant natural colors, dramatic lighting, detailed texture."
             ]
+        elif mode == "football":
+            styles = [
+                "Style: Vintage Scrapbook and Collage style. Aged craft paper background, torn pieces of newspaper with retro typography headlines, faded sepia Polaroid photo slots, classic football textures (old laced ball, leather cleats, brass whistle), warm nostalgic volumetric stadium lights, photorealistic textures."
+            ]
         else:
             styles = [
                 "Estilo: Hyper-realistic cinematic lighting. Dark moody colors, misty background, high detail, professional photography style.",
@@ -204,7 +233,7 @@ class PromptManagerShorts(BasePromptManager):
         full_idea_prompt = (
             f"{idea_prompt.format(visual_style=selected_style)}\n\n"
             f"**TEMA CENTRAL OBLIGATORIO:** {selected_area}\n"
-            f"**ESTE CONTENIDO ES LA PARTE {next_part}** de la serie '{series_name}'."
+            f"**ESTE CONTENIDO IS LA PARTE {next_part}** de la serie '{series_name}'."
         )
         
         idea_data = content_gen.generate_text(
@@ -215,18 +244,26 @@ class PromptManagerShorts(BasePromptManager):
         # 4. Viral Script / Content Generation
         Messenger.info(f"\n--- Generating Viral {category.upper()} Content: {idea_data.title} ---")
         
-        full_script_prompt = (
-            script_prompt + 
-            f"\n\nIDEA A DESARROLLAR: {idea_data.title}\n"
-            f"**ESTILOS VISUALES RECOMENDADOS PARA IMÁGENES/MAPAS:** {selected_style}\n"
-        )
+        if mode == "football":
+            full_script_prompt = (
+                script_prompt + 
+                f"\n\nIDEA A DESARROLLAR: {idea_data.title}\n"
+                f"**ESTILOS VISUALES RECOMENDADOS PARA SCRAPBOOK IMAGES:** {selected_style}\n"
+            )
+        else:
+            full_script_prompt = (
+                script_prompt + 
+                f"\n\nIDEA A DESARROLLAR: {idea_data.title}\n"
+                f"**ESTILOS VISUALES RECOMENDADOS PARA IMÁGENES/MAPAS:** {selected_style}\n"
+            )
         script = content_gen.generate_text(full_script_prompt, GeographyHandler if mode == "geography" else VideoScript)
 
         # --- BLINDAJE CONTRA BANEOS (TRANS-STORY) ---
+        creator_team = "equipo de EnigmaIQ"
         transparency_footer = (
-            "\n\n---\n"
-            "💡 **Transparencia**: Este contenido narrativo ha sido producido con el apoyo de Inteligencia Artificial para fines educativos y de entretenimiento.\n\n"
-            "✨ Creado por el equipo de EnigmaIQ."
+            f"\n\n---\n"
+            f"💡 **Transparencia**: Este contenido narrativo ha sido producido con el apoyo de Inteligencia Artificial para fines educativos y de entretenimiento.\n\n"
+            f"✨ Creado por el {creator_team}."
         )
         
         # Inyectar el footer en el caption o hook (Blindaje)

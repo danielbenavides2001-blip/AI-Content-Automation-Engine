@@ -148,7 +148,12 @@ class DailyAutomator:
         self.cleanup_stuck_ideas()
 
         if post_type == "video":
-            mode = os.getenv("MODE", "standard")
+            env_mode = os.getenv("MODE", "").lower()
+            if env_mode:
+                mode = env_mode
+            else:
+                import random
+                mode = random.choices(["football", "standard", "geography"], weights=[70, 15, 15], k=1)[0]
             Messenger.info(f"🎬 GENERATING NEW CURIOSITY REEL (Full Pipeline | Mode: {mode.upper()})...")
             avoid_msg = self.get_recent_topics()
             try:
