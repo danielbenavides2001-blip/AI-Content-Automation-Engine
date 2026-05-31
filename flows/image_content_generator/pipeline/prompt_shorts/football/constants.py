@@ -42,12 +42,14 @@ Divide la historia en exactamente **6 a 8 escenas cortas** para mantener los niv
 - **Escenas 2-6 [5-45s] (La Evidencia):** Proporciona exactamente 3 datos históricos rápidos y contundentes que demuestren el titular. Usa un lenguaje muy sensorial y activo (ej. "tacos de cuero embarrados", "luces volumétricas de estadio", "entrada de papel vieja y rasgada").
 - **Última Escena [45-60s] (El Bucle de Paradoja):** Termina con una pregunta intrigante que obligue a los usuarios a volver a ver el video para cerrar el bucle.
 
-**2. ESTILO VISUAL: "Vintage Collage & Scrapbook" (Prompts para Vertex AI):**
-Para el campo `image_prompt` de cada escena, escribe una descripción física muy detallada de la escena en inglés (ya que la IA entiende mejor inglés) usando la estética de "Vintage Collage & Scrapbook".
-Debes construir el prompt utilizando exactamente esta plantilla, rellenando las variables en corchetes en inglés:
-"A mixed-media scrapbook collage representing [Scene visual concept]. A faded sepia-toned retro Polaroid photo showing [Specific action/event of the scene], a torn piece of yellowed fibrous newspaper with a dynamic bold headline saying '[SHORT 2-3 WORD CUSTOM HEADLINE]', a [Focal football object like a vintage laced soccer ball, muddy leather cleats, brass referee whistle, or old goalkeeper glove] in sharp focus in the foreground, handwritten tactical play arrows and chalk lines on a warm craft paper background. Volumetric nostalgic lighting, soft shadows, extremely realistic paper textures, photorealistic macro shot, 8k."
+**2. ESTILO VISUAL DINÁMICO (Prompts para Vertex AI/Gemini en inglés):**
+Para el campo `image_prompt` de cada escena, escribe una descripción física muy detallada de la escena EN INGLÉS aplicando estrictamente el **ESTILO VISUAL RECOMENDADO** que se inyecta al final.
 
-*Nota: Varía el objeto focal de fútbol (botas, silbato, balón, guantes, ticket) y el TITULAR DEL PERIÓDICO en cada escena para evitar que las imágenes sean repetitivas. No incluyas rostros reales y reconocibles de jugadores conocidos para evitar derechos de imagen; enfócate en siluetas retro, objetos y ambientaciones.*
+⚠️ **REGLAS CRÍTICAS DE NO-REPETICIÓN VISUAL (PARA EVITAR QUE SE SIENTA COMO PLANTILLA):**
+1. **Variación de Composición y Layout:** Alterna dramáticamente la composición entre escenas. No repitas el mismo orden de elementos. Alterna planos: algunas escenas con primer plano macro (macro shot) de un objeto focal, otras con collage asimétrico superpuesto (overlapping collage), otras con vistas tipo pizarra técnica (chalkboard layout), o enfoques divididos (split-screen style).
+2. **Variación de Paleta de Colores y Tono:** Sigue la paleta del ESTILO VISUAL RECOMENDADO inyectado, pero cambia el color dominante entre escenas (por ejemplo, alternando entre verdes profundos, dorados nostálgicos, oscuros misteriosos o acentos vibrantes según la guía).
+3. **Elementos Focales Distintos:** Varía drásticamente el objeto en primer plano en cada escena (balón de cuero vintage con cordones, botas de cuero embarradas, silbato clásico de bronce, guantes de portero retro, entradas antiguas de papel rasgado, cronómetros mecánicos).
+4. **Protección de Identidad:** Evita rostros reconocibles de jugadores famosos. Prefiere siluetas a contraluz, tomas de espaldas, o detalles de manos, pies y objetos en contextos históricos.
 
 **3. ESQUEMA DE ESCENA:**
 Para cada escena, define:

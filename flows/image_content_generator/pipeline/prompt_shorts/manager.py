@@ -206,26 +206,54 @@ class PromptManagerShorts(BasePromptManager):
                 f"🚫 **PALABRAS PROHIBIDAS (NO USAR):** {banned_words}"
             )
 
-        # 3. Dynamic Visual Style Selector
+        # 3. Dynamic Visual Style Selector (With high diversity to prevent template-like feel)
+        color_schemes = [
+            "Palette: Rich saturated organic colors with golden accents.",
+            "Palette: Cool high-contrast neon blues, cyans, and emerald greens on deep black backgrounds.",
+            "Palette: Warm nostalgic sepias, terracotta, and deep forest greens.",
+            "Palette: Moody dark cinematic monochrome with a single sharp splash of crimson red.",
+            "Palette: Vintage retro pastel tones (cream, warm teal, faded copper, and soft amber).",
+            "Palette: Dramatic dark slate grey, textured carbon black, and vibrant electric orange highlights.",
+        ]
+        
+        compositions = [
+            "Composition: Dynamic asymmetric layout with diagonal splitting lines, placing key elements in different quadrants each scene.",
+            "Composition: Close-up macro focus on key historical objects in the foreground, with highly detailed backgrounds showing action.",
+            "Composition: Mixed-media layered collage, alternating overlapping frames, Polaroid borders, and torn paper edges.",
+            "Composition: Symmetrical blueprint-like technical overlay, clean lines, and glowing focal points.",
+            "Composition: Cinematic wide-angle view, deep shadows, and high-contrast dramatic side-lighting.",
+        ]
+
+        color_factor = random.choice(color_schemes)
+        comp_factor = random.choice(compositions)
+
         if mode == "geography":
             styles = [
-                "Style: Satellite photography style, realistic earth colors, highly detailed 3D terrain, glowing neon highlights.",
-                "Style: Vintage map illustration with modern tech overlay. Sepia map background, bright glowing neon blue and cyan highlights, digital interfaces.",
-                "Style: Stylized infographic map. High-contrast dark blue background, vibrant neon borders, sharp glowing vector lines.",
-                "Style: Cinematic National Geographic 3D terrain flight. Vibrant natural colors, dramatic lighting, detailed texture."
+                "Base Style: Detailed 3D Satellite photography style, realistic earth colors, highly detailed terrain relief, and glowing neon indicators.",
+                "Base Style: Vintage 19th-century cartography illustration with a modern technological overlay. Aged sepia map background mixed with bright glowing cyan vector highlights.",
+                "Base Style: Stylized topographic infographic map. High-contrast dark navy background with vibrant glowing yellow and neon green border contours.",
+                "Base Style: Dramatic cinematic National Geographic flight. Deep natural green and ocean blue colors, dramatic morning sun rays, and ultra-detailed relief textures.",
             ]
         elif mode == "football":
             styles = [
-                "Style: Vintage Scrapbook and Collage style. Aged craft paper background, torn pieces of newspaper with retro typography headlines, faded sepia Polaroid photo slots, classic football textures (old laced ball, leather cleats, brass whistle), warm nostalgic volumetric stadium lights, photorealistic textures."
+                "Base Style: Vintage Scrapbook and Collage style. Aged craft paper background, torn pieces of newspaper with retro typography headlines, faded sepia Polaroid photo slots, classic football textures (old laced ball, leather cleats, brass whistle), warm nostalgic volumetric stadium lights, photorealistic textures.",
+                "Base Style: Electric Sports Noir. Pitch-black obsidian stone background with glowing neon green and white tactical chalk lines, high-contrast sharp metallic textures, and cybernetic player silhouettes.",
+                "Base Style: Old School Football Chalkboard. Deep forest green textured slate background with detailed white and gold chalk drawings of play tactics, vintage hand-drawn sketches, and glowing chalk dust.",
+                "Base Style: 1980s Retro Trading Card. Vibrant color block background (amber, teal, crimson), dynamic diagonal layouts, bold retro typography, and halftone dot printing textures.",
+                "Base Style: Cinematic Muddy Stadium Documentary. Wet grass and gritty mud texture, heavy dramatic stadium spotlights shining through pouring rain, intense macro focus on metallic cleats and leather stitching."
             ]
         else:
             styles = [
-                "Estilo: Hyper-realistic cinematic lighting. Dark moody colors, misty background, high detail, professional photography style.",
-                "Estilo: Cinematic National Geographic style documentary. Vibrant colors, ultra-detailed, mysterious and awe-inspiring atmosphere.",
-                "Estilo: Vintage anatomical/technical sketch on aged parchment. Sepia ink, detailed, mysterious journal look.",
-                "Estilo: Dark digital art. Neon accents, glitchy textures, high contrast, futuristic mystery vibe."
+                "Base Estilo: Hyper-realistic cinematic lighting. Dark moody colors, misty background, high detail, professional photography style.",
+                "Base Estilo: Cinematic National Geographic style documentary. Vibrant colors, ultra-detailed, mysterious and awe-inspiring atmosphere.",
+                "Base Estilo: Vintage anatomical/technical sketch on aged parchment. Sepia ink, detailed, mysterious journal look.",
+                "Base Estilo: Dark digital art. Neon accents, glitchy textures, high contrast, futuristic mystery vibe.",
+                "Base Estilo: Surreal fantasy realism. Luminous ethereal particles, deep cosmic purples and magentas, magical atmosphere, rich volumetric glows."
             ]
-        selected_style = random.choice(styles)
+        
+        base_style = random.choice(styles)
+        # Assemble a fully unique dynamic styling guide
+        selected_style = f"{base_style} | {color_factor} | {comp_factor} | Ensure you strictly vary the order of visual elements, foreground objects, and layouts across all scenes so no two scenes look identical or templated."
         
         Messenger.info(f"🎨 Selected Visual Style: {selected_style}")
 
