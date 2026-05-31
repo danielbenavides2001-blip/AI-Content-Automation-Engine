@@ -66,9 +66,9 @@ class AudioTool(BaseModelTool):
 
         Search order:
         1. bg_music_dir/<mode>/  subdirectory
-        2. bg_music_dir/<fallback_mode>/  (if configured)
-        3. bg_music_dir/  root (legacy – stickman-bg.WAV lives here)
-        4. Auto-download from Pixabay API (if PIXABAY_API_KEY is set)
+        2. Auto-download from Pixabay API (if PIXABAY_API_KEY is set)
+        3. bg_music_dir/<fallback_mode>/  (if configured)
+        4. bg_music_dir/  root (legacy – stickman-bg.WAV lives here)
         """
         mode = mode.lower() if mode else DEFAULT_MODE
         config = MODE_MUSIC_CONFIG.get(mode, MODE_MUSIC_CONFIG[DEFAULT_MODE])
@@ -81,26 +81,26 @@ class AudioTool(BaseModelTool):
         if selected:
             return selected
 
-        # 2. Try fallback subdir
+        # 2. Try Pixabay auto-download first to match the desired style
+        Messenger.info(f"   ↳ No local music found in {mode}/. Attempting Pixabay auto-download...")
+        downloaded = self._auto_download_from_pixabay(mode, config)
+        if downloaded:
+            return downloaded
+
+        # 3. Try fallback subdir
         fallback = config.get("fallback_subdir")
         if fallback:
             fallback_dir = self.bg_music_dir / fallback
             selected = self._pick_from_dir(fallback_dir)
             if selected:
-                Messenger.info(f"   ↳ Using fallback subdir: {fallback}/")
+                Messenger.info(f"   ↳ Pixabay download failed/skipped. Using fallback subdir: {fallback}/")
                 return selected
 
-        # 3. Try root dir (legacy behaviour — stickman-bg.WAV etc.)
+        # 4. Try root dir (legacy behaviour)
         selected = self._pick_from_dir(self.bg_music_dir)
         if selected:
             Messenger.info("   ↳ Using root bg-music dir (legacy)")
             return selected
-
-        # 4. Auto-download from Pixabay
-        Messenger.warning(f"No local music found for mode '{mode}'. Trying Pixabay auto-download...")
-        downloaded = self._auto_download_from_pixabay(mode, config)
-        if downloaded:
-            return downloaded
 
         Messenger.error("❌ No background music available. Step 6 will be skipped.")
         return None
