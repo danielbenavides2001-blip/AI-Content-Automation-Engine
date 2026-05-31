@@ -172,34 +172,60 @@ class DailyAutomator:
     def cleanup_stuck_ideas(self):
         """
         Cleans up incomplete ideas to prevent redundancy.
+        Removes both physical folders AND orphan CSV entries (folders already deleted).
         """
         Messenger.info("🧹 Cleaning up stuck or incomplete ideas...")
         ideas_dir = Path("flows/image_content_generator/out_short/ideas")
-        if not ideas_dir.exists():
-            return
-
-        import shutil
         video_csv = Path("flows/image_content_generator/out_short/ideas_tracking.csv")
+
         if not video_csv.exists():
             return
 
+        import shutil
+        import pandas as pd
+
         try:
-            import pandas as pd
             df = pd.read_csv(video_csv)
-            # Solo mantenemos como "seguros" los que ya están terminados o subidos
-            # Esto evita que ideas "atrapadas" en estados intermedios bloqueen nuevas ejecuciones
+            # States considered "safe" – we never touch these
             safe_states = ["UPLOADED", "COMPLETED"]
-            valid_ids = df[df["state"].isin(safe_states)]["id"].tolist()
-            
-            for idea_path in ideas_dir.iterdir():
-                if idea_path.is_dir():
-                    try:
-                        idea_id = int(idea_path.name.split("_")[-1])
-                        if idea_id not in valid_ids:
-                            Messenger.warning(f"🗑️ Deleting stuck idea: {idea_path.name}")
-                            shutil.rmtree(idea_path)
-                    except (ValueError, IndexError):
-                        pass
+
+            # ── Phase 1: Delete physical folders of non-safe ideas ──────────────
+            if ideas_dir.exists():
+                valid_ids = df[df["state"].isin(safe_states)]["id"].tolist()
+                for idea_path in ideas_dir.iterdir():
+                    if idea_path.is_dir():
+                        try:
+                            idea_id = int(idea_path.name.split("_")[-1])
+                            if idea_id not in valid_ids:
+                                Messenger.warning(f"🗑️ Deleting stuck idea folder: {idea_path.name}")
+                                shutil.rmtree(idea_path)
+                        except (ValueError, IndexError):
+                            pass
+
+            # ── Phase 2: Remove orphan CSV rows whose folders no longer exist ──
+            # This prevents the pipeline from trying to resume ideas whose folders
+            # were deleted in a previous cleanup, which caused FileNotFoundError.
+            rows_to_keep = []
+            removed_ids = []
+            for _, row in df.iterrows():
+                idea_id = int(row["id"])
+                state = str(row["state"])
+                if state in safe_states:
+                    rows_to_keep.append(row)
+                    continue
+                folder_name = f"idea_{idea_id:06d}"
+                idea_path = ideas_dir / folder_name
+                if idea_path.exists():
+                    rows_to_keep.append(row)
+                else:
+                    removed_ids.append(idea_id)
+
+            if removed_ids:
+                Messenger.warning(f"🧹 Removing {len(removed_ids)} orphan CSV entries (no folder): IDs {removed_ids}")
+                clean_df = pd.DataFrame(rows_to_keep)
+                clean_df.to_csv(video_csv, index=False)
+                Messenger.success("✅ CSV cleaned of orphan entries.")
+
         except Exception as e:
             Messenger.warning(f"Could not parse tracking CSV for cleanup: {e}")
 
