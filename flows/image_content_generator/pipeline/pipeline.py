@@ -941,7 +941,7 @@ class Pipeline(BaseModelTool):
             subtitled_video,
             selected_music,
             final_with_music,
-            bg_volume=0.18  # Subtle atmosphere
+            bg_volume=0.06  # Subtle atmosphere
         )
 
         # 5. Updates state.
