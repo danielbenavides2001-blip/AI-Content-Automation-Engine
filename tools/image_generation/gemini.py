@@ -49,7 +49,7 @@ class GeminiImageGenerator(GeminiBase):
         )
 
         response = self._execute_with_retry(
-            self.client.models.generate_content,
+            "models.generate_content",
             model=self.image_model,
             contents=contents,
             config=config

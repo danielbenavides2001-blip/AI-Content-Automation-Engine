@@ -28,13 +28,17 @@ def _is_daily_quota_exhausted(exc: Exception) -> bool:
 
 
 class GeminiBase(BaseModelTool):
-    _clients: List[Client] = PrivateAttr()
+    _clients_info: List[dict] = PrivateAttr(default_factory=list)
     _client_index: int = PrivateAttr(default=0)
     _location: str = PrivateAttr()
 
     @property
     def client(self) -> Client:
-        return self._clients[self._client_index]
+        return self._clients_info[self._client_index]["client"]
+
+    @property
+    def is_vertex_client(self) -> bool:
+        return self._clients_info[self._client_index]["is_vertex"]
 
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
@@ -42,7 +46,7 @@ class GeminiBase(BaseModelTool):
         project_id = os.getenv("GCP_PROJECT_ID")
         location = os.getenv("GCP_LOCATION", "us-central1")
         self._location = location
-        self._clients = []
+        self._clients_info = []
         self._client_index = 0
 
         # Collect all API keys: GEMINI_API_KEY, GEMINI_API_KEY_2, GEMINI_API_KEY_3, ...
@@ -59,25 +63,32 @@ class GeminiBase(BaseModelTool):
             i += 1
 
         for idx, key in enumerate(api_keys):
-            self._clients.append(Client(api_key=key))
+            self._clients_info.append({
+                "client": Client(api_key=key),
+                "is_vertex": False
+            })
             label = "primaria" if idx == 0 else f"respaldo #{idx}"
             Messenger.info(f"🔑 Clave API {label} cargada (key #{idx + 1}/{len(api_keys)})")
 
         # Vertex AI as final fallback if no API keys work
         if project_id:
-            self._clients.append(Client(vertexai=True, project=project_id, location=location))
+            self._clients_info.append({
+                "client": Client(vertexai=True, project=project_id, location=location),
+                "is_vertex": True
+            })
             Messenger.info(f"☁️  Vertex AI cargado como fallback final (proyecto: {project_id})")
 
-        if not self._clients:
+        if not self._clients_info:
             raise RuntimeError("❌ Se requiere GEMINI_API_KEY o GCP_PROJECT_ID")
 
-        Messenger.info(f"✅ Sistema de claves listo: {len(self._clients)} cliente(s) disponibles con rotación automática.")
+        Messenger.info(f"✅ Sistema de claves listo: {len(self._clients_info)} cliente(s) disponibles con rotación automática.")
 
     def _rotate_to_next_client(self) -> bool:
         """Rotates to the next available client. Returns True if rotation succeeded, False if all exhausted."""
-        if self._client_index + 1 < len(self._clients):
+        if self._client_index + 1 < len(self._clients_info):
             self._client_index += 1
-            Messenger.warning(f"🔄 [KEY ROTATION] Clave #{self._client_index} agotada. Cambiando a clave #{self._client_index + 1}/{len(self._clients)}...")
+            label = "Vertex AI" if self.is_vertex_client else f"clave #{self._client_index + 1}"
+            Messenger.warning(f"🔄 [KEY ROTATION] Clave #{self._client_index} agotada. Cambiando a {label} (cliente #{self._client_index + 1}/{len(self._clients_info)})...")
             return True
         return False
 
@@ -92,18 +103,39 @@ class GeminiBase(BaseModelTool):
         ),
         reraise=True,
     )
-    def _execute_with_retry(self, func: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
+    def _execute_with_retry(self, method_path: str, *args: Any, **kwargs: Any) -> Any:
         """
-        Executes a Gemini API call with automatic key rotation on daily quota exhaustion,
-        and exponential backoff retry for transient rate limits.
+        Executes a Gemini API call dynamically resolved on the current client.
+        Rotates key on daily quota exhaustion, maps model names for Vertex AI,
+        and uses exponential backoff for rate limits.
         """
+        # Resolve method from current client
+        client_obj = self.client
+        obj = client_obj
+        for attr in method_path.split('.'):
+            obj = getattr(obj, attr)
+        func = obj
+
+        # Map model name if using Vertex AI client
+        if self.is_vertex_client and 'model' in kwargs:
+            original_model = kwargs['model']
+            mapping = {
+                "gemini-2.0-flash": "gemini-2.5-flash",
+                "gemini-2.5-flash-preview-tts": "gemini-2.5-flash-tts",
+                "gemini-3.1-flash-image-preview": "imagen-3.0-generate-002",
+                "veo-3.1-fast-generate-001": "veo-2.0-generate-001",
+            }
+            kwargs['model'] = mapping.get(original_model, original_model)
+            if kwargs['model'] != original_model:
+                Messenger.info(f"🔄 [VERTEX MAPPING] mapped model {original_model} -> {kwargs['model']}")
+
         try:
             return func(*args, **kwargs)
         except errors.ClientError as e:
             # If daily quota is hard-exhausted (limit: 0), rotate to next key immediately
             if _is_daily_quota_exhausted(e):
                 if self._rotate_to_next_client():
-                    # Retry immediately with the new client (re-raise as APIError to trigger tenacity retry)
+                    # Retry immediately (re-raise as APIError to trigger tenacity retry, which will resolve new client method)
                     raise errors.APIError(str(e), None)  # type: ignore[arg-type]
                 else:
                     Messenger.error("🚫 Todas las claves API han alcanzado su cuota diaria. Reintentando en backoff...")

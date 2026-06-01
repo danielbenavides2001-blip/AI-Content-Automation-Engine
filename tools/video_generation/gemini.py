@@ -65,7 +65,7 @@ class GeminiVideoGenerator(GeminiBase):
         config = types.GenerateVideosConfig(**config_args)
         
         operation = self._execute_with_retry(
-            self.client.models.generate_videos,
+            "models.generate_videos",
             model=self.video_model,
             prompt=prompt,
             image=image_input,
