@@ -24,8 +24,6 @@ class GeminiUsage(BaseModelTool):
 class GeminiBase(BaseModelTool):
     _client: Client = PrivateAttr()
     _location: str = PrivateAttr()
-    _ai_studio_client: Optional[Client] = PrivateAttr(default=None)
-    _vertex_client: Optional[Client] = PrivateAttr(default=None)
 
     @property
     def client(self) -> Client:
@@ -33,64 +31,38 @@ class GeminiBase(BaseModelTool):
 
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
-        
+
         project_id = os.getenv("GCP_PROJECT_ID")
         location = os.getenv("GCP_LOCATION", "us-central1")
         self._location = location
         api_key = os.getenv("GEMINI_API_KEY")
 
         if api_key:
-            self._ai_studio_client = Client(api_key=api_key)
-        if project_id:
-            self._vertex_client = Client(
-                vertexai=True,
-                project=project_id,
-                location=location
-            )
-
-        if self._ai_studio_client:
-            Messenger.info("🔧 Primary Client: Google AI Studio (API Key) initialized...")
-            self._client = self._ai_studio_client
-            if self._vertex_client:
-                Messenger.info("✨ Backup Client: Vertex AI (Enterprise) initialized as hot standby...")
-        elif self._vertex_client:
-            Messenger.info(f"✨ Primary Client: Vertex AI (Enterprise) initialized in project: {project_id}...")
-            self._client = self._vertex_client
+            Messenger.info("🔧 Using Google AI Studio (API Key) for Gemini text generation...")
+            self._client = Client(api_key=api_key)
+        elif project_id:
+            Messenger.info(f"✨ Using Vertex AI for Gemini text generation (project: {project_id})...")
+            self._client = Client(vertexai=True, project=project_id, location=location)
         else:
             raise RuntimeError("❌ GEMINI_API_KEY or GCP_PROJECT_ID is required")
 
     @retry(
+        # Exponential backoff: 5s → 10s → 20s → 40s → 60s → 60s → 60s (7 attempts max)
         wait=wait_exponential(multiplier=2, min=5, max=60),
         stop=stop_after_attempt(7),
         retry=retry_if_exception_type((errors.APIError, httpx.RequestError, httpx.RemoteProtocolError, httpx.HTTPError)),
         before_sleep=lambda retry_state: Messenger.warning(
-            f"⏳ [Intento {retry_state.attempt_number}/7] Gemini saturado o con error de red: {retry_state.outcome.exception()}. "
-            f"Reintentando en {retry_state.next_action.sleep}s..."
+            f"⏳ [Intento {retry_state.attempt_number}/7] Gemini saturado o con error de red: "
+            f"{type(retry_state.outcome.exception()).__name__}. "
+            f"Reintentando en {retry_state.next_action.sleep:.0f}s..."
         ),
         reraise=True,
     )
     def _execute_with_retry(self, func: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
         """
-        Executes a Gemini API call with a robust retry and automatic fallback to Vertex AI on saturation/503.
+        Executes a Gemini API call with exponential backoff retry on rate limits or network errors.
         """
-        def call_api():
-            if self._client != self._ai_studio_client and self._ai_studio_client is not None:
-                # We are using the Vertex fallback client. Dynamically resolve the models method.
-                return self._client.models.generate_content(*args, **kwargs)
-            return func(*args, **kwargs)
-
-        try:
-            return call_api()
-        except errors.ServerError as e:
-            if self._vertex_client and self._client == self._ai_studio_client:
-                Messenger.warning(
-                    f"⚠️ [HOT FALLBACK] AI Studio está saturado (Error: {e}). "
-                    f"Cambiando en caliente al cliente empresarial de Vertex AI..."
-                )
-                self._client = self._vertex_client
-                # Execute immediately on Vertex AI
-                return self._client.models.generate_content(*args, **kwargs)
-            raise e
+        return func(*args, **kwargs)
 
     def _extract_usage(self, response: Any, model_name: str) -> GeminiUsage:
         usage_meta = getattr(response, "usage_metadata", None)
