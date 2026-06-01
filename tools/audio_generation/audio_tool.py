@@ -1,8 +1,6 @@
 import os
 import random
 import urllib.request
-import urllib.parse
-import json
 from pathlib import Path
 from typing import Any, Optional
 
@@ -10,37 +8,36 @@ from tools.common.base_model import BaseModelTool
 from tools.common.messenger import Messenger
 
 
-# ─── Pixabay search tags per mode ────────────────────────────────────────────
+# ─── Fallback Music Configuration ────────────────────────────────────────────
 MODE_MUSIC_CONFIG = {
     "football": {
-        "tags": ["sport", "energetic", "upbeat", "action"],
-        "fallback_subdir": "standard",  # if football/ is empty, use standard/
+        "fallback_subdir": "standard",
         "description": "energetic/sport",
+        "url": "https://raw.githubusercontent.com/tannerhelland/free-music/master/mp3/Defiance.mp3",
     },
     "geography": {
-        "tags": ["cinematic", "adventure", "epic", "world"],
         "fallback_subdir": "standard",
         "description": "cinematic/adventure",
+        "url": "https://raw.githubusercontent.com/tannerhelland/free-music/master/mp3/Wild%20Waters.mp3",
     },
     "standard": {
-        "tags": ["mystery", "dark", "cinematic", "suspense"],
         "fallback_subdir": None,
         "description": "mystery/cinematic",
+        "url": "https://raw.githubusercontent.com/tannerhelland/free-music/master/mp3/Ominosity.mp3",
     },
     "stickman": {
-        "tags": ["mystery", "dark", "cinematic", "suspense"],
         "fallback_subdir": "standard",
         "description": "mystery/dark",
+        "url": "https://raw.githubusercontent.com/tannerhelland/free-music/master/mp3/Ominosity.mp3",
     },
 }
 
-# Default when mode is unknown
 DEFAULT_MODE = "standard"
 
 
 class AudioTool(BaseModelTool):
     """
-    Tool for audio-related operations.
+    Tool for audio-related operations, like background music selection.
 
     Supports per-mode subdirectories inside bg_music_dir:
         bg-music/
@@ -48,9 +45,9 @@ class AudioTool(BaseModelTool):
             standard/   ← mystery/cinematic tracks
             geography/  ← adventure/epic tracks
 
-    If a mode subdirectory is empty or missing, falls back to the root
-    bg_music_dir (original behaviour) and optionally auto-downloads a
-    track from the Pixabay Music API.
+    If a mode subdirectory is empty, attempts to auto-download a high-quality
+    Creative Commons track from a raw repository CDN, and falls back to standard
+    tracks as a last resort.
     """
 
     bg_music_dir: Path
@@ -66,9 +63,9 @@ class AudioTool(BaseModelTool):
 
         Search order:
         1. bg_music_dir/<mode>/  subdirectory
-        2. Auto-download from Pixabay API (if PIXABAY_API_KEY is set)
+        2. Auto-download a high-quality genre-specific MP3 from public CC CDN
         3. bg_music_dir/<fallback_mode>/  (if configured)
-        4. bg_music_dir/  root (legacy – stickman-bg.WAV lives here)
+        4. bg_music_dir/  root (legacy)
         """
         mode = mode.lower() if mode else DEFAULT_MODE
         config = MODE_MUSIC_CONFIG.get(mode, MODE_MUSIC_CONFIG[DEFAULT_MODE])
@@ -81,9 +78,9 @@ class AudioTool(BaseModelTool):
         if selected:
             return selected
 
-        # 2. Try Pixabay auto-download first to match the desired style
-        Messenger.info(f"   ↳ No local music found in {mode}/. Attempting Pixabay auto-download...")
-        downloaded = self._auto_download_from_pixabay(mode, config)
+        # 2. Try raw repository CDN auto-download to match the desired style
+        Messenger.info(f"   ↳ No local music found in {mode}/. Attempting raw CDN auto-download...")
+        downloaded = self._auto_download_fallback(mode, config)
         if downloaded:
             return downloaded
 
@@ -93,7 +90,7 @@ class AudioTool(BaseModelTool):
             fallback_dir = self.bg_music_dir / fallback
             selected = self._pick_from_dir(fallback_dir)
             if selected:
-                Messenger.info(f"   ↳ Pixabay download failed/skipped. Using fallback subdir: {fallback}/")
+                Messenger.info(f"   ↳ CDN download failed. Using fallback subdir: {fallback}/")
                 return selected
 
         # 4. Try root dir (legacy behaviour)
@@ -122,63 +119,37 @@ class AudioTool(BaseModelTool):
         Messenger.info(f"   ✅ Selected: {selected.parent.name}/{selected.name}")
         return selected
 
-    def _auto_download_from_pixabay(self, mode: str, config: dict) -> Optional[Path]:
+    def _auto_download_fallback(self, mode: str, config: dict) -> Optional[Path]:
         """
-        Downloads a random royalty-free track from Pixabay Music API
-        and saves it to the appropriate subdirectory.
-        Requires PIXABAY_API_KEY environment variable.
+        Downloads a verified high-quality royalty-free MP3 track from a public
+        Creative Commons CDN and saves it to the appropriate subdirectory.
         """
-        api_key = os.getenv("PIXABAY_API_KEY")
-        if not api_key:
-            Messenger.warning("PIXABAY_API_KEY not set — cannot auto-download music.")
+        url = config.get("url")
+        if not url:
             return None
 
-        # Pick a random search tag for variety
-        tags = config.get("tags", ["cinematic"])
-        tag = random.choice(tags)
+        # Clean name from URL
+        filename = url.split("/")[-1].replace("%20", "_")
+        out_dir = self.bg_music_dir / mode
+        out_dir.mkdir(parents=True, exist_ok=True)
+        out_file = out_dir / filename
 
         try:
-            params = urllib.parse.urlencode({
-                "key": api_key,
-                "q": tag,
-                "media_type": "music",
-                "per_page": 20,
-                "safesearch": "true",
-            })
-            url = f"https://pixabay.com/api/?{params}"
+            Messenger.info(f"   ⬇️ Downloading high-quality MP3: {filename} ...")
             req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                data = json.loads(resp.read().decode())
-
-            hits = data.get("hits", [])
-            if not hits:
-                Messenger.warning(f"Pixabay returned no music for tag: '{tag}'")
-                return None
-
-            # Pick a random track from results
-            track = random.choice(hits)
-            audio_url = track.get("audioURL") or track.get("largeImageURL")
-            if not audio_url:
-                Messenger.warning("Pixabay track has no audioURL.")
-                return None
-
-            # Save to mode subdir
-            out_dir = self.bg_music_dir / mode
-            out_dir.mkdir(parents=True, exist_ok=True)
-            out_file = out_dir / f"pixabay_{tag}_{track.get('id', 'unknown')}.mp3"
-
-            Messenger.info(f"   ⬇️ Downloading Pixabay track: {out_file.name} ...")
-            req_audio = urllib.request.Request(audio_url, headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req_audio, timeout=60) as r, open(out_file, "wb") as f:
+            with urllib.request.urlopen(req, timeout=60) as r, open(out_file, "wb") as f:
                 f.write(r.read())
 
-            if out_file.exists() and out_file.stat().st_size > 10000:
+            if out_file.exists() and out_file.stat().st_size > 100000:
                 Messenger.success(f"   ✅ Auto-downloaded: {out_file.name}")
                 return out_file
             else:
-                out_file.unlink(missing_ok=True)
+                if out_file.exists():
+                    out_file.unlink()
                 return None
 
         except Exception as e:
-            Messenger.warning(f"Pixabay music auto-download failed: {e}")
+            Messenger.warning(f"Raw CDN music download failed: {e}")
+            if out_file.exists():
+                out_file.unlink()
             return None
