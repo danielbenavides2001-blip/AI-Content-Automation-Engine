@@ -24,6 +24,8 @@ class GeminiUsage(BaseModelTool):
 class GeminiBase(BaseModelTool):
     _client: Client = PrivateAttr()
     _location: str = PrivateAttr()
+    _ai_studio_client: Optional[Client] = PrivateAttr(default=None)
+    _vertex_client: Optional[Client] = PrivateAttr(default=None)
 
     @property
     def client(self) -> Client:
@@ -38,15 +40,22 @@ class GeminiBase(BaseModelTool):
         api_key = os.getenv("GEMINI_API_KEY")
 
         if api_key:
-            Messenger.info("🔧 Using Google AI Studio (API Key) for Gemini...")
-            self._client = Client(api_key=api_key)
-        elif project_id:
-            Messenger.info(f"✨ Using Vertex AI (Enterprise) for Gemini in project: {project_id}...")
-            self._client = Client(
+            self._ai_studio_client = Client(api_key=api_key)
+        if project_id:
+            self._vertex_client = Client(
                 vertexai=True,
                 project=project_id,
                 location=location
             )
+
+        if self._ai_studio_client:
+            Messenger.info("🔧 Primary Client: Google AI Studio (API Key) initialized...")
+            self._client = self._ai_studio_client
+            if self._vertex_client:
+                Messenger.info("✨ Backup Client: Vertex AI (Enterprise) initialized as hot standby...")
+        elif self._vertex_client:
+            Messenger.info(f"✨ Primary Client: Vertex AI (Enterprise) initialized in project: {project_id}...")
+            self._client = self._vertex_client
         else:
             raise RuntimeError("❌ GEMINI_API_KEY or GCP_PROJECT_ID is required")
 
@@ -62,9 +71,26 @@ class GeminiBase(BaseModelTool):
     )
     def _execute_with_retry(self, func: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
         """
-        Executes a Gemini API call with a 60s retry on ServerError or ClientError (429).
+        Executes a Gemini API call with a robust retry and automatic fallback to Vertex AI on saturation/503.
         """
-        return func(*args, **kwargs)
+        def call_api():
+            if self._client != self._ai_studio_client and self._ai_studio_client is not None:
+                # We are using the Vertex fallback client. Dynamically resolve the models method.
+                return self._client.models.generate_content(*args, **kwargs)
+            return func(*args, **kwargs)
+
+        try:
+            return call_api()
+        except (errors.ServerError, errors.ClientError) as e:
+            if self._vertex_client and self._client == self._ai_studio_client:
+                Messenger.warning(
+                    f"⚠️ [HOT FALLBACK] AI Studio está saturado (Error: {e}). "
+                    f"Cambiando en caliente al cliente empresarial de Vertex AI..."
+                )
+                self._client = self._vertex_client
+                # Execute immediately on Vertex AI
+                return self._client.models.generate_content(*args, **kwargs)
+            raise e
 
     def _extract_usage(self, response: Any, model_name: str) -> GeminiUsage:
         usage_meta = getattr(response, "usage_metadata", None)
