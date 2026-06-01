@@ -81,7 +81,7 @@ class GeminiBase(BaseModelTool):
 
         try:
             return call_api()
-        except (errors.ServerError, errors.ClientError) as e:
+        except errors.ServerError as e:
             if self._vertex_client and self._client == self._ai_studio_client:
                 Messenger.warning(
                     f"⚠️ [HOT FALLBACK] AI Studio está saturado (Error: {e}). "
