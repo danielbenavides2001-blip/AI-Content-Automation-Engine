@@ -231,6 +231,9 @@ class Pipeline(BaseModelTool):
         if getattr(idea_obj, "category", "") == "geography":
             from flows.image_content_generator.pipeline.prompt_shorts.geography.models import GeographyHandler
             return self.load_json(idea_obj.id, self.SCRIPT_JSON, GeographyHandler)
+        elif getattr(idea_obj, "category", "") == "trivias":
+            from flows.image_content_generator.pipeline.prompt_shorts.trivias.models import TriviasHandler
+            return self.load_json(idea_obj.id, self.SCRIPT_JSON, TriviasHandler)
         return self.load_json(idea_obj.id, self.SCRIPT_JSON, VideoScript)
 
     def save_json(self, idea_id: int, filename: str, data: BaseModel):
@@ -527,6 +530,87 @@ class Pipeline(BaseModelTool):
         idea_obj = self.store.get_first_by_state(target_state)
         if not idea_obj:
             Messenger.error(f"No ideas ready for audio generation (target: {target_state}).")
+            return
+
+        # Intercept custom flow for Trivias mode
+        if self.mode == "trivias":
+            Messenger.info("\n--- Generating custom split audio for Trivia mode ---")
+            script_data = self.load_script(idea_obj)
+            audios_dir = self.get_idea_subdir(idea_obj.id, self.AUDIOS_DIR)
+            
+            for scene in script_data.scenes:
+                scene_num = scene.scene_number
+                scene_audio_path = self.get_idea_asset_path(idea_obj.id, self.AUDIOS_DIR, self.SCENE_AUDIO_PATTERN.format(scene_num))
+                
+                # Check if already exists
+                if scene_audio_path.exists():
+                    Messenger.info(f"   Scene {scene_num} audio already exists. Skipping.")
+                    continue
+                
+                # Intros/Outros do not have narration_answer (or it is empty)
+                if not getattr(scene, "narration_answer", None):
+                    text = scene.narration_question
+                    self.audio_gen.text_to_speech(text, scene_audio_path)
+                    dur = self.ffmpeg.get_audio_duration(scene_audio_path)
+                    scene.q_dur = dur
+                    scene.a_dur = 0.0
+                    scene.duration = dur
+                    continue
+                
+                # Dynamic split synthesis for trivia question scenes
+                temp_q = audios_dir / f"temp_q_{scene_num}.wav"
+                temp_a = audios_dir / f"temp_a_{scene_num}.wav"
+                temp_timer = audios_dir / f"temp_timer_{scene_num}.wav"
+                
+                # 1. Synthesize Question
+                Messenger.info(f"   Synthesizing Question for Scene {scene_num}...")
+                self.audio_gen.text_to_speech(scene.narration_question, temp_q)
+                q_dur = self.ffmpeg.get_audio_duration(temp_q)
+                
+                # 2. Synthesize Answer
+                Messenger.info(f"   Synthesizing Answer for Scene {scene_num}...")
+                self.audio_gen.text_to_speech(scene.narration_answer, temp_a)
+                a_dur = self.ffmpeg.get_audio_duration(temp_a)
+                
+                # 3. Create 3-second Silence
+                subprocess.run(
+                    [
+                        "ffmpeg", "-y", "-f", "lavfi", "-i", "anullsrc=r=24000:cl=mono",
+                        "-t", "3.0", str(temp_timer)
+                    ],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True
+                )
+                
+                # 4. Concatenate via FFmpeg
+                cmd_concat = [
+                    "ffmpeg", "-y",
+                    "-i", str(temp_q),
+                    "-i", str(temp_timer),
+                    "-i", str(temp_a),
+                    "-filter_complex", "[0:a][1:a][2:a]concat=n=3:v=0:a=1[a]",
+                    "-map", "[a]",
+                    str(scene_audio_path)
+                ]
+                subprocess.run(cmd_concat, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+                
+                # Cleanup temp files
+                temp_q.unlink(missing_ok=True)
+                temp_a.unlink(missing_ok=True)
+                temp_timer.unlink(missing_ok=True)
+                
+                # Record exact timings back into scene properties
+                scene.q_dur = q_dur
+                scene.a_dur = a_dur
+                scene.duration = q_dur + 3.0 + a_dur
+                Messenger.success(f"   Scene {scene_num} compiled successfully (Q: {q_dur:.2f}s | Timer: 3.0s | A: {a_dur:.2f}s | Total: {scene.duration:.2f}s)")
+            
+            # Save updated durations in script.json
+            self.save_json(idea_obj.id, self.SCRIPT_JSON, script_data)
+            
+            # Update state
+            idea_obj.state = State.AUDIO_GENERATED
+            self.store.save(idea_obj)
+            Messenger.success(f"Step 3 ready: {State.AUDIO_GENERATED} finalized for Trivias.\n")
             return
 
         Messenger.info("\n--- Generating batched audio for the script ---")
@@ -869,11 +953,34 @@ class Pipeline(BaseModelTool):
         # --- NUEVO: Obtener encabezado de intriga del script ---
         intrigue_text = getattr(script_data, "intrigue_header", None)
         
+        # Accumulate scene start/end timings for Remotion timeline alignment
+        trivia_scenes = []
+        if self.mode == "trivias":
+            current_time = 0.0
+            for scene in script_data.scenes:
+                start_time = current_time
+                end_time = current_time + scene.duration
+                
+                trivia_scenes.append({
+                    "scene_number": scene.scene_number,
+                    "question": scene.question,
+                    "options": scene.options,
+                    "correct_answer": scene.correct_answer,
+                    "q_dur": scene.q_dur,
+                    "a_dur": scene.a_dur,
+                    "start_time": start_time,
+                    "end_time": end_time
+                })
+                current_time = end_time
+
+        composition_id = "Trivias" if self.mode == "trivias" else "Subtitles"
         self.remotion.render_subtitles(
             remotion_path=remotion_root,
             output_path=remotion_overlay,
             words=word_data,
-            intrigue_header=intrigue_text
+            intrigue_header=intrigue_text,
+            composition_id=composition_id,
+            trivia_scenes=trivia_scenes if self.mode == "trivias" else None
         )
 
         # 4. Multi-layer Composition with filter_complex

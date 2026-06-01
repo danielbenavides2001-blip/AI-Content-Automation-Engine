@@ -1,6 +1,6 @@
 import { Composition } from 'remotion';
 import { Subtitles } from './Subtitles';
-import { Trivias } from './Trivias';
+import { MapRender } from './MapRender';
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -20,20 +20,23 @@ export const RemotionRoot: React.FC = () => {
           ]
         }}
       />
+      
       <Composition
-        id="Trivias"
-        component={Trivias}
-        durationInFrames={2000} 
-        fps={25}
+        id="MapRender"
+        component={MapRender}
+        durationInFrames={240} // 8 seconds
+        fps={30}
         width={1080}
         height={1920}
         defaultProps={{
-          words: [
-            { text: "EnigmaIQ", start: 0, end: 1000 },
-            { text: "Trivias", start: 1000, end: 2000 }
-          ],
-          intrigueHeader: "DESAFÍO CEREBRAL",
-          triviaScenes: []
+          latitude: 4.570868,
+          longitude: -74.297333,
+          zoom: 5.2,
+          pitch: 45,
+          bearing: -10,
+          highlightRegion: 'Colombia',
+          arrowDirection: 'none',
+          floatingLabel: '52.32M Hab.'
         }}
       />
     </>

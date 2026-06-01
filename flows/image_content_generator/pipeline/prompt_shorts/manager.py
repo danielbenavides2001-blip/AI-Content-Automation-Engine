@@ -36,6 +36,8 @@ except ImportError:
 
 from tools.common.messenger import Messenger
 from tools.text_generation.gemini import GeminiTextGenerator
+from flows.image_content_generator.pipeline.prompt_shorts.trivias.models import TriviasHandler, TriviaIdea
+from flows.image_content_generator.pipeline.prompt_shorts.trivias import constants as trivia_constants
 
 
 class PromptManagerShorts(BasePromptManager):
@@ -48,6 +50,7 @@ class PromptManagerShorts(BasePromptManager):
         [StoryHandler] 
         + ([GeographyHandler] if (HAS_GEOGRAPHY and GeographyHandler) else [])
         + ([FootballHandler] if (HAS_FOOTBALL and FootballHandler) else [])
+        + [TriviasHandler]
     )
 
     def generate_full_story(
@@ -72,6 +75,12 @@ class PromptManagerShorts(BasePromptManager):
             idea_prompt = football_constants.IDEA_PROMPT_FOOTBALL
             script_prompt = football_constants.SCRIPT_PROMPT_FOOTBALL
             series_name = "EnigmaIQ Football"
+        elif mode == "trivias":
+            category = "trivias"
+            idea_model = TriviaIdea
+            idea_prompt = trivia_constants.IDEA_PROMPT_TRIVIAS
+            script_prompt = trivia_constants.SCRIPT_PROMPT_TRIVIAS
+            series_name = "EnigmaIQ Trivias"
         else:
             category = "stories"
             idea_model = StoryIdea
@@ -101,6 +110,8 @@ class PromptManagerShorts(BasePromptManager):
             ]
         elif mode == "football":
             focus_areas = football_constants.FOCUS_AREAS_FOOTBALL
+        elif mode == "trivias":
+            focus_areas = trivia_constants.FOCUS_AREAS_TRIVIAS
         else:
             focus_areas = [
                 # 🧠 PSICOLOGÍA Y COMPORTAMIENTO HUMANO
@@ -242,6 +253,13 @@ class PromptManagerShorts(BasePromptManager):
                 "Base Style: 1980s Retro Trading Card. Vibrant color block background (amber, teal, crimson), dynamic diagonal layouts, bold retro typography, and halftone dot printing textures.",
                 "Base Style: Cinematic Muddy Stadium Documentary. Wet grass and gritty mud texture, heavy dramatic stadium spotlights shining through pouring rain, intense macro focus on metallic cleats and leather stitching."
             ]
+        elif mode == "trivias":
+            styles = [
+                "Base Style: High-contrast professional quiz show studio. Rich dark background with sleek neon teal and emerald green accents, dynamic theatrical down-lighting.",
+                "Base Style: Neon Cyberpunk Arcade. Dark obsidian background with glowing neon green and white tactical chalk lines, futuristic holographic displays, and micro-grid patterns.",
+                "Base Style: Elegant Minimalist Glassmorphism. Deep dark navy backdrop with frosted glass card placeholders, premium gold/amber glowing edges, and modern clean typography.",
+                "Base Style: Cinematic Documentary Trivia. Textured dark slate background, professional cinematic lighting, rich realistic textures (old parchment, magnifying glass, antique maps) in soft focus."
+            ]
         else:
             styles = [
                 "Base Estilo: Hyper-realistic cinematic lighting. Dark moody colors, misty background, high detail, professional photography style.",
@@ -284,7 +302,13 @@ class PromptManagerShorts(BasePromptManager):
                 f"\n\nIDEA A DESARROLLAR: {idea_data.title}\n"
                 f"**ESTILOS VISUALES RECOMENDADOS PARA IMÁGENES/MAPAS:** {selected_style}\n"
             )
-        script = content_gen.generate_text(full_script_prompt, GeographyHandler if mode == "geography" else VideoScript)
+        if mode == "geography":
+            script_schema = GeographyHandler
+        elif mode == "trivias":
+            script_schema = TriviasHandler
+        else:
+            script_schema = VideoScript
+        script = content_gen.generate_text(full_script_prompt, script_schema)
 
         # --- BLINDAJE CONTRA BANEOS (TRANS-STORY) ---
         creator_team = "equipo de EnigmaIQ"
