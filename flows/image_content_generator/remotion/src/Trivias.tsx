@@ -116,34 +116,35 @@ export const Trivias: React.FC<{
         <div
           style={{
             position: 'absolute',
-            top: 240,
-            left: '5%',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -60%)', // Centered vertically & horizontally
             width: '90%',
             display: 'flex',
             flexDirection: 'column',
-            gap: '30px',
+            gap: '40px',
             zIndex: 80,
           }}
         >
           {/* Question Box (Frosted Glassmorphism) */}
           <div
             style={{
-              backgroundColor: 'rgba(15, 23, 42, 0.85)',
-              borderRadius: '24px',
-              padding: '30px 25px',
-              border: '2px solid rgba(255, 255, 255, 0.1)',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
-              backdropFilter: 'blur(20px)',
+              backgroundColor: 'rgba(15, 23, 42, 0.9)',
+              borderRadius: '30px',
+              padding: '40px 35px',
+              border: '2.5px solid rgba(255, 255, 255, 0.15)',
+              boxShadow: '0 25px 50px rgba(0,0,0,0.6)',
+              backdropFilter: 'blur(25px)',
               textAlign: 'center',
             }}
           >
             <h2
               style={{
                 color: '#FFFFFF',
-                fontSize: 36,
-                fontWeight: 800,
+                fontSize: 48, // Increased from 36
+                fontWeight: 900,
                 margin: 0,
-                lineHeight: 1.3,
+                lineHeight: 1.35,
                 letterSpacing: '-0.5px',
               }}
             >
@@ -156,7 +157,7 @@ export const Trivias: React.FC<{
             style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: '15px',
+              gap: '20px',
               position: 'relative',
             }}
           >
@@ -166,20 +167,20 @@ export const Trivias: React.FC<{
               const isCorrectOption = option === activeScene.correct_answer;
 
               // Styles according to game stage
-              let cardBg = 'rgba(15, 23, 42, 0.8)';
-              let cardBorder = '2px solid rgba(255, 255, 255, 0.08)';
-              let cardShadow = '0 10px 25px rgba(0, 0, 0, 0.3)';
+              let cardBg = 'rgba(15, 23, 42, 0.88)';
+              let cardBorder = '2px solid rgba(255, 255, 255, 0.1)';
+              let cardShadow = '0 12px 30px rgba(0, 0, 0, 0.4)';
               let opacity = 1;
               let scale = 1;
 
               if (stage === 'answer') {
                 if (isCorrectOption) {
-                  cardBg = 'rgba(16, 185, 129, 0.25)';
-                  cardBorder = '2.5px solid #10b981';
-                  cardShadow = '0 0 25px rgba(16, 185, 129, 0.6)';
-                  scale = 1.03; // Correct option jumps up slightly
+                  cardBg = 'rgba(16, 185, 129, 0.35)';
+                  cardBorder = '3px solid #10b981';
+                  cardShadow = '0 0 35px rgba(16, 185, 129, 0.7)';
+                  scale = 1.05; // Correct option jumps up slightly
                 } else {
-                  opacity = 0.35; // Dim incorrect options
+                  opacity = 0.25; // Dim incorrect options
                 }
               }
 
@@ -193,25 +194,25 @@ export const Trivias: React.FC<{
                     opacity: opacity,
                     transform: `scale(${scale})`,
                     transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-                    borderRadius: '16px',
-                    padding: '18px 24px',
+                    borderRadius: '20px',
+                    padding: '24px 30px', // Extra padding
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '20px',
-                    backdropFilter: 'blur(16px)',
+                    gap: '25px',
+                    backdropFilter: 'blur(20px)',
                   }}
                 >
                   {/* Badge Circle (A, B, C, D) */}
                   <div
                     style={{
-                      width: '48px',
-                      height: '48px',
+                      width: '60px',
+                      height: '60px',
                       borderRadius: '50%',
                       backgroundColor: isCorrectOption && stage === 'answer' ? '#10b981' : badgeColors[index],
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                      boxShadow: '0 5px 15px rgba(0, 0, 0, 0.4)',
                       flexShrink: 0,
                       transition: 'background-color 0.3s ease',
                     }}
@@ -219,7 +220,7 @@ export const Trivias: React.FC<{
                     <span
                       style={{
                         color: '#FFFFFF',
-                        fontSize: 24,
+                        fontSize: 32, // Increased from 24
                         fontWeight: 900,
                       }}
                     >
@@ -231,8 +232,8 @@ export const Trivias: React.FC<{
                   <span
                     style={{
                       color: isCorrectOption && stage === 'answer' ? '#10b981' : '#E2E8F0',
-                      fontSize: 30,
-                      fontWeight: isCorrectOption && stage === 'answer' ? 800 : 600,
+                      fontSize: 38, // Increased from 30
+                      fontWeight: isCorrectOption && stage === 'answer' ? 900 : 700,
                       lineHeight: 1.2,
                       transition: 'color 0.3s ease',
                     }}
@@ -265,13 +266,13 @@ export const Trivias: React.FC<{
           <div
             style={{
               position: 'relative',
-              width: '140px',
-              height: '140px',
+              width: '180px', // Increased from 140
+              height: '180px',
               borderRadius: '50%',
-              backgroundColor: 'rgba(10, 15, 30, 0.85)',
-              backdropFilter: 'blur(15px)',
-              border: '2px solid rgba(255, 255, 255, 0.08)',
-              boxShadow: '0 0 40px rgba(0, 0, 0, 0.6)',
+              backgroundColor: 'rgba(10, 15, 30, 0.9)',
+              backdropFilter: 'blur(20px)',
+              border: '2px solid rgba(255, 255, 255, 0.1)',
+              boxShadow: '0 0 50px rgba(0, 0, 0, 0.7)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -285,31 +286,31 @@ export const Trivias: React.FC<{
                 left: 0,
                 transform: 'rotate(-90deg)',
               }}
-              width="140"
-              height="140"
+              width="180"
+              height="180"
             >
               {/* Trailing Track */}
               <circle
-                cx="70"
-                cy="70"
-                r={circleRadius}
+                cx="90"
+                cy="90"
+                r={70} // Increased from 50
                 fill="transparent"
                 stroke="rgba(255,255,255,0.06)"
                 strokeWidth={strokeWidth}
               />
               {/* Draining Ring */}
               <circle
-                cx="70"
-                cy="70"
-                r={circleRadius}
+                cx="90"
+                cy="90"
+                r={70} // Increased from 50
                 fill="transparent"
                 stroke="#00f2fe"
                 strokeWidth={strokeWidth}
-                strokeDasharray={circumference}
-                strokeDashoffset={strokeDashoffset}
+                strokeDasharray={2 * Math.PI * 70}
+                strokeDashoffset={2 * Math.PI * 70 * (1 - progressRatio)}
                 strokeLinecap="round"
                 style={{
-                  filter: 'drop-shadow(0px 0px 8px rgba(0, 242, 254, 0.8))',
+                  filter: 'drop-shadow(0px 0px 10px rgba(0, 242, 254, 0.8))',
                   transition: 'stroke-dashoffset 0.05s linear',
                 }}
               />
@@ -319,10 +320,10 @@ export const Trivias: React.FC<{
             <span
               style={{
                 color: '#ffffff',
-                fontSize: 64,
+                fontSize: 84, // Increased from 64
                 fontWeight: 900,
                 textAlign: 'center',
-                textShadow: '0 0 15px rgba(0, 242, 254, 0.6)',
+                textShadow: '0 0 20px rgba(0, 242, 254, 0.6)',
               }}
             >
               {Math.ceil(timerRemaining)}
@@ -333,8 +334,10 @@ export const Trivias: React.FC<{
 
       {/* 4. Global Word-by-Word Narration Subtitles */}
       {phrases.map((phrase, pi) => {
-        const startFrame = (phrase.start / 1000) * fps;
-        const endFrame = (phrase.end / 1000) * fps;
+        // Compensate subtitle timing dynamically (delaying text sync to align perfectly with speech)
+        const delayMs = 150; 
+        const startFrame = ((phrase.start + delayMs) / 1000) * fps;
+        const endFrame = ((phrase.end + delayMs) / 1000) * fps;
         const isActivePhrase = frame >= startFrame && frame < endFrame;
 
         if (!isActivePhrase) return null;
@@ -368,8 +371,8 @@ export const Trivias: React.FC<{
               }}
             >
               {phrase.words.map((word, wi) => {
-                const wStart = (word.start / 1000) * fps;
-                const wEnd = (word.end / 1000) * fps;
+                const wStart = ((word.start + delayMs) / 1000) * fps;
+                const wEnd = ((word.end + delayMs) / 1000) * fps;
                 const isCurrentWord = frame >= wStart && frame < wEnd;
 
                 return (
