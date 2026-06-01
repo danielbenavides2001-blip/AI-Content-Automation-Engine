@@ -490,7 +490,22 @@ class Pipeline(BaseModelTool):
 
             # 3. Fallback: Ken Burns sobre imagen (Último recurso o forzado)
             if not img_path.exists() or img_path.stat().st_size < 1024:
-                Messenger.error(f"   ❌ Scene {scene.scene_number} missing image and stock video APIs failed. CRITICAL.")
+                # In trivias/football mode, Step 2 (AI images) is skipped intentionally.
+                # Generate a dark gradient placeholder video instead of failing.
+                Messenger.warning(f"   ⚠️ No image available for Scene {scene.scene_number}. Generating solid-color placeholder clip.")
+                try:
+                    subprocess.run(
+                        [
+                            "ffmpeg", "-y", "-f", "lavfi",
+                            "-i", "color=c=0x0a0f1e:size=1080x1920:rate=30",
+                            "-t", "6", "-c:v", "libx264", "-pix_fmt", "yuv420p", str(clip_path)
+                        ],
+                        check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+                    )
+                    if clip_path.exists():
+                        return True
+                except Exception as placeholder_e:
+                    Messenger.error(f"   ❌ Scene {scene.scene_number}: Placeholder clip failed: {placeholder_e}")
                 return False
                 
             Messenger.info(f"   🎬 Generating Ken Burns fallback for Scene {scene.scene_number}...")

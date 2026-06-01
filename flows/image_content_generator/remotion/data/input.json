@@ -1,614 +1,707 @@
 {
   "words": [
     {
-      "text": "Vivimos",
+      "text": "\u00a1Prep\u00e1rate",
       "start": 0,
-      "end": 940
+      "end": 760
     },
     {
-      "text": "persiguiendo",
-      "start": 940,
-      "end": 1960
+      "text": "para",
+      "start": 760,
+      "end": 1060
     },
     {
-      "text": "ecos",
-      "start": 1960,
-      "end": 2440
+      "text": "un",
+      "start": 1060,
+      "end": 1260
     },
     {
-      "text": "en",
-      "start": 2440,
-      "end": 2740
+      "text": "desaf\u00edo",
+      "start": 1260,
+      "end": 1820
     },
     {
-      "text": "miradas",
-      "start": 2740,
-      "end": 3280
+      "text": "geogr\u00e1fico",
+      "start": 1820,
+      "end": 2720
     },
     {
-      "text": "ajenas,",
-      "start": 3280,
-      "end": 3900
+      "text": "que",
+      "start": 2720,
+      "end": 2900
     },
     {
-      "text": "una",
-      "start": 4420,
-      "end": 4740
+      "text": "pocos",
+      "start": 2900,
+      "end": 3380
     },
     {
-      "text": "confirmaci\u00f3n",
-      "start": 4740,
-      "end": 5700
+      "text": "superan!",
+      "start": 3380,
+      "end": 3940
     },
     {
-      "text": "en",
-      "start": 5700,
-      "end": 5980
+      "text": "\u00bfTienes",
+      "start": 4400,
+      "end": 4800
     },
     {
-      "text": "aplausos",
-      "start": 5980,
-      "end": 6800
+      "text": "lo",
+      "start": 4800,
+      "end": 4940
     },
     {
-      "text": "vac\u00edos.",
-      "start": 6800,
-      "end": 7540
+      "text": "necesario",
+      "start": 4940,
+      "end": 5420
     },
     {
-      "text": "Nuestra",
-      "start": 8280,
-      "end": 8800
+      "text": "para",
+      "start": 5420,
+      "end": 5800
     },
     {
-      "text": "br\u00fajula",
-      "start": 8800,
-      "end": 9380
+      "text": "descifrar",
+      "start": 5800,
+      "end": 6360
     },
     {
-      "text": "interna",
-      "start": 9380,
+      "text": "estas",
+      "start": 6360,
+      "end": 6640
+    },
+    {
+      "text": "fronteras?",
+      "start": 6640,
+      "end": 7320
+    },
+    {
+      "text": "Primera",
+      "start": 7620,
+      "end": 8060
+    },
+    {
+      "text": "pregunta.",
+      "start": 8060,
+      "end": 8400
+    },
+    {
+      "text": "\u00bfQu\u00e9",
+      "start": 9080,
+      "end": 9240
+    },
+    {
+      "text": "pa\u00eds",
+      "start": 9240,
+      "end": 9540
+    },
+    {
+      "text": "comparte",
+      "start": 9540,
       "end": 10080
     },
     {
-      "text": "se",
-      "start": 10080,
-      "end": 10260
-    },
-    {
-      "text": "silencia,",
-      "start": 10260,
-      "end": 11120
-    },
-    {
-      "text": "cediendo",
-      "start": 11580,
-      "end": 12200
-    },
-    {
-      "text": "a",
-      "start": 12200,
-      "end": 12420
-    },
-    {
       "text": "la",
-      "start": 12420,
-      "end": 12520
+      "start": 10080,
+      "end": 10240
     },
     {
-      "text": "aprobaci\u00f3n",
-      "start": 12520,
-      "end": 13300
+      "text": "frontera",
+      "start": 10240,
+      "end": 10660
     },
     {
-      "text": "externa.",
-      "start": 13300,
-      "end": 14360
+      "text": "terrestre",
+      "start": 10660,
+      "end": 11280
     },
     {
-      "text": "As\u00ed",
-      "start": 15040,
-      "end": 15440
+      "text": "m\u00e1s",
+      "start": 11280,
+      "end": 11540
     },
     {
-      "text": "nos",
-      "start": 15440,
-      "end": 16100
-    },
-    {
-      "text": "desdibujamos,",
-      "start": 16100,
-      "end": 17280
-    },
-    {
-      "text": "buscando",
-      "start": 17780,
-      "end": 18280
-    },
-    {
-      "text": "ser",
-      "start": 18280,
-      "end": 18800
-    },
-    {
-      "text": "el",
-      "start": 18800,
-      "end": 18980
-    },
-    {
-      "text": "reflejo",
-      "start": 18980,
-      "end": 19760
-    },
-    {
-      "text": "de",
-      "start": 19760,
-      "end": 19980
-    },
-    {
-      "text": "otros.",
-      "start": 19980,
-      "end": 20400
-    },
-    {
-      "text": "El",
-      "start": 21460,
-      "end": 21820
-    },
-    {
-      "text": "mundo,",
-      "start": 21820,
-      "end": 22300
+      "text": "larga",
+      "start": 11540,
+      "end": 11920
     },
     {
       "text": "con",
-      "start": 22720,
-      "end": 22960
+      "start": 11920,
+      "end": 12120
     },
     {
-      "text": "su",
-      "start": 22960,
-      "end": 23180
+      "text": "China?",
+      "start": 12120,
+      "end": 12400
     },
     {
-      "text": "incesante",
-      "start": 23180,
-      "end": 23960
+      "text": "Piensa",
+      "start": 13040,
+      "end": 13300
     },
     {
-      "text": "flujo",
-      "start": 23960,
-      "end": 24660
+      "text": "r\u00e1pido...",
+      "start": 13300,
+      "end": 14000
     },
     {
-      "text": "de",
-      "start": 24660,
-      "end": 24780
+      "text": "...",
+      "start": 15780,
+      "end": 16640
     },
     {
-      "text": "juicios,",
-      "start": 24780,
-      "end": 25340
+      "text": "\u00a1La",
+      "start": 16640,
+      "end": 17500
     },
     {
-      "text": "levanta",
-      "start": 25960,
-      "end": 26500
-    },
-    {
-      "text": "pedestales",
-      "start": 26500,
-      "end": 27340
-    },
-    {
-      "text": "invisibles.",
-      "start": 27340,
-      "end": 28380
-    },
-    {
-      "text": "Nos",
-      "start": 28380,
-      "end": 29420
-    },
-    {
-      "text": "invita",
-      "start": 29420,
-      "end": 30140
-    },
-    {
-      "text": "a",
-      "start": 30140,
-      "end": 30340
-    },
-    {
-      "text": "subir,",
-      "start": 30340,
-      "end": 30720
-    },
-    {
-      "text": "prometiendo",
-      "start": 31280,
-      "end": 32060
-    },
-    {
-      "text": "un",
-      "start": 32060,
-      "end": 32380
-    },
-    {
-      "text": "valor",
-      "start": 32380,
-      "end": 32780
-    },
-    {
-      "text": "que",
-      "start": 32780,
-      "end": 33140
-    },
-    {
-      "text": "nunca",
-      "start": 33140,
-      "end": 33640
-    },
-    {
-      "text": "reside",
-      "start": 33640,
-      "end": 34460
-    },
-    {
-      "text": "fuera.",
-      "start": 34460,
-      "end": 35080
-    },
-    {
-      "text": "Nos",
-      "start": 35760,
-      "end": 36100
-    },
-    {
-      "text": "atrapa",
-      "start": 36100,
-      "end": 36800
-    },
-    {
-      "text": "en",
-      "start": 36800,
-      "end": 36940
-    },
-    {
-      "text": "su",
-      "start": 36940,
-      "end": 37140
-    },
-    {
-      "text": "juego",
-      "start": 37140,
-      "end": 37660
-    },
-    {
-      "text": "de",
-      "start": 37660,
-      "end": 37880
-    },
-    {
-      "text": "apariencias.",
-      "start": 37880,
-      "end": 38900
-    },
-    {
-      "text": "Pero",
-      "start": 40080,
-      "end": 40520
-    },
-    {
-      "text": "una",
-      "start": 40520,
-      "end": 40900
-    },
-    {
-      "text": "grieta",
-      "start": 40900,
-      "end": 41540
-    },
-    {
-      "text": "se",
-      "start": 41540,
-      "end": 41860
-    },
-    {
-      "text": "abre,",
-      "start": 41860,
-      "end": 42260
-    },
-    {
-      "text": "la",
-      "start": 43020,
-      "end": 43180
-    },
-    {
-      "text": "voz",
-      "start": 43180,
-      "end": 43520
-    },
-    {
-      "text": "interna,",
-      "start": 43520,
-      "end": 44320
-    },
-    {
-      "text": "casi",
-      "start": 44680,
-      "end": 45040
-    },
-    {
-      "text": "olvidada,",
-      "start": 45040,
-      "end": 45880
-    },
-    {
-      "text": "susurra.",
-      "start": 46300,
-      "end": 47060
-    },
-    {
-      "text": "Tu",
-      "start": 47820,
-      "end": 47960
-    },
-    {
-      "text": "valor",
-      "start": 47960,
-      "end": 48380
-    },
-    {
-      "text": "no",
-      "start": 48380,
-      "end": 48820
+      "text": "respuesta",
+      "start": 17500,
+      "end": 17940
     },
     {
       "text": "es",
-      "start": 48820,
-      "end": 49200
+      "start": 17940,
+      "end": 18620
     },
     {
-      "text": "una",
-      "start": 49200,
-      "end": 49420
+      "text": "Mongolia!",
+      "start": 18620,
+      "end": 19260
     },
     {
-      "text": "moneda",
-      "start": 49420,
-      "end": 50000
+      "text": "Con",
+      "start": 19740,
+      "end": 19900
     },
     {
-      "text": "que",
-      "start": 50000,
-      "end": 50480
+      "text": "m\u00e1s",
+      "start": 19900,
+      "end": 20120
+    },
+    {
+      "text": "de",
+      "start": 20120,
+      "end": 20320
+    },
+    {
+      "text": "4",
+      "start": 20320,
+      "end": 20700
+    },
+    {
+      "text": ".600",
+      "start": 20700,
+      "end": 21380
+    },
+    {
+      "text": "kil\u00f3metros",
+      "start": 21380,
+      "end": 22500
+    },
+    {
+      "text": "de",
+      "start": 22500,
+      "end": 22740
+    },
+    {
+      "text": "frontera.",
+      "start": 22740,
+      "end": 23240
+    },
+    {
+      "text": "Siguiente",
+      "start": 23760,
+      "end": 24300
+    },
+    {
+      "text": "reto.",
+      "start": 24300,
+      "end": 24780
+    },
+    {
+      "text": "\u00bfQu\u00e9",
+      "start": 25400,
+      "end": 25500
+    },
+    {
+      "text": "capital",
+      "start": 25500,
+      "end": 25960
+    },
+    {
+      "text": "est\u00e1",
+      "start": 25960,
+      "end": 26300
+    },
+    {
+      "text": "partida",
+      "start": 26300,
+      "end": 26740
+    },
+    {
+      "text": "en",
+      "start": 26740,
+      "end": 26920
+    },
+    {
+      "text": "dos",
+      "start": 26920,
+      "end": 27120
+    },
+    {
+      "text": "por",
+      "start": 27120,
+      "end": 27480
     },
     {
       "text": "el",
-      "start": 50480,
-      "end": 50720
+      "start": 27480,
+      "end": 27580
     },
     {
-      "text": "mundo",
-      "start": 50720,
-      "end": 51100
+      "text": "majestuoso",
+      "start": 27580,
+      "end": 28360
     },
     {
-      "text": "otorga",
-      "start": 51100,
-      "end": 51900
+      "text": "r\u00edo",
+      "start": 28360,
+      "end": 28780
     },
     {
-      "text": "o",
-      "start": 51900,
-      "end": 52180
+      "text": "Nilo?",
+      "start": 28780,
+      "end": 29140
     },
     {
-      "text": "quita.",
-      "start": 52180,
-      "end": 52600
+      "text": "Correcto,",
+      "start": 33080,
+      "end": 33720
     },
     {
-      "text": "Es",
-      "start": 52600,
-      "end": 53480
+      "text": "es",
+      "start": 33840,
+      "end": 34120
     },
     {
-      "text": "un",
-      "start": 53480,
-      "end": 53760
+      "text": "Khartoum,",
+      "start": 34120,
+      "end": 34880
     },
     {
-      "text": "ancla,",
-      "start": 53760,
-      "end": 54360
-    },
-    {
-      "text": "no",
-      "start": 54900,
-      "end": 55040
-    },
-    {
-      "text": "una",
-      "start": 55040,
-      "end": 55360
-    },
-    {
-      "text": "vela,",
-      "start": 55360,
-      "end": 55940
-    },
-    {
-      "text": "a",
-      "start": 56000,
-      "end": 56100
-    },
-    {
-      "text": "merced",
-      "start": 56100,
-      "end": 56660
-    },
-    {
-      "text": "de",
-      "start": 56660,
-      "end": 57020
-    },
-    {
-      "text": "vientos",
-      "start": 57020,
-      "end": 57560
-    },
-    {
-      "text": "externos.",
-      "start": 57560,
-      "end": 58780
-    },
-    {
-      "text": "La",
-      "start": 59400,
-      "end": 59620
-    },
-    {
-      "text": "aut\u00e9ntica",
-      "start": 59620,
-      "end": 60520
-    },
-    {
-      "text": "luz",
-      "start": 60520,
-      "end": 60840
-    },
-    {
-      "text": "no",
-      "start": 60840,
-      "end": 61520
-    },
-    {
-      "text": "viene",
-      "start": 61520,
-      "end": 61980
-    },
-    {
-      "text": "de",
-      "start": 61980,
-      "end": 62220
-    },
-    {
-      "text": "un",
-      "start": 62220,
-      "end": 62440
-    },
-    {
-      "text": "foco",
-      "start": 62440,
-      "end": 62980
-    },
-    {
-      "text": "externo,",
-      "start": 62980,
-      "end": 63900
-    },
-    {
-      "text": "surge",
-      "start": 64440,
-      "end": 64780
-    },
-    {
-      "text": "de",
-      "start": 64780,
-      "end": 65180
-    },
-    {
-      "text": "dentro,",
-      "start": 65180,
-      "end": 65800
-    },
-    {
-      "text": "c\u00e1lida",
-      "start": 66280,
-      "end": 66980
-    },
-    {
-      "text": "e",
-      "start": 66980,
-      "end": 67480
-    },
-    {
-      "text": "inquebrantable.",
-      "start": 67480,
-      "end": 68800
-    },
-    {
-      "text": "Recon\u00f3cela,",
-      "start": 69620,
-      "end": 70700
-    },
-    {
-      "text": "abr\u00e1zala,",
-      "start": 71160,
-      "end": 71980
-    },
-    {
-      "text": "porque",
-      "start": 72760,
-      "end": 72940
-    },
-    {
-      "text": "solo",
-      "start": 72940,
-      "end": 73360
-    },
-    {
-      "text": "entonces",
-      "start": 73360,
-      "end": 74180
+      "text": "donde",
+      "start": 34980,
+      "end": 35280
     },
     {
       "text": "el",
-      "start": 74180,
-      "end": 74960
+      "start": 35280,
+      "end": 35500
     },
     {
-      "text": "eco",
-      "start": 74960,
-      "end": 75360
+      "text": "nilo",
+      "start": 35500,
+      "end": 35780
     },
     {
-      "text": "de",
-      "start": 75360,
-      "end": 75540
+      "text": "azul",
+      "start": 35780,
+      "end": 36120
     },
     {
-      "text": "tu",
-      "start": 75540,
-      "end": 75740
+      "text": "y",
+      "start": 36120,
+      "end": 36360
     },
     {
-      "text": "propia",
-      "start": 75740,
-      "end": 76300
-    },
-    {
-      "text": "verdad",
-      "start": 76300,
-      "end": 76820
+      "text": "blanco",
+      "start": 36360,
+      "end": 36760
     },
     {
       "text": "se",
-      "start": 76820,
-      "end": 77520
+      "start": 36760,
+      "end": 37060
     },
     {
-      "text": "volver\u00e1",
-      "start": 77520,
-      "end": 78240
+      "text": "unen.",
+      "start": 37060,
+      "end": 37460
     },
     {
-      "text": "ensordecedor.",
-      "start": 78240,
-      "end": 79620
+      "text": "\u00bfCu\u00e1l",
+      "start": 38080,
+      "end": 38240
+    },
+    {
+      "text": "de",
+      "start": 38240,
+      "end": 38400
+    },
+    {
+      "text": "estos",
+      "start": 38400,
+      "end": 38620
+    },
+    {
+      "text": "mares",
+      "start": 38620,
+      "end": 39040
+    },
+    {
+      "text": "act\u00faa",
+      "start": 39040,
+      "end": 39420
+    },
+    {
+      "text": "como",
+      "start": 39420,
+      "end": 39640
+    },
+    {
+      "text": "una",
+      "start": 39640,
+      "end": 39840
+    },
+    {
+      "text": "frontera",
+      "start": 39840,
+      "end": 40260
+    },
+    {
+      "text": "natural",
+      "start": 40260,
+      "end": 40660
+    },
+    {
+      "text": "entre",
+      "start": 40660,
+      "end": 41000
+    },
+    {
+      "text": "Europa",
+      "start": 41000,
+      "end": 41380
+    },
+    {
+      "text": "y",
+      "start": 41380,
+      "end": 41660
+    },
+    {
+      "text": "Asia?",
+      "start": 41660,
+      "end": 41920
+    },
+    {
+      "text": "Es",
+      "start": 45120,
+      "end": 45760
+    },
+    {
+      "text": "el",
+      "start": 45760,
+      "end": 45960
+    },
+    {
+      "text": "Mar",
+      "start": 45960,
+      "end": 46140
+    },
+    {
+      "text": "Caspio,",
+      "start": 46140,
+      "end": 46740
+    },
+    {
+      "text": "el",
+      "start": 47060,
+      "end": 47200
+    },
+    {
+      "text": "lago",
+      "start": 47200,
+      "end": 47460
+    },
+    {
+      "text": "m\u00e1s",
+      "start": 47460,
+      "end": 47780
+    },
+    {
+      "text": "grande",
+      "start": 47780,
+      "end": 48180
+    },
+    {
+      "text": "del",
+      "start": 48180,
+      "end": 48380
+    },
+    {
+      "text": "mundo.",
+      "start": 48380,
+      "end": 48680
+    },
+    {
+      "text": "\u00daltima",
+      "start": 49140,
+      "end": 49560
+    },
+    {
+      "text": "pregunta,",
+      "start": 49560,
+      "end": 49840
+    },
+    {
+      "text": "\u00bfqu\u00e9",
+      "start": 50460,
+      "end": 50580
+    },
+    {
+      "text": "naci\u00f3n",
+      "start": 50580,
+      "end": 50900
+    },
+    {
+      "text": "de",
+      "start": 50900,
+      "end": 51120
+    },
+    {
+      "text": "esta",
+      "start": 51120,
+      "end": 51360
+    },
+    {
+      "text": "lista",
+      "start": 51360,
+      "end": 51700
+    },
+    {
+      "text": "no",
+      "start": 51700,
+      "end": 52120
+    },
+    {
+      "text": "comparte",
+      "start": 52120,
+      "end": 52600
+    },
+    {
+      "text": "frontera",
+      "start": 52600,
+      "end": 53100
+    },
+    {
+      "text": "terrestre?",
+      "start": 53100,
+      "end": 53700
+    },
+    {
+      "text": "Piensa",
+      "start": 54120,
+      "end": 54440
+    },
+    {
+      "text": "bien.",
+      "start": 54440,
+      "end": 54660
+    },
+    {
+      "text": "La",
+      "start": 57400,
+      "end": 58260
+    },
+    {
+      "text": "respuesta",
+      "start": 58260,
+      "end": 58680
+    },
+    {
+      "text": "es",
+      "start": 58680,
+      "end": 59240
+    },
+    {
+      "text": "todos",
+      "start": 59240,
+      "end": 59660
+    },
+    {
+      "text": "ellos.",
+      "start": 59660,
+      "end": 60120
+    },
+    {
+      "text": "Son",
+      "start": 60500,
+      "end": 60860
+    },
+    {
+      "text": "pa\u00edses",
+      "start": 60860,
+      "end": 61320
+    },
+    {
+      "text": "insulares.",
+      "start": 61320,
+      "end": 61960
+    },
+    {
+      "text": "Desaf\u00edo",
+      "start": 62540,
+      "end": 63400
+    },
+    {
+      "text": "completado.",
+      "start": 63400,
+      "end": 64099
+    },
+    {
+      "text": "\u00bfCu\u00e1ntas",
+      "start": 64500,
+      "end": 64800
+    },
+    {
+      "text": "acertaste?",
+      "start": 64800,
+      "end": 65360
+    },
+    {
+      "text": "Escr\u00edbelo",
+      "start": 65860,
+      "end": 66440
+    },
+    {
+      "text": "en",
+      "start": 66440,
+      "end": 66520
+    },
+    {
+      "text": "los",
+      "start": 66520,
+      "end": 66620
+    },
+    {
+      "text": "comentarios.",
+      "start": 66620,
+      "end": 67060
+    },
+    {
+      "text": "Nos",
+      "start": 67700,
+      "end": 67860
+    },
+    {
+      "text": "vemos",
+      "start": 67860,
+      "end": 68140
+    },
+    {
+      "text": "en",
+      "start": 68140,
+      "end": 68360
+    },
+    {
+      "text": "el",
+      "start": 68360,
+      "end": 68480
+    },
+    {
+      "text": "pr\u00f3ximo",
+      "start": 68480,
+      "end": 68780
+    },
+    {
+      "text": "reto.",
+      "start": 68780,
+      "end": 69240
+    }
+  ],
+  "intrigueHeader": "\u00bfSer\u00e1s capaz de dominar estas fronteras geogr\u00e1ficas imposibles?",
+  "triviaScenes": [
+    {
+      "scene_number": 1,
+      "question": "",
+      "options": [],
+      "correct_answer": "",
+      "q_dur": 7.530958,
+      "a_dur": 0.0,
+      "start_time": 0.0,
+      "end_time": 7.530958
+    },
+    {
+      "scene_number": 2,
+      "question": "\u00bfQu\u00e9 pa\u00eds tiene la frontera terrestre m\u00e1s larga con China?",
+      "options": [
+        "A) Rusia",
+        "B) Mongolia",
+        "C) India",
+        "D) Kazajist\u00e1n"
+      ],
+      "correct_answer": "B) Mongolia",
+      "q_dur": 6.570958,
+      "a_dur": 6.450958,
+      "start_time": 7.530958,
+      "end_time": 23.552874000000003
+    },
+    {
+      "scene_number": 3,
+      "question": "\u00bfQu\u00e9 ciudad es conocida por ser dividida por el r\u00edo Nilo?",
+      "options": [
+        "A) El Cairo",
+        "B) Jartum",
+        "C) Luxor",
+        "D) Asu\u00e1n"
+      ],
+      "correct_answer": "B) Jartum",
+      "q_dur": 6.010958,
+      "a_dur": 5.250958,
+      "start_time": 23.552874000000003,
+      "end_time": 37.81479
+    },
+    {
+      "scene_number": 4,
+      "question": "\u00bfQu\u00e9 mar es fronterizo entre Europa y Asia?",
+      "options": [
+        "A) Mar Negro",
+        "B) Mar Caspio",
+        "C) Mar Mediterr\u00e1neo",
+        "D) Mar B\u00e1ltico"
+      ],
+      "correct_answer": "B) Mar Caspio",
+      "q_dur": 4.490958,
+      "a_dur": 3.810958,
+      "start_time": 37.81479,
+      "end_time": 49.116706
+    },
+    {
+      "scene_number": 5,
+      "question": "\u00bfQu\u00e9 pa\u00eds no tiene fronteras terrestres con ning\u00fan otro?",
+      "options": [
+        "A) Islandia",
+        "B) Jap\u00f3n",
+        "C) Australia",
+        "D) Todos los anteriores"
+      ],
+      "correct_answer": "D) Todos los anteriores",
+      "q_dur": 5.850958,
+      "a_dur": 4.410958,
+      "start_time": 49.116706,
+      "end_time": 62.378622
+    },
+    {
+      "scene_number": 6,
+      "question": "",
+      "options": [],
+      "correct_answer": "",
+      "q_dur": 7.170958,
+      "a_dur": 0.0,
+      "start_time": 62.378622,
+      "end_time": 69.54958
     }
   ]
 }

@@ -66,10 +66,19 @@ def main():
         Messenger.info("--- Starting Full Pipeline Run (Steps 1-8) ---")
         pipeline.step1_generate_story(extra_avoid=args.avoid)
         # We run PRO subtitles instead of standard if step is ALL
-        steps_to_run = [
-            PipelineStep.STEP2, PipelineStep.STEP2B, PipelineStep.STEP3, PipelineStep.STEP4,
-            PipelineStep.STEP5_PRO, PipelineStep.STEP6, PipelineStep.STEP7, PipelineStep.STEP8
-        ]
+        # In trivias/football mode, skip Step 2 (AI image generation) since Step 2b
+        # (Pexels/Pixabay stock videos) is the primary source — no AI images needed.
+        if args.mode in ("trivias", "football"):
+            Messenger.info(f"⏭️ Skipping Step 2 (AI image generation) in '{args.mode}' mode — using stock videos instead.")
+            steps_to_run = [
+                PipelineStep.STEP2B, PipelineStep.STEP3, PipelineStep.STEP4,
+                PipelineStep.STEP5_PRO, PipelineStep.STEP6, PipelineStep.STEP7, PipelineStep.STEP8
+            ]
+        else:
+            steps_to_run = [
+                PipelineStep.STEP2, PipelineStep.STEP2B, PipelineStep.STEP3, PipelineStep.STEP4,
+                PipelineStep.STEP5_PRO, PipelineStep.STEP6, PipelineStep.STEP7, PipelineStep.STEP8
+            ]
         for step in steps_to_run:
             step_methods[step]()
         Messenger.success("Full pipeline cycle completed successfully.")
