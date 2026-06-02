@@ -40,17 +40,27 @@ export const Trivias: React.FC<{
     (s) => currentTime >= s.start_time && currentTime < s.end_time
   );
 
+  // If current scene has no question (intro/outro), show the nearest question
+  // scene immediately so the viewer never sees blank screen with voice only.
+  let displayScene = activeScene;
+  if (!displayScene || !displayScene.question) {
+    const nextQs = triviaScenes.find(
+      (s) => s.question && s.end_time > currentTime
+    );
+    if (nextQs) displayScene = nextQs;
+  }
+
   let stage: 'question' | 'timer' | 'answer' = 'question';
   let relativeTime = 0;
   let timerRemaining = 3.0;
 
-  if (activeScene && activeScene.options && activeScene.options.length > 0) {
-    relativeTime = currentTime - activeScene.start_time;
-    if (relativeTime < activeScene.q_dur) {
+  if (displayScene && displayScene.options && displayScene.options.length > 0) {
+    relativeTime = currentTime - displayScene.start_time;
+    if (relativeTime < displayScene.q_dur) {
       stage = 'question';
-    } else if (relativeTime < activeScene.q_dur + 3.0) {
+    } else if (relativeTime < displayScene.q_dur + 3.0) {
       stage = 'timer';
-      timerRemaining = Math.max(0, 3.0 - (relativeTime - activeScene.q_dur));
+      timerRemaining = Math.max(0, 3.0 - (relativeTime - displayScene.q_dur));
     } else {
       stage = 'answer';
     }
@@ -147,7 +157,7 @@ export const Trivias: React.FC<{
       )}
 
       {/* Quiz content */}
-      {activeScene && activeScene.question && (
+      {displayScene && displayScene.question && (
         <div
           style={{
             position: 'absolute',
@@ -186,7 +196,7 @@ export const Trivias: React.FC<{
                 letterSpacing: '-0.5px',
               }}
             >
-              {activeScene.question}
+              {displayScene.question}
             </h2>
           </div>
 
@@ -268,8 +278,8 @@ export const Trivias: React.FC<{
               maxWidth: 620,
             }}
           >
-            {activeScene.options.map((option, index) => {
-              const isCorrectOption = option === activeScene.correct_answer;
+            {displayScene.options.map((option, index) => {
+              const isCorrectOption = option === displayScene.correct_answer;
               const isRevealed = stage === 'answer';
 
               let bg = 'rgba(255, 255, 255, 0.92)';
