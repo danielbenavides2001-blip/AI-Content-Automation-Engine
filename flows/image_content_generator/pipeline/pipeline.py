@@ -407,7 +407,9 @@ class Pipeline(BaseModelTool):
         """
         idea_obj = self.store.get_first_by_state(State.IMAGES_GENERATED)
         if not idea_obj:
-            Messenger.warning("Step 2b skipped: No idea in IMAGES_GENERATED state.")
+            idea_obj = self.store.get_first_by_state(State.SCRIPT_GENERATED)
+        if not idea_obj:
+            Messenger.warning("Step 2b skipped: No idea in IMAGES_GENERATED or SCRIPT_GENERATED state.")
             return
 
         Messenger.info(f"\n--- Step 2b started: Fetching Videos for '{idea_obj.title}' ---")
