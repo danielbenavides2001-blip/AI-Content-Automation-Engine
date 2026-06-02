@@ -16,6 +16,7 @@ class State(str, Enum):
     VIDEO_MUSIC_GENERATED = "VIDEO_MUSIC_GENERATED"
     COMPLETED = "COMPLETED"
     UPLOADED = "UPLOADED"
+    ERROR = "ERROR"
 
 
 class VideoOrientation(str, Enum):

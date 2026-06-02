@@ -1241,7 +1241,9 @@ class Pipeline(BaseModelTool):
                 Messenger.success(f"   Idea {idea_obj.id} uploaded and marked as {State.UPLOADED}.\n")
             except Exception as e:
                 Messenger.error(f"   Failed to upload Idea {idea_obj.id}: {str(e)}")
-                break
+                idea_obj.state = State.ERROR
+                self.store.save(idea_obj)
+                continue
 
     def generate_sabias_que_content(self, title: str) -> dict:
         """

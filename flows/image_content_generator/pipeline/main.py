@@ -66,9 +66,9 @@ def main():
         Messenger.info("--- Starting Full Pipeline Run (Steps 1-8) ---")
         pipeline.step1_generate_story(extra_avoid=args.avoid)
         # We run PRO subtitles instead of standard if step is ALL
-        # In trivias/football mode, skip Step 2 (AI image generation) since Step 2b
-        # (Pexels/Pixabay stock videos) is the primary source — no AI images needed.
-        if args.mode in ("trivias", "football"):
+        # In trivias mode, skip Step 2 (AI image generation) since stock
+        # videos + text overlay is sufficient — football needs real images.
+        if args.mode in ("trivias",):
             Messenger.info(f"⏭️ Skipping Step 2 (AI image generation) in '{args.mode}' mode — using stock videos instead.")
             steps_to_run = [
                 PipelineStep.STEP2B, PipelineStep.STEP3, PipelineStep.STEP4,

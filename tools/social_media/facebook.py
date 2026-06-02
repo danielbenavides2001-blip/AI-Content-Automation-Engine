@@ -34,6 +34,7 @@ class FacebookTool(BaseModelTool):
     ) -> str:
         """
         Uploads a video to a Facebook Page using the resumable (chunked) upload API.
+        Includes robust exponential backoff to handle transient Facebook 500 errors.
         """
         if not file_path.exists():
             raise FileNotFoundError(f"Video file not found: {file_path}")
@@ -43,74 +44,85 @@ class FacebookTool(BaseModelTool):
         
         Messenger.info(f"🚀 Starting Facebook video upload: {file_path.name} ({file_size / (1024*1024):.2f} MB)")
 
-        # 1. START Phase
-        params = {
-            "upload_phase": "start",
-            "file_size": file_size,
-            "access_token": self.access_token
-        }
-        
-        response = requests.post(f"{self.video_url}/{self.page_id}/videos", params=params)
-        if response.status_code != 200:
-            Messenger.error(f"START Phase failed: {response.status_code} - {response.text}")
-            response.raise_for_status()
-        
-        data = response.json()
-        
-        upload_session_id = data["upload_session_id"]
-        video_id = data["video_id"]
-        
-        Messenger.info(f"   Upload session started: {upload_session_id}")
+        max_attempts = 4
+        base_delay = 5.0
 
-        # 2. TRANSFER Phase (Chunks)
-        with open(file_path, "rb") as f:
-            start_offset = 0
-            while start_offset < file_size:
-                chunk = f.read(chunk_size)
-                end_offset = start_offset + len(chunk)
-                
-                percentage = (start_offset / file_size) * 100
-                Messenger.info(f"   Uploading chunk: {start_offset} - {end_offset} ({percentage:.0f}%)")
-                
-                files = {
-                    "video_file_chunk": ("chunk.mp4", chunk, "video/mp4")
+        for attempt in range(1, max_attempts + 1):
+            try:
+                # 1. START Phase
+                params = {
+                    "upload_phase": "start",
+                    "file_size": file_size,
+                    "access_token": self.access_token
                 }
-                data_payload = {
-                    "upload_phase": "transfer",
+                
+                response = requests.post(f"{self.video_url}/{self.page_id}/videos", params=params)
+                response.raise_for_status()
+                
+                data = response.json()
+                upload_session_id = data["upload_session_id"]
+                video_id = data["video_id"]
+                
+                Messenger.info(f"   Upload session started: {upload_session_id}")
+
+                # 2. TRANSFER Phase (Chunks)
+                with open(file_path, "rb") as f:
+                    start_offset = 0
+                    while start_offset < file_size:
+                        chunk = f.read(chunk_size)
+                        end_offset = start_offset + len(chunk)
+                        
+                        percentage = (start_offset / file_size) * 100
+                        Messenger.info(f"   Uploading chunk: {start_offset} - {end_offset} ({percentage:.0f}%)")
+                        
+                        files = {
+                            "video_file_chunk": ("chunk.mp4", chunk, "video/mp4")
+                        }
+                        data_payload = {
+                            "upload_phase": "transfer",
+                            "upload_session_id": upload_session_id,
+                            "start_offset": start_offset,
+                        }
+                        
+                        resp = requests.post(
+                            f"{self.video_url}/{self.page_id}/videos",
+                            params={"access_token": self.access_token},
+                            data=data_payload,
+                            files=files
+                        )
+                        resp.raise_for_status()
+                        
+                        start_offset = end_offset
+
+                Messenger.info("   Transfer complete.")
+
+                # 3. FINISH Phase
+                finish_params = {
+                    "upload_phase": "finish",
                     "upload_session_id": upload_session_id,
-                    "start_offset": start_offset,
+                    "description": description,
+                    "access_token": self.access_token
                 }
+                if title:
+                    finish_params["title"] = title
+
+                response = requests.post(f"{self.video_url}/{self.page_id}/videos", params=finish_params)
+                response.raise_for_status()
                 
-                resp = requests.post(
-                    f"{self.video_url}/{self.page_id}/videos",
-                    params={"access_token": self.access_token},
-                    data=data_payload,
-                    files=files
-                )
-                resp.raise_for_status()
-                
-                start_offset = end_offset
+                if response.json().get("success"):
+                    Messenger.success(f"✅ Video published successfully! ID: {video_id}")
+                    return video_id
+                else:
+                    raise RuntimeError(f"Finish phase failed: {response.text}")
 
-        Messenger.info("   Transfer complete.")
+            except Exception as e:
+                Messenger.warning(f"⚠️ Attempt {attempt}/{max_attempts} failed to upload video: {str(e)}")
+                if attempt == max_attempts:
+                    raise e
 
-        # 3. FINISH Phase
-        finish_params = {
-            "upload_phase": "finish",
-            "upload_session_id": upload_session_id,
-            "description": description,
-            "access_token": self.access_token
-        }
-        if title:
-            finish_params["title"] = title
-
-        response = requests.post(f"{self.video_url}/{self.page_id}/videos", params=finish_params)
-        response.raise_for_status()
-        
-        if response.json().get("success"):
-            Messenger.success(f"✅ Video published successfully! ID: {video_id}")
-            return video_id
-        else:
-            raise RuntimeError(f"Finish phase failed: {response.text}")
+                sleep_time = (base_delay * (2 ** (attempt - 1))) + random.uniform(1.0, 3.0)
+                Messenger.warning(f"🔄 Sleeping for {sleep_time:.2f}s before retrying video upload...")
+                time.sleep(sleep_time)
 
     def upload_photo(self, file_path: Path, caption: str = "") -> str:
         """
