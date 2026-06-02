@@ -7,6 +7,15 @@ on:
         description: '0=Image, 1=Video'
         required: false
         type: string
+      force_mode:
+        description: 'Forzar modo (dejar vacío para aleatorio)'
+        required: false
+        type: choice
+        options:
+          - ''
+          - standard
+          - football
+          - trivias
 
 jobs:
   post-content:
@@ -82,6 +91,10 @@ jobs:
           if [ "$RUN_VIDEO" = true ]; then
             echo "🎬 GENERATING VIRAL CURIOSITY REEL..."
             export POST_TYPE="video"
+            MODE_INPUT="${{ github.event.inputs.force_mode }}"
+            if [ -n "$MODE_INPUT" ]; then
+              export MODE="$MODE_INPUT"
+            fi
             poetry run python flows/image_content_generator/pipeline/daily_automated_content.py
             sleep 5
           fi
