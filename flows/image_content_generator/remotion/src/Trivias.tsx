@@ -247,14 +247,13 @@ export const Trivias: React.FC<{
         </div>
       )}
 
-      {/* 3. Circular Countdown Overlay */}
+      {/* 3. Circular Countdown Overlay — Below options, right-aligned */}
       {stage === 'timer' && (
         <div
           style={{
             position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
+            bottom: 260,
+            right: 40,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -266,13 +265,13 @@ export const Trivias: React.FC<{
           <div
             style={{
               position: 'relative',
-              width: '180px', // Increased from 140
-              height: '180px',
+              width: '100px',
+              height: '100px',
               borderRadius: '50%',
-              backgroundColor: 'rgba(10, 15, 30, 0.9)',
+              backgroundColor: 'rgba(10, 15, 30, 0.85)',
               backdropFilter: 'blur(20px)',
               border: '2px solid rgba(255, 255, 255, 0.1)',
-              boxShadow: '0 0 50px rgba(0, 0, 0, 0.7)',
+              boxShadow: '0 0 30px rgba(0, 0, 0, 0.7)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -286,31 +285,31 @@ export const Trivias: React.FC<{
                 left: 0,
                 transform: 'rotate(-90deg)',
               }}
-              width="180"
-              height="180"
+              width="100"
+              height="100"
             >
               {/* Trailing Track */}
               <circle
-                cx="90"
-                cy="90"
-                r={70} // Increased from 50
+                cx="50"
+                cy="50"
+                r={38}
                 fill="transparent"
                 stroke="rgba(255,255,255,0.06)"
-                strokeWidth={strokeWidth}
+                strokeWidth={6}
               />
               {/* Draining Ring */}
               <circle
-                cx="90"
-                cy="90"
-                r={70} // Increased from 50
+                cx="50"
+                cy="50"
+                r={38}
                 fill="transparent"
                 stroke="#00f2fe"
-                strokeWidth={strokeWidth}
-                strokeDasharray={2 * Math.PI * 70}
-                strokeDashoffset={2 * Math.PI * 70 * (1 - progressRatio)}
+                strokeWidth={6}
+                strokeDasharray={2 * Math.PI * 38}
+                strokeDashoffset={2 * Math.PI * 38 * (1 - progressRatio)}
                 strokeLinecap="round"
                 style={{
-                  filter: 'drop-shadow(0px 0px 10px rgba(0, 242, 254, 0.8))',
+                  filter: 'drop-shadow(0px 0px 8px rgba(0, 242, 254, 0.8))',
                   transition: 'stroke-dashoffset 0.05s linear',
                 }}
               />
@@ -320,10 +319,10 @@ export const Trivias: React.FC<{
             <span
               style={{
                 color: '#ffffff',
-                fontSize: 84, // Increased from 64
+                fontSize: 42,
                 fontWeight: 900,
                 textAlign: 'center',
-                textShadow: '0 0 20px rgba(0, 242, 254, 0.6)',
+                textShadow: '0 0 15px rgba(0, 242, 254, 0.6)',
               }}
             >
               {Math.ceil(timerRemaining)}
@@ -335,7 +334,7 @@ export const Trivias: React.FC<{
       {/* 4. Global Word-by-Word Narration Subtitles */}
       {phrases.map((phrase, pi) => {
         // Compensate subtitle timing dynamically (delaying text sync to align perfectly with speech)
-        const delayMs = 150; 
+        const delayMs = 350; 
         const startFrame = ((phrase.start + delayMs) / 1000) * fps;
         const endFrame = ((phrase.end + delayMs) / 1000) * fps;
         const isActivePhrase = frame >= startFrame && frame < endFrame;

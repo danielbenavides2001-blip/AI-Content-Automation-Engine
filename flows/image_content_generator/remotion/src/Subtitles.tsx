@@ -57,8 +57,9 @@ export const Subtitles: React.FC<{ words: Word[], intrigueHeader?: string }> = (
       )}
 
       {phrases.map((phrase, pi) => {
-        const startFrame = (phrase.start / 1000) * fps;
-        const endFrame = (phrase.end / 1000) * fps;
+        const delayMs = 350;
+        const startFrame = ((phrase.start + delayMs) / 1000) * fps;
+        const endFrame = ((phrase.end + delayMs) / 1000) * fps;
         const isActivePhrase = frame >= startFrame && frame < endFrame;
 
         if (!isActivePhrase) return null;
@@ -75,8 +76,8 @@ export const Subtitles: React.FC<{ words: Word[], intrigueHeader?: string }> = (
           }}>
             <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px 25px', maxWidth: '90%' }}>
               {phrase.words.map((word, wi) => {
-                const wStart = (word.start / 1000) * fps;
-                const wEnd = (word.end / 1000) * fps;
+                const wStart = ((word.start + delayMs) / 1000) * fps;
+                const wEnd = ((word.end + delayMs) / 1000) * fps;
                 const isCurrentWord = frame >= wStart && frame < wEnd;
 
                 return (

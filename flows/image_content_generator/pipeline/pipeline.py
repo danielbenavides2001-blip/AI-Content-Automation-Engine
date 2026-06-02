@@ -493,13 +493,13 @@ class Pipeline(BaseModelTool):
             # 3. Fallback: Ken Burns sobre imagen (Último recurso o forzado)
             if not img_path.exists() or img_path.stat().st_size < 1024:
                 # In trivias/football mode, Step 2 (AI images) is skipped intentionally.
-                # Generate a dark gradient placeholder video instead of failing.
-                Messenger.warning(f"   ⚠️ No image available for Scene {scene.scene_number}. Generating solid-color placeholder clip.")
+                # Generate an animated gradient placeholder instead of solid color.
+                Messenger.warning(f"   ⚠️ No image available for Scene {scene.scene_number}. Generating gradient placeholder clip.")
                 try:
                     subprocess.run(
                         [
                             "ffmpeg", "-y", "-f", "lavfi",
-                            "-i", "color=c=0x0a0f1e:size=1080x1920:rate=30",
+                            "-i", "gradients=s=1080x1920:c0=0a0f1e:c1=1a1f3e:c2=0d1225:c3=151a35:rate=30:duration=6",
                             "-t", "6", "-c:v", "libx264", "-pix_fmt", "yuv420p", str(clip_path)
                         ],
                         check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
@@ -589,14 +589,34 @@ class Pipeline(BaseModelTool):
                 self.audio_gen.text_to_speech(scene.narration_answer, temp_a)
                 a_dur = self.ffmpeg.get_audio_duration(temp_a)
                 
-                # 3. Create 3-second Silence
-                subprocess.run(
-                    [
-                        "ffmpeg", "-y", "-f", "lavfi", "-i", "anullsrc=r=24000:cl=mono",
-                        "-t", "3.0", str(temp_timer)
-                    ],
-                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True
-                )
+                # 3. Create 3-second Ticking Sound (3 beeps at 0s, 1s, 2s)
+                tick_seg = audios_dir / f"temp_tick_seg_{scene_num}.wav"
+                try:
+                    subprocess.run(
+                        [
+                            "ffmpeg", "-y",
+                            "-f", "lavfi", "-i", "sine=frequency=880:duration=0.08",
+                            "-f", "lavfi", "-i", "anullsrc=r=24000:cl=mono",
+                            "-filter_complex", "[0:a][1:a]concat=n=2:v=0:a=1[a]",
+                            "-map", "[a]", "-t", "1.0",
+                            "-ac", "1", "-ar", "24000",
+                            str(tick_seg)
+                        ],
+                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True
+                    )
+                    subprocess.run(
+                        [
+                            "ffmpeg", "-y",
+                            "-stream_loop", "2",
+                            "-i", str(tick_seg),
+                            "-c", "copy", "-t", "3.0",
+                            "-ac", "1", "-ar", "24000",
+                            str(temp_timer)
+                        ],
+                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True
+                    )
+                finally:
+                    tick_seg.unlink(missing_ok=True)
                 
                 # 4. Concatenate via FFmpeg
                 cmd_concat = [
