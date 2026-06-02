@@ -691,10 +691,11 @@ class Pipeline(BaseModelTool):
                 ding_path.unlink(missing_ok=True)
                 
                 # Record exact timings back into scene properties
+                ding_dur = self.ffmpeg.get_audio_duration(ding_path) if ding_path.exists() else 0.0
                 scene.q_dur = q_dur
                 scene.a_dur = a_dur
-                scene.duration = q_dur + 3.0 + a_dur
-                Messenger.success(f"   Scene {scene_num} compiled successfully (Q: {q_dur:.2f}s | Timer: 3.0s | A: {a_dur:.2f}s | Total: {scene.duration:.2f}s)")
+                scene.duration = q_dur + 3.0 + ding_dur + a_dur + 0.3
+                Messenger.success(f"   Scene {scene_num} compiled successfully (Q: {q_dur:.2f}s | Timer: 3.0s | Ding: {ding_dur:.2f}s | A: {a_dur:.2f}s | Total: {scene.duration:.2f}s)")
             
             # Save updated durations in script.json
             self.save_json(idea_obj.id, self.SCRIPT_JSON, script_data)
