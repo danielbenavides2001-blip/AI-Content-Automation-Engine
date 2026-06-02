@@ -1,10 +1,10 @@
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion';
-import React from 'react';
+import React, { useMemo } from 'react';
 
 interface Word {
   text: string;
-  start: number; // in ms
-  end: number; // in ms
+  start: number;
+  end: number;
 }
 
 interface TriviaScene {
@@ -18,32 +18,28 @@ interface TriviaScene {
   end_time: number;
 }
 
+interface Particle {
+  x: number;
+  y: number;
+  size: number;
+  opacity: number;
+  speed: number;
+  delay: number;
+}
+
 export const Trivias: React.FC<{
   words: Word[];
   intrigueHeader?: string;
   triviaScenes?: TriviaScene[];
 }> = ({ words, intrigueHeader, triviaScenes = [] }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, durationInFrames } = useVideoConfig();
   const currentTime = frame / fps;
 
-  // 1. Find the active scene in the timeline
   const activeScene = triviaScenes.find(
     (s) => currentTime >= s.start_time && currentTime < s.end_time
   );
 
-  // 2. Phrase-by-phrase subtitles grouping (3 words per chunk for rapid viral style)
-  const phrases: { words: Word[]; start: number; end: number }[] = [];
-  for (let i = 0; i < words.length; i += 3) {
-    const chunk = words.slice(i, i + 3);
-    phrases.push({
-      words: chunk,
-      start: chunk[0].start,
-      end: chunk[chunk.length - 1].end,
-    });
-  }
-
-  // 3. Determine game stage if in a trivia scene with options
   let stage: 'question' | 'timer' | 'answer' = 'question';
   let relativeTime = 0;
   let timerRemaining = 3.0;
@@ -60,12 +56,32 @@ export const Trivias: React.FC<{
     }
   }
 
-  // Circular progress configuration for the timer ring
-  const circleRadius = 50;
+  const circleRadius = 60;
   const strokeWidth = 8;
   const circumference = 2 * Math.PI * circleRadius;
   const progressRatio = stage === 'timer' ? timerRemaining / 3.0 : 0;
   const strokeDashoffset = circumference * (1 - progressRatio);
+
+  const timerPulse = stage === 'timer'
+    ? 1 + 0.08 * Math.sin(frame * 0.4)
+    : 1;
+
+  const particles = useMemo(() => {
+    const items: Particle[] = [];
+    for (let i = 0; i < 30; i++) {
+      items.push({
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        size: 1.5 + Math.random() * 3,
+        opacity: 0.15 + Math.random() * 0.35,
+        speed: 0.2 + Math.random() * 0.5,
+        delay: Math.random() * 100,
+      });
+    }
+    return items;
+  }, []);
+
+  const optionLabels = ['A', 'B', 'C', 'D'];
 
   return (
     <div
@@ -74,36 +90,55 @@ export const Trivias: React.FC<{
         backgroundColor: 'transparent',
         position: 'relative',
         overflow: 'hidden',
-        fontFamily: "'Outfit', 'Inter', sans-serif",
+        fontFamily: "'Inter', 'Segoe UI', sans-serif",
       }}
     >
-      {/* 1. Global Intrigue / Category Header */}
+      {/* Particles overlay */}
+      <div style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none' }}>
+        {particles.map((p, i) => {
+          const yOffset = (frame * p.speed + p.delay * 10) % 1200 - 100;
+          return (
+            <div
+              key={i}
+              style={{
+                position: 'absolute',
+                left: `${p.x}%`,
+                top: `${(yOffset / 1200) * 100}%`,
+                width: p.size,
+                height: p.size,
+                borderRadius: '50%',
+                backgroundColor: 'rgba(255, 255, 255, 0.6)',
+                opacity: p.opacity * (0.5 + 0.5 * Math.sin(frame * 0.02 + p.delay)),
+                boxShadow: `0 0 ${p.size * 2}px rgba(255, 255, 255, 0.3)`,
+              }}
+            />
+          );
+        })}
+      </div>
+
+      {/* Intrigue header */}
       {intrigueHeader && (
         <div
           style={{
             position: 'absolute',
-            top: 100,
+            top: 40,
             left: '50%',
             transform: 'translateX(-50%)',
-            backgroundColor: 'rgba(10, 15, 30, 0.8)',
-            border: '2px solid rgba(0, 242, 254, 0.6)',
-            boxShadow: '0 8px 32px 0 rgba(0, 242, 254, 0.25)',
-            padding: '12px 35px',
-            borderRadius: '40px',
-            zIndex: 100,
-            width: '80%',
-            textAlign: 'center',
-            backdropFilter: 'blur(12px)',
+            zIndex: 10,
+            padding: '8px 24px',
+            borderRadius: 20,
+            backgroundColor: 'rgba(255, 255, 255, 0.15)',
+            backdropFilter: 'blur(8px)',
           }}
         >
           <span
             style={{
-              color: '#00f2fe',
-              fontSize: 32,
-              fontWeight: 900,
-              letterSpacing: '4px',
+              color: '#ffffff',
+              fontSize: 22,
+              fontWeight: 700,
+              letterSpacing: 2,
               textTransform: 'uppercase',
-              textShadow: '0 0 10px rgba(0, 242, 254, 0.5)',
+              textShadow: '0 2px 8px rgba(0,0,0,0.3)',
             }}
           >
             {intrigueHeader}
@@ -111,76 +146,151 @@ export const Trivias: React.FC<{
         </div>
       )}
 
-      {/* 2. Trivia Interactive Dashboard */}
+      {/* Quiz content */}
       {activeScene && activeScene.question && (
         <div
           style={{
             position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -60%)', // Centered vertically & horizontally
-            width: '90%',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
             display: 'flex',
             flexDirection: 'column',
-            gap: '40px',
-            zIndex: 80,
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 5,
+            padding: '0 24px',
           }}
         >
-          {/* Question Box (Frosted Glassmorphism) */}
+          {/* Question box */}
           <div
             style={{
-              backgroundColor: 'rgba(15, 23, 42, 0.9)',
-              borderRadius: '30px',
-              padding: '40px 35px',
-              border: '2.5px solid rgba(255, 255, 255, 0.15)',
-              boxShadow: '0 25px 50px rgba(0,0,0,0.6)',
-              backdropFilter: 'blur(25px)',
-              textAlign: 'center',
+              width: '100%',
+              maxWidth: 540,
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              borderRadius: 24,
+              padding: '28px 32px',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+              marginBottom: 40,
             }}
           >
             <h2
               style={{
-                color: '#FFFFFF',
-                fontSize: 48, // Increased from 36
-                fontWeight: 900,
+                color: '#1a1a2e',
+                fontSize: 40,
+                fontWeight: 800,
                 margin: 0,
-                lineHeight: 1.35,
-                letterSpacing: '-0.5px',
+                lineHeight: 1.3,
+                textAlign: 'center',
+                letterSpacing: '-0.3px',
               }}
             >
               {activeScene.question}
             </h2>
           </div>
 
-          {/* Options Grid/List */}
+          {/* Timer circle */}
+          {stage === 'timer' && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 40,
+                transform: `scale(${timerPulse})`,
+              }}
+            >
+              <div
+                style={{
+                  position: 'relative',
+                  width: 140,
+                  height: 140,
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                  backdropFilter: 'blur(12px)',
+                  border: '2px solid rgba(255, 255, 255, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <svg
+                  style={{ position: 'absolute', top: 0, left: 0, transform: 'rotate(-90deg)' }}
+                  width="140"
+                  height="140"
+                >
+                  <circle
+                    cx="70"
+                    cy="70"
+                    r={circleRadius}
+                    fill="transparent"
+                    stroke="rgba(255,255,255,0.1)"
+                    strokeWidth={strokeWidth}
+                  />
+                  <circle
+                    cx="70"
+                    cy="70"
+                    r={circleRadius}
+                    fill="transparent"
+                    stroke="#fbbf24"
+                    strokeWidth={strokeWidth}
+                    strokeDasharray={circumference}
+                    strokeDashoffset={strokeDashoffset}
+                    strokeLinecap="round"
+                    style={{
+                      filter: 'drop-shadow(0px 0px 10px rgba(251, 191, 36, 0.6))',
+                      transition: 'stroke-dashoffset 0.05s linear',
+                    }}
+                  />
+                </svg>
+                <span
+                  style={{
+                    color: '#ffffff',
+                    fontSize: 56,
+                    fontWeight: 900,
+                    textShadow: '0 0 20px rgba(251, 191, 36, 0.5)',
+                  }}
+                >
+                  {Math.ceil(timerRemaining)}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Options */}
           <div
             style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: '20px',
-              position: 'relative',
+              gap: 16,
+              width: '100%',
+              maxWidth: 540,
             }}
           >
             {activeScene.options.map((option, index) => {
-              const badgeColors = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b'];
-              const badgeLetter = ['A', 'B', 'C', 'D'][index];
               const isCorrectOption = option === activeScene.correct_answer;
+              const isRevealed = stage === 'answer';
 
-              // Styles according to game stage
-              let cardBg = 'rgba(15, 23, 42, 0.88)';
-              let cardBorder = '2px solid rgba(255, 255, 255, 0.1)';
-              let cardShadow = '0 12px 30px rgba(0, 0, 0, 0.4)';
-              let opacity = 1;
-              let scale = 1;
+              let bg = 'rgba(255, 255, 255, 0.92)';
+              let borderColor = 'rgba(0, 0, 0, 0.1)';
+              let textColor = '#1a1a2e';
+              let badgeBg = '#e2e8f0';
+              let badgeText = '#1a1a2e';
 
-              if (stage === 'answer') {
+              if (isRevealed) {
                 if (isCorrectOption) {
-                  cardBg = 'rgba(16, 185, 129, 0.35)';
-                  cardBorder = '3px solid #10b981';
-                  cardShadow = '0 0 35px rgba(16, 185, 129, 0.7)';
-                  scale = 1.05; // Correct option jumps up slightly
+                  bg = 'rgba(251, 191, 36, 0.95)';
+                  borderColor = '#f59e0b';
+                  badgeBg = '#ffffff';
+                  badgeText = '#1a1a2e';
+                  textColor = '#1a1a2e';
                 } else {
-                  opacity = 0.25; // Dim incorrect options
+                  bg = 'rgba(255, 255, 255, 0.3)';
+                  borderColor = 'rgba(0, 0, 0, 0.05)';
+                  textColor = 'rgba(26, 26, 46, 0.3)';
+                  badgeBg = 'rgba(226, 232, 240, 0.3)';
+                  badgeText = 'rgba(26, 26, 46, 0.3)';
                 }
               }
 
@@ -188,54 +298,47 @@ export const Trivias: React.FC<{
                 <div
                   key={index}
                   style={{
-                    backgroundColor: cardBg,
-                    border: cardBorder,
-                    boxShadow: cardShadow,
-                    opacity: opacity,
-                    transform: `scale(${scale})`,
-                    transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-                    borderRadius: '20px',
-                    padding: '24px 30px', // Extra padding
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '25px',
-                    backdropFilter: 'blur(20px)',
+                    gap: 16,
+                    backgroundColor: bg,
+                    borderRadius: 16,
+                    padding: '18px 20px',
+                    border: `2px solid ${borderColor}`,
+                    boxShadow: isRevealed && isCorrectOption
+                      ? '0 0 24px rgba(251, 191, 36, 0.5)'
+                      : '0 4px 12px rgba(0,0,0,0.08)',
+                    transition: 'all 0.4s ease',
                   }}
                 >
-                  {/* Badge Circle (A, B, C, D) */}
                   <div
                     style={{
-                      width: '60px',
-                      height: '60px',
+                      width: 48,
+                      height: 48,
                       borderRadius: '50%',
-                      backgroundColor: isCorrectOption && stage === 'answer' ? '#10b981' : badgeColors[index],
+                      backgroundColor: badgeBg,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      boxShadow: '0 5px 15px rgba(0, 0, 0, 0.4)',
                       flexShrink: 0,
-                      transition: 'background-color 0.3s ease',
                     }}
                   >
                     <span
                       style={{
-                        color: '#FFFFFF',
-                        fontSize: 32, // Increased from 24
-                        fontWeight: 900,
+                        color: badgeText,
+                        fontSize: 22,
+                        fontWeight: 800,
                       }}
                     >
-                      {badgeLetter}
+                      {optionLabels[index]}
                     </span>
                   </div>
-
-                  {/* Option Text */}
                   <span
                     style={{
-                      color: isCorrectOption && stage === 'answer' ? '#10b981' : '#E2E8F0',
-                      fontSize: 38, // Increased from 30
-                      fontWeight: isCorrectOption && stage === 'answer' ? 900 : 700,
+                      color: textColor,
+                      fontSize: 32,
+                      fontWeight: 700,
                       lineHeight: 1.2,
-                      transition: 'color 0.3s ease',
                     }}
                   >
                     {option.replace(/^[A-D]\)\s*/i, '')}
@@ -246,156 +349,6 @@ export const Trivias: React.FC<{
           </div>
         </div>
       )}
-
-      {/* 3. Circular Countdown Overlay — Below options, right-aligned */}
-      {stage === 'timer' && (
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 260,
-            right: 40,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 90,
-          }}
-        >
-          {/* circular glassmorphic ring container */}
-          <div
-            style={{
-              position: 'relative',
-              width: '100px',
-              height: '100px',
-              borderRadius: '50%',
-              backgroundColor: 'rgba(10, 15, 30, 0.85)',
-              backdropFilter: 'blur(20px)',
-              border: '2px solid rgba(255, 255, 255, 0.1)',
-              boxShadow: '0 0 30px rgba(0, 0, 0, 0.7)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            {/* SVG Ring */}
-            <svg
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                transform: 'rotate(-90deg)',
-              }}
-              width="100"
-              height="100"
-            >
-              {/* Trailing Track */}
-              <circle
-                cx="50"
-                cy="50"
-                r={38}
-                fill="transparent"
-                stroke="rgba(255,255,255,0.06)"
-                strokeWidth={6}
-              />
-              {/* Draining Ring */}
-              <circle
-                cx="50"
-                cy="50"
-                r={38}
-                fill="transparent"
-                stroke="#00f2fe"
-                strokeWidth={6}
-                strokeDasharray={2 * Math.PI * 38}
-                strokeDashoffset={2 * Math.PI * 38 * (1 - progressRatio)}
-                strokeLinecap="round"
-                style={{
-                  filter: 'drop-shadow(0px 0px 8px rgba(0, 242, 254, 0.8))',
-                  transition: 'stroke-dashoffset 0.05s linear',
-                }}
-              />
-            </svg>
-
-            {/* Pulsing Count Text */}
-            <span
-              style={{
-                color: '#ffffff',
-                fontSize: 42,
-                fontWeight: 900,
-                textAlign: 'center',
-                textShadow: '0 0 15px rgba(0, 242, 254, 0.6)',
-              }}
-            >
-              {Math.ceil(timerRemaining)}
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* 4. Global Word-by-Word Narration Subtitles */}
-      {phrases.map((phrase, pi) => {
-        // Compensate subtitle timing dynamically (delaying text sync to align perfectly with speech)
-        const delayMs = 350; 
-        const startFrame = ((phrase.start + delayMs) / 1000) * fps;
-        const endFrame = ((phrase.end + delayMs) / 1000) * fps;
-        const isActivePhrase = frame >= startFrame && frame < endFrame;
-
-        if (!isActivePhrase) return null;
-
-        return (
-          <div
-            key={pi}
-            style={{
-              position: 'absolute',
-              inset: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
-              paddingBottom: 220, // High enough so standard social widgets do not overlap
-              zIndex: 99,
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                justifyContent: 'center',
-                gap: '10px 25px',
-                maxWidth: '90%',
-                backgroundColor: 'rgba(15, 23, 42, 0.6)',
-                padding: '12px 30px',
-                borderRadius: '24px',
-                backdropFilter: 'blur(8px)',
-                border: '1px solid rgba(255, 255, 255, 0.05)',
-              }}
-            >
-              {phrase.words.map((word, wi) => {
-                const wStart = ((word.start + delayMs) / 1000) * fps;
-                const wEnd = ((word.end + delayMs) / 1000) * fps;
-                const isCurrentWord = frame >= wStart && frame < wEnd;
-
-                return (
-                  <span
-                    key={wi}
-                    style={{
-                      fontSize: 56,
-                      fontFamily: "'Outfit', 'Inter', sans-serif",
-                      fontWeight: 900,
-                      color: isCurrentWord ? '#FFFF00' : '#FFFFFF',
-                      textTransform: 'uppercase',
-                      display: 'inline-block',
-                      lineHeight: 1.0,
-                      textShadow: '4px 4px 6px rgba(0,0,0,0.8)',
-                    }}
-                  >
-                    {word.text}
-                  </span>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
     </div>
   );
 };

@@ -589,25 +589,29 @@ class Pipeline(BaseModelTool):
                 self.audio_gen.text_to_speech(scene.narration_answer, temp_a)
                 a_dur = self.ffmpeg.get_audio_duration(temp_a)
                 
-                # 3. Create 3-second Ticking Sound (3 beeps at 0s, 1s, 2s)
+                # 3. Create 3-second Ticking Sound (6 quick ticks, 0.5s apart)
                 tick_seg = audios_dir / f"temp_tick_seg_{scene_num}.wav"
                 try:
+                    # Generate one tick: short click at 1200Hz
                     subprocess.run(
                         [
                             "ffmpeg", "-y",
-                            "-f", "lavfi", "-i", "sine=frequency=880:duration=0.08",
+                            "-f", "lavfi", "-i", "sine=frequency=1200:duration=0.04",
                             "-f", "lavfi", "-i", "anullsrc=r=24000:cl=mono",
-                            "-filter_complex", "[0:a][1:a]concat=n=2:v=0:a=1[a]",
-                            "-map", "[a]", "-t", "1.0",
+                            "-filter_complex",
+                            "[0:a]volume=0.5[tick];"
+                            "[1:a][tick]adelay=0s|0s[a]",
+                            "-map", "[a]", "-t", "0.5",
                             "-ac", "1", "-ar", "24000",
                             str(tick_seg)
                         ],
                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True
                     )
+                    # Loop 6 times for 3 seconds
                     subprocess.run(
                         [
                             "ffmpeg", "-y",
-                            "-stream_loop", "2",
+                            "-stream_loop", "5",
                             "-i", str(tick_seg),
                             "-c", "copy", "-t", "3.0",
                             "-ac", "1", "-ar", "24000",
@@ -618,13 +622,44 @@ class Pipeline(BaseModelTool):
                 finally:
                     tick_seg.unlink(missing_ok=True)
                 
-                # 4. Concatenate via FFmpeg
+                # 4. Create a pleasant ding sound for the answer reveal
+                ding_path = audios_dir / f"temp_ding_{scene_num}.wav"
+                try:
+                    subprocess.run(
+                        [
+                            "ffmpeg", "-y",
+                            "-f", "lavfi", "-i",
+                            "sine=frequency=523.25:duration=0.3,afade=t=in:d=0.05,afade=t=out:st=0.2:d=0.1",
+                            "-f", "lavfi", "-i",
+                            "sine=frequency=659.25:duration=0.5,afade=t=in:d=0.05,afade=t=out:st=0.35:d=0.15",
+                            "-filter_complex",
+                            "[0:a]volume=0.6[a0];"
+                            "[1:a]volume=0.4,adelay=0.01s[a1];"
+                            "[a0][a1]amix=inputs=2:duration=longest[a]",
+                            "-map", "[a]", "-t", "0.6",
+                            "-ac", "1", "-ar", "24000",
+                            str(ding_path)
+                        ],
+                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True
+                    )
+                except Exception:
+                    ding_path = Path("")
+
+                # 5. Concatenate: question + timer + ding + answer
+                concat_inputs = [str(temp_q), str(temp_timer)]
+                concat_labels = ["q", "timer"]
+                if ding_path.exists():
+                    concat_inputs.append(str(ding_path))
+                    concat_labels.append("ding")
+                concat_labels.append("a")
+                concat_inputs.append(str(temp_a))
+
+                n_src = len(concat_labels)
+                concat_filter = "+".join(f"[{i}:a]" for i in range(n_src)) + f"concat=n={n_src}:v=0:a=1[a]"
                 cmd_concat = [
                     "ffmpeg", "-y",
-                    "-i", str(temp_q),
-                    "-i", str(temp_timer),
-                    "-i", str(temp_a),
-                    "-filter_complex", "[0:a][1:a][2:a]concat=n=3:v=0:a=1[a]",
+                ] + sum([["-i", str(p)] for p in concat_inputs], []) + [
+                    "-filter_complex", concat_filter,
                     "-map", "[a]",
                     str(scene_audio_path)
                 ]
@@ -634,6 +669,7 @@ class Pipeline(BaseModelTool):
                 temp_q.unlink(missing_ok=True)
                 temp_a.unlink(missing_ok=True)
                 temp_timer.unlink(missing_ok=True)
+                ding_path.unlink(missing_ok=True)
                 
                 # Record exact timings back into scene properties
                 scene.q_dur = q_dur
