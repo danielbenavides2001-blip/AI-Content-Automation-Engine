@@ -653,7 +653,7 @@ class Pipeline(BaseModelTool):
                 concat_inputs.append(str(temp_a))
 
                 n_src = len(concat_labels)
-                concat_filter = "+".join(f"[{i}:a]" for i in range(n_src)) + f"concat=n={n_src}:v=0:a=1[a]"
+                concat_filter = "".join(f"[{i}:a]" for i in range(n_src)) + f"concat=n={n_src}:v=0:a=1[a]"
                 cmd_concat = [
                     "ffmpeg", "-y",
                 ] + sum([["-i", str(p)] for p in concat_inputs], []) + [
