@@ -31,7 +31,7 @@ def main():
     parser.add_argument("orientation", type=VideoOrientation, choices=list(VideoOrientation))
     parser.add_argument("step", type=PipelineStep, choices=list(PipelineStep))
     parser.add_argument("--avoid", type=str, default="", help="List of topics to avoid")
-    parser.add_argument("--mode", type=str, default="standard", choices=["standard", "stickman", "geography", "football", "trivias"], help="Content generation mode")
+    parser.add_argument("--mode", type=str, default="standard", choices=["standard", "stickman", "geography", "trivias"], help="Content generation mode")
     args = parser.parse_args()
 
     # Determine output base based on orientation
@@ -67,7 +67,7 @@ def main():
         pipeline.step1_generate_story(extra_avoid=args.avoid)
         # We run PRO subtitles instead of standard if step is ALL
         # In trivias mode, skip Step 2 (AI image generation) since stock
-        # videos + text overlay is sufficient — football needs real images.
+        # videos + text overlay is sufficient.
         if args.mode in ("trivias",):
             Messenger.info(f"⏭️ Skipping Step 2 (AI image generation) in '{args.mode}' mode — using stock videos instead.")
             steps_to_run = [

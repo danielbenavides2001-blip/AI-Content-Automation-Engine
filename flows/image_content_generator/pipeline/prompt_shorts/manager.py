@@ -24,16 +24,6 @@ except ImportError:
     geo_constants = None
     HAS_GEOGRAPHY = False
 
-try:
-    from flows.image_content_generator.pipeline.prompt_shorts.football.models import FootballHandler, FootballIdea
-    from flows.image_content_generator.pipeline.prompt_shorts.football import constants as football_constants
-    HAS_FOOTBALL = True
-except ImportError:
-    FootballHandler = None
-    FootballIdea = None
-    football_constants = None
-    HAS_FOOTBALL = False
-
 from tools.common.messenger import Messenger
 from tools.text_generation.gemini import GeminiTextGenerator
 from flows.image_content_generator.pipeline.prompt_shorts.trivias.models import TriviasHandler, TriviaIdea
@@ -44,12 +34,10 @@ class PromptManagerShorts(BasePromptManager):
     """Manager specific to Viral Content (Videos, Riddles, and Stories)."""
 
     AUDIO_PROMPT: str = story_constants.AUDIO_PROMPT # Defaulting to story audio
-    FOOTBALL_AUDIO_PROMPT: str = football_constants.AUDIO_PROMPT_FOOTBALL if football_constants else story_constants.AUDIO_PROMPT
 
     CATEGORIES: Sequence[Type[CategoryHandler]] = (
-        [StoryHandler] 
+        [StoryHandler]
         + ([GeographyHandler] if (HAS_GEOGRAPHY and GeographyHandler) else [])
-        + ([FootballHandler] if (HAS_FOOTBALL and FootballHandler) else [])
         + [TriviasHandler]
     )
 
@@ -57,7 +45,7 @@ class PromptManagerShorts(BasePromptManager):
         self, content_gen: GeminiTextGenerator, titles_to_avoid: list[str] = [], extra_avoid: str = "", mode: str = "standard"
     ) -> Tuple[BaseIdea, VideoScript, str]:
         """
-        Executes the viral generation loop for Story/Geography/Football Reels.
+        Executes the viral generation loop for Story/Geography/Trivias Reels.
         """
         if mode == "geography":
             if not HAS_GEOGRAPHY or geo_constants is None or GeographyIdea is None:
@@ -67,14 +55,6 @@ class PromptManagerShorts(BasePromptManager):
             idea_prompt = geo_constants.IDEA_PROMPT_GEOGRAPHY
             script_prompt = geo_constants.SCRIPT_PROMPT_GEOGRAPHY
             series_name = "EnigmaIQ Geografía"
-        elif mode == "football":
-            if not HAS_FOOTBALL or football_constants is None or FootballIdea is None:
-                raise ValueError("Football mode is not available in this environment.")
-            category = "football"
-            idea_model = FootballIdea
-            idea_prompt = football_constants.IDEA_PROMPT_FOOTBALL
-            script_prompt = football_constants.SCRIPT_PROMPT_FOOTBALL
-            series_name = "EnigmaIQ Football"
         elif mode == "trivias":
             category = "trivias"
             idea_model = TriviaIdea
@@ -108,8 +88,6 @@ class PromptManagerShorts(BasePromptManager):
                 "BIODIVERSIDAD Y CORDILLERAS: Cómo las tres cordilleras de los Andes dividen un solo país en mundos ecológicos aislados.",
                 "GEOGRAFÍA HISTÓRICA E INSÓLITA: Fronteras absurdas formadas por ríos caprichosos o montañas intransitables."
             ]
-        elif mode == "football":
-            focus_areas = football_constants.FOCUS_AREAS_FOOTBALL
         elif mode == "trivias":
             focus_areas = trivia_constants.FOCUS_AREAS_TRIVIAS
         else:
@@ -245,14 +223,6 @@ class PromptManagerShorts(BasePromptManager):
                 "Base Style: Stylized topographic infographic map. High-contrast dark navy background with vibrant glowing yellow and neon green border contours.",
                 "Base Style: Dramatic cinematic National Geographic flight. Deep natural green and ocean blue colors, dramatic morning sun rays, and ultra-detailed relief textures.",
             ]
-        elif mode == "football":
-            styles = [
-                "Base Style: Vintage Scrapbook and Collage style. Aged craft paper background, torn pieces of newspaper with retro typography headlines, faded sepia Polaroid photo slots, classic football textures (old laced ball, leather cleats, brass whistle), warm nostalgic volumetric stadium lights, photorealistic textures.",
-                "Base Style: Electric Sports Noir. Pitch-black obsidian stone background with glowing neon green and white tactical chalk lines, high-contrast sharp metallic textures, and cybernetic player silhouettes.",
-                "Base Style: Old School Football Chalkboard. Deep forest green textured slate background with detailed white and gold chalk drawings of play tactics, vintage hand-drawn sketches, and glowing chalk dust.",
-                "Base Style: 1980s Retro Trading Card. Vibrant color block background (amber, teal, crimson), dynamic diagonal layouts, bold retro typography, and halftone dot printing textures.",
-                "Base Style: Cinematic Muddy Stadium Documentary. Wet grass and gritty mud texture, heavy dramatic stadium spotlights shining through pouring rain, intense macro focus on metallic cleats and leather stitching."
-            ]
         elif mode == "trivias":
             styles = [
                 "Base Style: High-contrast professional quiz show studio. Rich dark background with sleek neon teal and emerald green accents, dynamic theatrical down-lighting.",
@@ -290,11 +260,11 @@ class PromptManagerShorts(BasePromptManager):
         # 4. Viral Script / Content Generation
         Messenger.info(f"\n--- Generating Viral {category.upper()} Content: {idea_data.title} ---")
         
-        if mode == "football":
+        if mode == "trivias":
             full_script_prompt = (
                 script_prompt + 
                 f"\n\nIDEA A DESARROLLAR: {idea_data.title}\n"
-                f"**ESTILOS VISUALES RECOMENDADOS PARA SCRAPBOOK IMAGES:** {selected_style}\n"
+                f"**ESTILOS VISUALES RECOMENDADOS:** {selected_style}\n"
             )
         else:
             full_script_prompt = (

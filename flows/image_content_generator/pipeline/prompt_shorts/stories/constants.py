@@ -6,7 +6,7 @@ El tema debe ser **EXTREMADAMENTE ESPECÍFICO, SORPRENDENTE Y POCO CONOCIDO** (a
 El lenguaje debe ser **SUMAMENTE CLARO, DIRECTO Y FÁCIL DE ENTENDER** por cualquier persona al primer instante.
 El video debe explicar todo el concepto de principio a fin, con un **GANCHO INICIAL BRUTAL** que impida hacer scroll, un desarrollo muy descriptivo y fácil de asimilar, y una **CONCLUSIÓN CERRADA** que resuelva la duda por completo.
 Debe estar pensado para un video fluido, de ritmo rápido, compuesto por **6 a 8 escenas cortas** para mantener el dinamismo visual.
-La narración completa de TODAS las escenas sumadas NO DEBE SUPERAR LAS 120 PALABRAS para que dure menos de 60 segundos.
+La narración completa de TODAS las escenas sumadas debe tener entre 130 y 180 palabras para que dure entre 50 y 75 segundos.
 Máxima prioridad: **RETENCIÓN**. Cada segundo debe enganchar más que el anterior.
 
 **ESTILO VISUAL OBLIGATORIO:**
@@ -24,7 +24,7 @@ TEXTO A NARRAR:
 
 
 SCRIPT_PROMPT = """
-Basándote en la IDEA proporcionada, escribe un guion de video para un Reel que dure MÁXIMO 50 segundos.
+Basándote en la IDEA proporcionada, escribe un guion de video para un Reel que dure entre 50 y 75 segundos.
 Divide la historia en **6 a 8 escenas cortas** (alta densidad visual, cambios rápidos de clip).
 Para cada escena debes definir:
 1. `visual_type`: Escoge `"stock_video"` si es algo común que se puede grabar en la vida real (ej: gente caminando, cielo, ciudad, naturaleza). Escoge `"ai_image"` si es algo abstracto, fantástico, histórico, científico o imposible de capturar (ej: neuronas, ADN, concepto abstracto, criatura rara).
@@ -36,7 +36,7 @@ REGLAS CRÍTICAS DE RETENCIÓN:
 1. **GANCHO MORTAL:** La Escena 1 debe ser una pregunta impactante, un dato que rompa la mente o una afirmación tan increíble que sea imposible hacer scroll. Ej: "¿Sabías que tu cerebro toma decisiones 7 segundos ANTES de que tú seas consciente?"
 2. **RITMO ACELERADO:** Cada escena debe durar máximo 5-7 segundos. Cambios rápidos. Sin tiempos muertos.
 3. **CURIOSIDAD CONSTANTE:** Cada escena debe revelar una capa nueva de información que mantenga la intriga. Estructura: Gancho → Explicación → Revelación → Cierre.
-4. **LÍMITE ESTRICTO DE TIEMPO:** La narración total de Todo el video sumado debe tener **máximo 120 palabras**. Escribe de forma resumida, directa al grano, sin rodeos.
+4. **LÍMITE DE PALABRAS:** La narración total de todo el video debe tener entre **130 y 180 palabras**. Esto asegura una duración de 50-75 segundos para calificar a anuncios mid-roll.
 5. **CLARIDAD ABSOLUTA:** Explica el dato de forma sumamente sencilla y comprensible. El espectador debe entenderlo al instante. Evita tecnicismos y metáforas confusas.
 6. **HISTORIA COMPLETA:** La explicación debe quedar 100% resuelta en la última escena. No dejes cabos sueltos.
 7. El `intrigue_header` debe ser un título de 3-5 palabras en MAYÚSCULAS que genere intriga inmediata (Ej: "EL PODER OCULTO", "NO VAS A CREER", "TU CEREBRO MIENTE").

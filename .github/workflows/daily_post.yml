@@ -14,7 +14,6 @@ on:
         options:
           - ''
           - standard
-          - football
           - trivias
 
 jobs:
@@ -111,5 +110,5 @@ jobs:
           git config --local user.name "GitHub Action"
           git add -f flows/image_content_generator/out_short/automated_posts_history.csv flows/image_content_generator/out_short/ideas_tracking.csv
           git commit -m "chore: update tracking and history [skip ci]" || echo "No changes to commit"
-          git pull --rebase --autostash origin main
+          git pull --rebase --autostash origin main || { git rebase --abort 2>/dev/null; echo "Rebase failed (conflict). Skipping push."; exit 0; }
           git push origin main || echo "No changes to push"

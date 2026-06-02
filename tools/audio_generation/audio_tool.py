@@ -10,11 +10,6 @@ from tools.common.messenger import Messenger
 
 # ─── Fallback Music Configuration ────────────────────────────────────────────
 MODE_MUSIC_CONFIG = {
-    "football": {
-        "fallback_subdir": "standard",
-        "description": "energetic/sport",
-        "url": "https://raw.githubusercontent.com/tannerhelland/free-music/master/mp3/Defiance.mp3",
-    },
     "geography": {
         "fallback_subdir": "standard",
         "description": "cinematic/adventure",
@@ -46,7 +41,6 @@ class AudioTool(BaseModelTool):
 
     Supports per-mode subdirectories inside bg_music_dir:
         bg-music/
-            football/   ← energetic/sport tracks
             standard/   ← mystery/cinematic tracks
             geography/  ← adventure/epic tracks
 

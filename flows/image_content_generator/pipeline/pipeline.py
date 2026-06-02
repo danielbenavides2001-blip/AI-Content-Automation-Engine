@@ -513,7 +513,7 @@ class Pipeline(BaseModelTool):
 
             # 3. Fallback: Ken Burns sobre imagen (Último recurso o forzado)
             if not img_path.exists() or img_path.stat().st_size < 1024:
-                # In trivias/football mode, Step 2 (AI images) is skipped intentionally.
+                # In trivias mode, Step 2 (AI images) is skipped intentionally.
                 # Generate an animated gradient placeholder instead of solid color.
                 Messenger.warning(f"   ⚠️ No image available for Scene {scene.scene_number}. Generating gradient placeholder clip.")
                 try:
@@ -610,7 +610,7 @@ class Pipeline(BaseModelTool):
                 self.audio_gen.text_to_speech(scene.narration_answer, temp_a)
                 a_dur = self.ffmpeg.get_audio_duration(temp_a)
                 
-                # 3. Create 3-second Ticking Sound (6 quick ticks, 0.5s apart)
+                # 3. Create 2-second Ticking Sound (4 quick ticks, 0.5s apart)
                 tick_seg = audios_dir / f"temp_tick_seg_{scene_num}.wav"
                 try:
                     # Generate one tick: short click at 1200Hz + silence = 0.5s
@@ -626,13 +626,13 @@ class Pipeline(BaseModelTool):
                         ],
                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True
                     )
-                    # Loop 6 times for 3 seconds
+                    # Loop 4 times for 2 seconds
                     subprocess.run(
                         [
                             "ffmpeg", "-y",
-                            "-stream_loop", "5",
+                            "-stream_loop", "3",
                             "-i", str(tick_seg),
-                            "-c", "copy", "-t", "3.0",
+                            "-c", "copy", "-t", "2.0",
                             "-ac", "1", "-ar", "24000",
                             str(temp_timer)
                         ],
@@ -694,8 +694,8 @@ class Pipeline(BaseModelTool):
                 ding_dur = self.ffmpeg.get_audio_duration(ding_path) if ding_path.exists() else 0.0
                 scene.q_dur = q_dur
                 scene.a_dur = a_dur
-                scene.duration = q_dur + 3.0 + ding_dur + a_dur + 0.3
-                Messenger.success(f"   Scene {scene_num} compiled successfully (Q: {q_dur:.2f}s | Timer: 3.0s | Ding: {ding_dur:.2f}s | A: {a_dur:.2f}s | Total: {scene.duration:.2f}s)")
+                scene.duration = q_dur + 2.0 + ding_dur + a_dur + 0.3
+                Messenger.success(f"   Scene {scene_num} compiled successfully (Q: {q_dur:.2f}s | Timer: 2.0s | Ding: {ding_dur:.2f}s | A: {a_dur:.2f}s | Total: {scene.duration:.2f}s)")
             
             # Save updated durations in script.json
             self.save_json(idea_obj.id, self.SCRIPT_JSON, script_data)
@@ -1188,25 +1188,37 @@ class Pipeline(BaseModelTool):
 
     def generate_facebook_description(self, title: str) -> str:
         """
-        Generates a short, highly viral description for Facebook/Instagram Reels.
+        Generates a short, engaging description for Facebook Reels.
+        Varies the tone and CTA to avoid repetitive patterns.
         """
+        styles = [
+            "curioso y conversacional (Ej: 'Esto es algo que pocos saben... ¿tú lo conocías?')",
+            "directo y sorprendente (Ej: 'La respuesta te va a dejar en shock. Literal.')",
+            "desafiante y divertido (Ej: 'A ver si puedes explicar esto sin googlear...')",
+            "cotidiano y cercano (Ej: '¿Notaste esto alguna vez? Yo hasta hoy no tenía idea.')",
+            "intrigante misterioso (Ej: 'Hay una razón detrás de esto, y no es la que crees.')",
+        ]
+        import random
+        style = random.choice(styles)
+
         prompt = f"""
-        Eres el experto en redes sociales de "EnigmaIQ", un canal súper viral de datos curiosos, misterios y ciencia.
-        Escribe el "Caption" (descripción) para el siguiente video: "{title}"
-        
-        Requisitos OBLIGATORIOS:
-        1. SE EXTREMADAMENTE CORTO. Máximo 2 líneas atractivas que inviten a comentar.
-        2. Tono: Intrigante, dinámico y que rompa la mente (Ej: "¿Sabías esto? Déjalo en los comentarios 👇").
-        3. No uses lenguaje poético ni filosófico, usa lenguaje de creador de contenido de TikTok/Reels.
-        4. Agrega exactamente 10 HASHTAGS VIRALES relevantes al tema del video y siempre incluye: #Curiosidades #DatosCuriosos #EnigmaIQ
-        
-        Responde solo con el texto de la descripción y los hashtags, sin texto adicional.
+        Eres el creador de "EnigmaIQ", un canal de curiosidades.
+        Escribe el caption para el siguiente video: "{title}"
+
+        Requisitos:
+        1. Máximo 2 líneas + hashtags.
+        2. Tono: {style}
+        3. Varía la estructura — no uses siempre el mismo patrón de pregunta.
+        4. Agrega 4 HASHTAGS relevantes (incluye siempre #Curiosidades y #EnigmaIQ).
+        5. NO repitas frases hechas como "¿Sabías esto?" o "Déjalo en los comentarios".
+
+        Responde solo con el caption y hashtags.
         """
         try:
             return self.text_gen.generate(prompt).strip()
         except Exception as e:
             Messenger.warning(f"AI Description generation failed: {e}. Using fallback.")
-            return f"🤯 {title}\n\n¿Tú qué opinas? Déjalo en los comentarios 👇\n\n#Curiosidades #DatosCuriosos #Viral #ParaTi #Foryou #Misterios #SabiasQue #EnigmaIQ #AprendeConTikTok #Interesante"
+            return f"{title}\n\n#Curiosidades #EnigmaIQ #DatosCuriosos #Ciencia"
 
     def step8_upload_to_facebook(self):
         """
@@ -1241,15 +1253,11 @@ class Pipeline(BaseModelTool):
             Messenger.info("   Generating AI-optimized description...")
             description = self.generate_facebook_description(video_title)
 
-            # --- BLINDAJE CONTRA BANEOS (TODO ES TODO) ---
-            # 1. Transparencia de IA (Mandatorio Meta 2026)
-            # 2. Descargo de Responsabilidad (Para nichos YMYL)
-            # 3. Firma Humana (Para evitar detección de Bot puro)
+            # --- TRANSPARENCIA (Meta 2026) ---
             transparency_footer = (
-                "\n\n---\n"
-                "🤖 **Contenido Generado por IA**: Este video ha sido creado con apoyo de Inteligencia Artificial para fines de entretenimiento y reflexión filosófica.\n\n"
-                "✨ Publicado por EnigmaIQ.\n"
-                "#HechoConIA #AIContent #EnigmaIQ #ViralVideo"
+                "\n\n—"
+                "\n✨ Publicado por EnigmaIQ."
+                "\n#EnigmaIQ #HechoConIA"
             )
             
             final_description = description + transparency_footer
@@ -1277,13 +1285,13 @@ class Pipeline(BaseModelTool):
                     except Exception as cap_e:
                         Messenger.warning(f"   ⚠️ Failed to process/upload English captions: {cap_e}")
 
-                    # --- FASE 4: AUTO-COMENTARIO (Cebo de engagement) ---
-                    Messenger.info("   Generating polemic auto-comment...")
+                    # --- FASE 4: AUTO-COMENTARIO (Engagement hook) ---
+                    Messenger.info("   Generating engagement auto-comment...")
                     prompt_comment = f"""
-                    Eres el creador de la serie "EnigmaIQ". Acabas de subir un video titulado: "{video_title}".
-                    Escribe un comentario corto (1 línea) en forma de PREGUNTA POLÉMICA para fijarlo como el primer comentario del video.
-                    El objetivo es que la gente se pelee o debata en las respuestas. 
-                    No uses hashtags. Sé directo, algo cínico y muy controversial.
+                    Eres el creador de "EnigmaIQ". Acabas de subir un video: "{video_title}".
+                    Escribe un comentario corto (1 línea) como pregunta para invitar a los seguidores a compartir su opinión.
+                    El tono debe ser curioso y amigable, no controversial. Ej: "¿Cuál de estas ya la sabías? Cuéntame abajo 👇"
+                    No uses hashtags.
                     """
                     try:
                         polemic_comment = self.text_gen.generate(prompt_comment).strip()
@@ -1315,7 +1323,7 @@ class Pipeline(BaseModelTool):
            Debe ser de máximo 25-30 palabras (2-3 líneas). Debe estar perfectamente redactado, sin errores ortográficos, fácil de entender y extremadamente impactante.
            Ejemplo: "Los pulpos tienen tres corazones, nueve cerebros y su sangre es de color azul brillante debido a una proteína basada en cobre."
         
-        2. **post_description**: El caption para acompañar la imagen en Facebook. Debe ser intrigante, corto (máximo 2 líneas), invitar a comentar (CTA) y contener exactamente 10 hashtags virales relevantes, incluyendo siempre: #SabiasQue #Curiosidades #DatosCuriosos #EnigmaIQ
+        2. **post_description**: El caption para acompañar la imagen en Facebook. Máximo 2 líneas, tono curioso y natural, 4 hashtags relevantes (incluye #Curiosidades y #EnigmaIQ).
         
         3. **image_prompt**: Un prompt altamente descriptivo y detallado en inglés para generar una imagen fotorrealista de altísima calidad que represente EXACTAMENTE el dato curioso explicado en `card_text`. 
            El prompt debe ser extremadamente específico sobre el animal o tema exacto de `card_text` para que no haya ninguna incoherencia. El sujeto principal debe estar centrado y no demasiado cerca de los bordes para permitir un recorte horizontal.
@@ -1352,7 +1360,7 @@ class Pipeline(BaseModelTool):
             Messenger.warning(f"Failed to generate custom Sabias Que content: {e}. Using fallback.")
             return {
                 "card_text": f"El increíble fenómeno detrás de: {title}.",
-                "post_description": f"🤯 ¿Sabías esto sobre {title}? Déjalo en los comentarios 👇\n\n#SabiasQue #Curiosidades #DatosCuriosos #Misterios #EnigmaIQ",
+                "post_description": f"{title}\n\n#Curiosidades #EnigmaIQ #DatosCuriosos #Ciencia",
                 "image_prompt": f"A beautiful artistic representing the mysterious concept of {title}, cinematic, photorealistic."
             }
 
@@ -1604,12 +1612,11 @@ class Pipeline(BaseModelTool):
         Messenger.info("Composing premium card canvas with Pillow...")
         self.compose_sabias_que_card(img_path, composed_img_path, card_text)
 
-        # 6. Append Transparency Footer to Description
+        # 6. Append Transparency Footer
         transparency_footer = (
-            "\n\n---\n"
-            "🤖 **Contenido Generado por IA**: Esta infografía y mensaje han sido creados con Inteligencia Artificial para fines educativos y recreativos.\n\n"
-            "✨ Publicado por EnigmaIQ.\n"
-            "#HechoConIA #SabiasQue #Curiosidades #EnigmaIQ #AprenderEsDivertido"
+            "\n\n—"
+            "\n✨ Publicado por EnigmaIQ."
+            "\n#EnigmaIQ #HechoConIA"
         )
         final_description = post_description + transparency_footer
 
