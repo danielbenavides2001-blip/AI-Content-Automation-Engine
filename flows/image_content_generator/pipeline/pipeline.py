@@ -592,15 +592,13 @@ class Pipeline(BaseModelTool):
                 # 3. Create 3-second Ticking Sound (6 quick ticks, 0.5s apart)
                 tick_seg = audios_dir / f"temp_tick_seg_{scene_num}.wav"
                 try:
-                    # Generate one tick: short click at 1200Hz
+                    # Generate one tick: short click at 1200Hz + silence = 0.5s
                     subprocess.run(
                         [
                             "ffmpeg", "-y",
                             "-f", "lavfi", "-i", "sine=frequency=1200:duration=0.04",
                             "-f", "lavfi", "-i", "anullsrc=r=24000:cl=mono",
-                            "-filter_complex",
-                            "[0:a]volume=0.5[tick];"
-                            "[1:a][tick]adelay=0s|0s[a]",
+                            "-filter_complex", "[0:a]volume=0.5[a0];[1:a][a0]concat=n=2:v=0:a=1[a]",
                             "-map", "[a]", "-t", "0.5",
                             "-ac", "1", "-ar", "24000",
                             str(tick_seg)
