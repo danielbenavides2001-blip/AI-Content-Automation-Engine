@@ -167,23 +167,23 @@ export const Trivias: React.FC<{
           <div
             style={{
               width: '100%',
-              maxWidth: 540,
+              maxWidth: 620,
               backgroundColor: 'rgba(255, 255, 255, 0.95)',
-              borderRadius: 24,
-              padding: '28px 32px',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
-              marginBottom: 40,
+              borderRadius: 28,
+              padding: '36px 40px',
+              boxShadow: '0 12px 48px rgba(0,0,0,0.2)',
+              marginBottom: 48,
             }}
           >
             <h2
               style={{
                 color: '#1a1a2e',
-                fontSize: 40,
+                fontSize: 52,
                 fontWeight: 800,
                 margin: 0,
                 lineHeight: 1.3,
                 textAlign: 'center',
-                letterSpacing: '-0.3px',
+                letterSpacing: '-0.5px',
               }}
             >
               {activeScene.question}
@@ -197,19 +197,19 @@ export const Trivias: React.FC<{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginBottom: 40,
+                marginBottom: 48,
                 transform: `scale(${timerPulse})`,
               }}
             >
               <div
                 style={{
                   position: 'relative',
-                  width: 140,
-                  height: 140,
+                  width: 170,
+                  height: 170,
                   borderRadius: '50%',
-                  backgroundColor: 'rgba(255, 255, 255, 0.12)',
-                  backdropFilter: 'blur(12px)',
-                  border: '2px solid rgba(255, 255, 255, 0.2)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                  backdropFilter: 'blur(16px)',
+                  border: '3px solid rgba(255, 255, 255, 0.25)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -217,20 +217,20 @@ export const Trivias: React.FC<{
               >
                 <svg
                   style={{ position: 'absolute', top: 0, left: 0, transform: 'rotate(-90deg)' }}
-                  width="140"
-                  height="140"
+                  width="170"
+                  height="170"
                 >
                   <circle
-                    cx="70"
-                    cy="70"
+                    cx="85"
+                    cy="85"
                     r={circleRadius}
                     fill="transparent"
                     stroke="rgba(255,255,255,0.1)"
                     strokeWidth={strokeWidth}
                   />
                   <circle
-                    cx="70"
-                    cy="70"
+                    cx="85"
+                    cy="85"
                     r={circleRadius}
                     fill="transparent"
                     stroke="#fbbf24"
@@ -239,7 +239,7 @@ export const Trivias: React.FC<{
                     strokeDashoffset={strokeDashoffset}
                     strokeLinecap="round"
                     style={{
-                      filter: 'drop-shadow(0px 0px 10px rgba(251, 191, 36, 0.6))',
+                      filter: 'drop-shadow(0px 0px 12px rgba(251, 191, 36, 0.7))',
                       transition: 'stroke-dashoffset 0.05s linear',
                     }}
                   />
@@ -247,9 +247,9 @@ export const Trivias: React.FC<{
                 <span
                   style={{
                     color: '#ffffff',
-                    fontSize: 56,
+                    fontSize: 68,
                     fontWeight: 900,
-                    textShadow: '0 0 20px rgba(251, 191, 36, 0.5)',
+                    textShadow: '0 0 24px rgba(251, 191, 36, 0.6)',
                   }}
                 >
                   {Math.ceil(timerRemaining)}
@@ -263,9 +263,9 @@ export const Trivias: React.FC<{
             style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: 16,
+              gap: 20,
               width: '100%',
-              maxWidth: 540,
+              maxWidth: 620,
             }}
           >
             {activeScene.options.map((option, index) => {
@@ -300,21 +300,21 @@ export const Trivias: React.FC<{
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 16,
+                    gap: 20,
                     backgroundColor: bg,
-                    borderRadius: 16,
-                    padding: '18px 20px',
-                    border: `2px solid ${borderColor}`,
+                    borderRadius: 20,
+                    padding: '24px 28px',
+                    border: `3px solid ${borderColor}`,
                     boxShadow: isRevealed && isCorrectOption
-                      ? '0 0 24px rgba(251, 191, 36, 0.5)'
-                      : '0 4px 12px rgba(0,0,0,0.08)',
+                      ? '0 0 32px rgba(251, 191, 36, 0.6)'
+                      : '0 6px 16px rgba(0,0,0,0.1)',
                     transition: 'all 0.4s ease',
                   }}
                 >
                   <div
                     style={{
-                      width: 48,
-                      height: 48,
+                      width: 60,
+                      height: 60,
                       borderRadius: '50%',
                       backgroundColor: badgeBg,
                       display: 'flex',
@@ -326,7 +326,7 @@ export const Trivias: React.FC<{
                     <span
                       style={{
                         color: badgeText,
-                        fontSize: 22,
+                        fontSize: 28,
                         fontWeight: 800,
                       }}
                     >
@@ -336,7 +336,7 @@ export const Trivias: React.FC<{
                   <span
                     style={{
                       color: textColor,
-                      fontSize: 32,
+                      fontSize: 40,
                       fontWeight: 700,
                       lineHeight: 1.2,
                     }}

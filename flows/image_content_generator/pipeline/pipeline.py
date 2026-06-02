@@ -487,6 +487,27 @@ class Pipeline(BaseModelTool):
                         return True
                 
                 Messenger.warning(f"   ⚠️ APIs failed for query '{query}'. Falling back to AI Image.")
+            elif self.mode == "trivias":
+                # In trivias mode, try stock videos even if LLM chose ai_image
+                # since Step 2 (AI images) is skipped
+                try_query = query
+                if not try_query:
+                    question_text = getattr(scene, "question", "")
+                    if question_text:
+                        import re
+                        words = re.sub(r'[^\w\s]', '', question_text).split()
+                        stop_words = {'que','es','el','la','los','las','un','una','de','del','en','con','por','para','tu','se','no','su','al','lo','como','mas','pero','sus','le','ya','este','entre','era','muy','sin','sobre','fue','hay','ser','son','han'}
+                        meaningful = [w.lower() for w in words if w.lower() not in stop_words][:3]
+                        if meaningful:
+                            try_query = ' '.join(meaningful)
+                if try_query:
+                    Messenger.info(f"   🔍 Scene {scene.scene_number}: '{try_query}'")
+                    if pexels_tool.fetch_video(try_query, clip_path):
+                        if clip_path.exists() and clip_path.stat().st_size > 1024:
+                            return True
+                    if pixabay_tool.fetch_video(try_query, clip_path):
+                        if clip_path.exists() and clip_path.stat().st_size > 1024:
+                            return True
             else:
                 Messenger.info(f"   🎨 Scene {scene.scene_number} explicitly requested 'ai_image'. Skipping stock video search.")
 
