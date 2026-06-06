@@ -14,7 +14,7 @@ on:
         options:
           - ''
           - standard
-          - trivias
+          - siete_niveles
 
 jobs:
   post-content:

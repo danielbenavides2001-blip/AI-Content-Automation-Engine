@@ -1,3 +1,4 @@
+import random
 import time
 import wave
 from pathlib import Path
@@ -11,6 +12,7 @@ from tools.common.messenger import Messenger
 class GeminiAudioGenerator(GeminiBase):
     tts_model: str = "gemini-2.5-flash-preview-tts"
     voice_name: str = "Charon"
+    _last_call_time: float = 0.0
 
     def text_to_speech(
         self,
@@ -19,8 +21,15 @@ class GeminiAudioGenerator(GeminiBase):
     ) -> None:
         """
         Generates audio using Gemini TTS and saves it to disk.
+        Applies adaptive rate-limiting only when calls are too frequent.
         """
-        time.sleep(20)
+        now = time.time()
+        min_gap = 2.0
+        if now - self._last_call_time < min_gap:
+            actual_delay = min_gap - (now - self._last_call_time) + random.uniform(0.5, 1.5)
+            Messenger.info(f"Rate-limiting TTS: waiting {actual_delay:.1f}s")
+            time.sleep(actual_delay)
+        self._last_call_time = time.time()
 
         audio_path.parent.mkdir(parents=True, exist_ok=True)
 

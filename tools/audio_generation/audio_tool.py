@@ -15,7 +15,7 @@ MODE_MUSIC_CONFIG = {
         "description": "cinematic/adventure",
         "url": "https://raw.githubusercontent.com/tannerhelland/free-music/master/mp3/Wild%20Waters.mp3",
     },
-    "trivias": {
+    "siete_niveles": {
         "fallback_subdir": "standard",
         "description": "cinematic/adventure",
         "url": "https://raw.githubusercontent.com/tannerhelland/free-music/master/mp3/Wild%20Waters.mp3",

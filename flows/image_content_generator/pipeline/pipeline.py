@@ -6,6 +6,8 @@ import subprocess
 
 from pydantic import BaseModel, PrivateAttr
 
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+
 from flows.image_content_generator.pipeline.prompt_base.models import VideoScript
 from flows.image_content_generator.pipeline.prompt_longs.manager import PromptManagerLongs
 from flows.image_content_generator.pipeline.prompt_shorts.manager import PromptManagerShorts
@@ -65,7 +67,7 @@ class Pipeline(BaseModelTool):
     CLIPS_DIR: ClassVar[str] = "clips"
     VIDEOS_DIR: ClassVar[str] = "videos"
     EDITIONS_DIR: ClassVar[str] = "editions"
-    REMOTION_DIR: ClassVar[str] = "flows/image_content_generator/remotion"
+    REMOTION_DIR: ClassVar[str] = str(_PROJECT_ROOT / "flows" / "image_content_generator" / "remotion")
 
     # Standard Output Files
     IDEA_JSON: ClassVar[str] = "idea.json"
@@ -90,6 +92,11 @@ class Pipeline(BaseModelTool):
 
     # Standard Tracking Files
     IDEAS_TRACKING_CSV: ClassVar[str] = "ideas_tracking.csv"
+
+    # Configurable constants (formerly magic numbers)
+    BATCH_SIZE: ClassVar[int] = 15
+    BG_MUSIC_VOLUME: ClassVar[float] = 0.15
+    SUBTITLE_FONT_SIZE: ClassVar[int] = 64
 
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
@@ -231,9 +238,9 @@ class Pipeline(BaseModelTool):
         if getattr(idea_obj, "category", "") == "geography":
             from flows.image_content_generator.pipeline.prompt_shorts.geography.models import GeographyHandler
             return self.load_json(idea_obj.id, self.SCRIPT_JSON, GeographyHandler)
-        elif getattr(idea_obj, "category", "") == "trivias":
-            from flows.image_content_generator.pipeline.prompt_shorts.trivias.models import TriviasHandler
-            return self.load_json(idea_obj.id, self.SCRIPT_JSON, TriviasHandler)
+        elif getattr(idea_obj, "category", "") == "siete_niveles":
+            from flows.image_content_generator.pipeline.prompt_shorts.siete_niveles.models import SieteNivelesHandler
+            return self.load_json(idea_obj.id, self.SCRIPT_JSON, SieteNivelesHandler)
         return self.load_json(idea_obj.id, self.SCRIPT_JSON, VideoScript)
 
     def save_json(self, idea_id: int, filename: str, data: BaseModel):
@@ -288,6 +295,7 @@ class Pipeline(BaseModelTool):
         title_slug = slugify(title)
         return self.get_idea_path(idea_id) / f"{title_slug}.mp4"
 
+    @retry(max_attempts=3)
     def step1_generate_story(self, extra_avoid: str = ""):
         """
         Generate Concept & Script: Creates a cinematic idea and expands it into a storyboard.
@@ -333,6 +341,11 @@ class Pipeline(BaseModelTool):
             import copy
             script_b = copy.deepcopy(script)
             script_b.scenes[0].narration = hook_b
+
+            # Re-validate to enforce nivel prefix on Hook B scene 1
+            from flows.image_content_generator.pipeline.prompt_shorts.siete_niveles.models import _ensure_nivel_prefix
+            if hasattr(script_b.scenes[0], 'nivel'):
+                script_b.scenes[0].narration = _ensure_nivel_prefix(script_b.scenes[0].narration, script_b.scenes[0].nivel)
 
             idea_b = copy.deepcopy(idea_data)
             idea_b.title = f"{idea_data.title} [Hook B]"
@@ -487,34 +500,11 @@ class Pipeline(BaseModelTool):
                         return True
                 
                 Messenger.warning(f"   ⚠️ APIs failed for query '{query}'. Falling back to AI Image.")
-            elif self.mode == "trivias":
-                # In trivias mode, try stock videos even if LLM chose ai_image
-                # since Step 2 (AI images) is skipped
-                try_query = query
-                if not try_query:
-                    question_text = getattr(scene, "question", "")
-                    if question_text:
-                        import re
-                        words = re.sub(r'[^\w\s]', '', question_text).split()
-                        stop_words = {'que','es','el','la','los','las','un','una','de','del','en','con','por','para','tu','se','no','su','al','lo','como','mas','pero','sus','le','ya','este','entre','era','muy','sin','sobre','fue','hay','ser','son','han'}
-                        meaningful = [w.lower() for w in words if w.lower() not in stop_words][:3]
-                        if meaningful:
-                            try_query = ' '.join(meaningful)
-                if try_query:
-                    Messenger.info(f"   🔍 Scene {scene.scene_number}: '{try_query}'")
-                    if pexels_tool.fetch_video(try_query, clip_path):
-                        if clip_path.exists() and clip_path.stat().st_size > 1024:
-                            return True
-                    if pixabay_tool.fetch_video(try_query, clip_path):
-                        if clip_path.exists() and clip_path.stat().st_size > 1024:
-                            return True
             else:
                 Messenger.info(f"   🎨 Scene {scene.scene_number} explicitly requested 'ai_image'. Skipping stock video search.")
 
             # 3. Fallback: Ken Burns sobre imagen (Último recurso o forzado)
             if not img_path.exists() or img_path.stat().st_size < 1024:
-                # In trivias mode, Step 2 (AI images) is skipped intentionally.
-                # Generate an animated gradient placeholder instead of solid color.
                 Messenger.warning(f"   ⚠️ No image available for Scene {scene.scene_number}. Generating gradient placeholder clip.")
                 try:
                     subprocess.run(
@@ -570,147 +560,11 @@ class Pipeline(BaseModelTool):
             Messenger.error(f"No ideas ready for audio generation (target: {target_state}).")
             return
 
-        # Intercept custom flow for Trivias mode
-        if self.mode == "trivias":
-            Messenger.info("\n--- Generating custom split audio for Trivia mode ---")
-            script_data = self.load_script(idea_obj)
-            audios_dir = self.get_idea_subdir(idea_obj.id, self.AUDIOS_DIR)
-            
-            for scene in script_data.scenes:
-                scene_num = scene.scene_number
-                scene_audio_path = self.get_idea_asset_path(idea_obj.id, self.AUDIOS_DIR, self.SCENE_AUDIO_PATTERN.format(scene_num))
-                
-                # Check if already exists
-                if scene_audio_path.exists():
-                    Messenger.info(f"   Scene {scene_num} audio already exists. Skipping.")
-                    continue
-                
-                # Intros/Outros do not have narration_answer (or it is empty)
-                if not getattr(scene, "narration_answer", None):
-                    text = scene.narration_question
-                    self.audio_gen.text_to_speech(text, scene_audio_path)
-                    dur = self.ffmpeg.get_audio_duration(scene_audio_path)
-                    scene.q_dur = dur
-                    scene.a_dur = 0.0
-                    scene.duration = dur
-                    continue
-                
-                # Dynamic split synthesis for trivia question scenes
-                temp_q = audios_dir / f"temp_q_{scene_num}.wav"
-                temp_a = audios_dir / f"temp_a_{scene_num}.wav"
-                temp_timer = audios_dir / f"temp_timer_{scene_num}.wav"
-                
-                # 1. Synthesize Question
-                Messenger.info(f"   Synthesizing Question for Scene {scene_num}...")
-                self.audio_gen.text_to_speech(scene.narration_question, temp_q)
-                q_dur = self.ffmpeg.get_audio_duration(temp_q)
-                
-                # 2. Synthesize Answer
-                Messenger.info(f"   Synthesizing Answer for Scene {scene_num}...")
-                self.audio_gen.text_to_speech(scene.narration_answer, temp_a)
-                a_dur = self.ffmpeg.get_audio_duration(temp_a)
-                
-                # 3. Create 2-second Ticking Sound (4 quick ticks, 0.5s apart)
-                tick_seg = audios_dir / f"temp_tick_seg_{scene_num}.wav"
-                try:
-                    # Generate one tick: short click at 1200Hz + silence = 0.5s
-                    subprocess.run(
-                        [
-                            "ffmpeg", "-y",
-                            "-f", "lavfi", "-i", "sine=frequency=1200:duration=0.04",
-                            "-f", "lavfi", "-i", "anullsrc=r=24000:cl=mono",
-                            "-filter_complex", "[0:a]volume=0.5[a0];[1:a][a0]concat=n=2:v=0:a=1[a]",
-                            "-map", "[a]", "-t", "0.5",
-                            "-ac", "1", "-ar", "24000",
-                            str(tick_seg)
-                        ],
-                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True
-                    )
-                    # Loop 4 times for 2 seconds
-                    subprocess.run(
-                        [
-                            "ffmpeg", "-y",
-                            "-stream_loop", "3",
-                            "-i", str(tick_seg),
-                            "-c", "copy", "-t", "2.0",
-                            "-ac", "1", "-ar", "24000",
-                            str(temp_timer)
-                        ],
-                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True
-                    )
-                finally:
-                    tick_seg.unlink(missing_ok=True)
-                
-                # 4. Create a pleasant ding sound for the answer reveal
-                ding_path = audios_dir / f"temp_ding_{scene_num}.wav"
-                try:
-                    subprocess.run(
-                        [
-                            "ffmpeg", "-y",
-                            "-f", "lavfi", "-i",
-                            "sine=frequency=523.25:duration=0.3,afade=t=in:d=0.05,afade=t=out:st=0.2:d=0.1",
-                            "-f", "lavfi", "-i",
-                            "sine=frequency=659.25:duration=0.5,afade=t=in:d=0.05,afade=t=out:st=0.35:d=0.15",
-                            "-filter_complex",
-                            "[0:a]volume=0.6[a0];"
-                            "[1:a]volume=0.4,adelay=0.01s[a1];"
-                            "[a0][a1]amix=inputs=2:duration=longest[a]",
-                            "-map", "[a]", "-t", "0.6",
-                            "-ac", "1", "-ar", "24000",
-                            str(ding_path)
-                        ],
-                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True
-                    )
-                except Exception:
-                    ding_path = Path("")
-
-                # 5. Concatenate: question + timer + ding + answer
-                concat_inputs = [str(temp_q), str(temp_timer)]
-                concat_labels = ["q", "timer"]
-                if ding_path.exists():
-                    concat_inputs.append(str(ding_path))
-                    concat_labels.append("ding")
-                concat_labels.append("a")
-                concat_inputs.append(str(temp_a))
-
-                n_src = len(concat_labels)
-                concat_filter = "".join(f"[{i}:a]" for i in range(n_src)) + f"concat=n={n_src}:v=0:a=1[a]"
-                cmd_concat = [
-                    "ffmpeg", "-y",
-                ] + sum([["-i", str(p)] for p in concat_inputs], []) + [
-                    "-filter_complex", concat_filter,
-                    "-map", "[a]",
-                    str(scene_audio_path)
-                ]
-                subprocess.run(cmd_concat, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
-                
-                # Cleanup temp files
-                temp_q.unlink(missing_ok=True)
-                temp_a.unlink(missing_ok=True)
-                temp_timer.unlink(missing_ok=True)
-                ding_path.unlink(missing_ok=True)
-                
-                # Record exact timings back into scene properties
-                ding_dur = self.ffmpeg.get_audio_duration(ding_path) if ding_path.exists() else 0.0
-                scene.q_dur = q_dur
-                scene.a_dur = a_dur
-                scene.duration = q_dur + 2.0 + ding_dur + a_dur + 0.3
-                Messenger.success(f"   Scene {scene_num} compiled successfully (Q: {q_dur:.2f}s | Timer: 2.0s | Ding: {ding_dur:.2f}s | A: {a_dur:.2f}s | Total: {scene.duration:.2f}s)")
-            
-            # Save updated durations in script.json
-            self.save_json(idea_obj.id, self.SCRIPT_JSON, script_data)
-            
-            # Update state
-            idea_obj.state = State.AUDIO_GENERATED
-            self.store.save(idea_obj)
-            Messenger.success(f"Step 3 ready: {State.AUDIO_GENERATED} finalized for Trivias.\n")
-            return
-
         Messenger.info("\n--- Generating batched audio for the script ---")
         script_data = self.load_script(idea_obj)
 
         total_scenes = len(script_data.scenes)
-        batch_size = 15
+        batch_size = self.BATCH_SIZE
 
         for start_idx in range(0, total_scenes, batch_size):
             try:
@@ -824,6 +678,18 @@ class Pipeline(BaseModelTool):
                 Messenger.error(traceback.format_exc())
                 raise e
 
+        # Slow down scene audio for Gemini TTS (no native speaking_rate support)
+        if not isinstance(self.audio_gen, VertexAIAudioGenerator):
+            Messenger.info("Slowing down Gemini TTS audio (atempo=0.95)...")
+            for i in range(len(script_data.scenes)):
+                scene_num = getattr(script_data.scenes[i], 'scene_number', i + 1)
+                seg = self.get_idea_asset_path(idea_obj.id, self.AUDIOS_DIR, self.SCENE_AUDIO_PATTERN.format(scene_num))
+                if seg.exists():
+                    slowed = seg.with_suffix(".slowed.wav")
+                    self.ffmpeg.adjust_tempo(seg, slowed, tempo=0.95)
+                    if slowed.exists():
+                        slowed.replace(seg)
+
         # Final Update
         idea_obj.state = State.AUDIO_GENERATED
         self.store.save(idea_obj)
@@ -857,11 +723,12 @@ class Pipeline(BaseModelTool):
                 sfx_name = 'swoosh'
             sfx_name = sfx_name.lower().strip()
             
-            sfx_path = Path("flows/image_content_generator/resources/sfx") / f"{sfx_name}.mp3"
+            sfx_base = _PROJECT_ROOT / "flows" / "image_content_generator" / "resources" / "sfx"
+            sfx_path = sfx_base / f"{sfx_name}.mp3"
             if not sfx_path.exists():
-                sfx_path = Path("flows/image_content_generator/resources/sfx") / f"{sfx_name}.wav"
+                sfx_path = sfx_base / f"{sfx_name}.wav"
             if not sfx_path.exists():
-                sfx_path = Path("flows/image_content_generator/resources/sfx/swoosh.mp3")
+                sfx_path = sfx_base / "swoosh.mp3"
 
             if sfx_path.exists() and seg.exists():
                 sfx_seg = self.get_idea_asset_path(idea_obj.id, self.AUDIOS_DIR, f"scene_{scene_num:02d}_sfx.wav")
@@ -997,9 +864,12 @@ class Pipeline(BaseModelTool):
             idea_obj.id, self.EDITIONS_DIR, self.SUBTITLED_VIDEO
         )
 
-        # 3. Extract Audio
-        Messenger.info("Extracting audio for transcription...")
-        self.ffmpeg.extract_audio(raw_video, audio_wav)
+        # 3. Extract Audio (skip if already exists from Step 4)
+        if not audio_wav.exists():
+            Messenger.info("Extracting audio for transcription...")
+            self.ffmpeg.extract_audio(raw_video, audio_wav)
+        else:
+            Messenger.info("Audio already extracted, skipping...")
 
         # 4. Generate srt with script context for perfect spelling
         Messenger.info("Transcribing audio via Whisper...")
@@ -1009,7 +879,7 @@ class Pipeline(BaseModelTool):
 
         # 5. Add Subtitles
         Messenger.info("Adding subtitles to final video...")
-        self.ffmpeg.add_subtitles_to_video(raw_video, subs_srt, subtitled_video)
+        self.ffmpeg.add_subtitles_to_video(raw_video, subs_srt, subtitled_video, font_size=self.SUBTITLE_FONT_SIZE)
 
         # 6. Updates state.
         idea_obj.state = State.VIDEO_SUBTITLED
@@ -1043,57 +913,61 @@ class Pipeline(BaseModelTool):
         remotion_frames_dir = remotion_overlay.parent
         remotion_frames_dir.mkdir(parents=True, exist_ok=True)
         
-        # --- NUEVO: Obtener encabezado de intriga del script ---
+        # --- Obtener encabezado de intriga del script ---
         intrigue_text = getattr(script_data, "intrigue_header", None)
-        
-        # Accumulate scene start/end timings for Remotion timeline alignment
-        trivia_scenes = []
-        if self.mode == "trivias":
+
+        # --- Niveles markers para overlay en modo 7 niveles ---
+        level_markers = None
+        if self.mode == "siete_niveles":
+            audios_dir = self.get_idea_subdir(idea_obj.id, self.AUDIOS_DIR)
+            level_markers = []
             current_time = 0.0
             for scene in script_data.scenes:
-                start_time = current_time
-                end_time = current_time + scene.duration
-                
-                trivia_scenes.append({
-                    "scene_number": scene.scene_number,
-                    "question": scene.question,
-                    "options": scene.options,
-                    "correct_answer": scene.correct_answer,
-                    "q_dur": scene.q_dur,
-                    "a_dur": scene.a_dur,
-                    "start_time": start_time,
-                    "end_time": end_time
-                })
-                current_time = end_time
+                scene_num = getattr(scene, "nivel", 0)
+                scene_idx = getattr(scene, "scene_number", 1)
+                # Use scene_number for audio file naming
+                audio_file = audios_dir / f"scene_{scene_idx:02d}_sfx.wav"
+                if not audio_file.exists():
+                    audio_file = audios_dir / f"scene_{scene_idx}.wav"
+                duration = self.ffmpeg.get_audio_duration(audio_file) if audio_file.exists() else 5.0
 
-        composition_id = "Trivias" if self.mode == "trivias" else "Subtitles"
+                # Only add level markers for actual niveles (skip intro with nivel=0)
+                if scene_num >= 1:
+                    level_markers.append({
+                        "nivel": scene_num,
+                        "titulo": getattr(scene, "titulo_nivel", ""),
+                        "impacto": getattr(scene, "impacto", "Medio"),
+                        "startTime": current_time * 1000,
+                        "endTime": (current_time + duration) * 1000,
+                    })
+                current_time += duration
+
         self.remotion.render_subtitles(
             remotion_path=remotion_root,
             output_path=remotion_overlay,
             words=word_data,
             intrigue_header=intrigue_text,
-            composition_id=composition_id,
-            trivia_scenes=trivia_scenes if self.mode == "trivias" else None
+            composition_id="Subtitles",
+            level_markers=level_markers
         )
 
-        # 4. Multi-layer Composition with filter_complex
+        # 4. Multi-layer Composition (Remotion overlay on raw video)
         import subprocess
-        remotion_pattern = remotion_overlay / "%04d.png"
-        duration = self.ffmpeg.get_video_duration(raw_video)
-        
-        fc = (
-            f"[0:v]noise=alls=5:allf=t+u[v_grain];"
-            f"[v_grain]drawbox=y=0:w=iw:h=25:color=black@0.5:t=fill[v_bar_bg];"
-            f"[v_bar_bg]drawbox=y=0:w=iw*t/{duration}:h=25:color=#FFFF00@1.0:t=fill[v_composed];"
-            f"[v_composed][1:v]overlay=shortest=1[out]"
-        )
+        # Dynamically detect the frame padding from the first frame file
+        frame_files = sorted(remotion_overlay.glob("*.png"))
+        if frame_files:
+            first_name = frame_files[0].stem
+            padding = len(first_name)
+            remotion_pattern = remotion_overlay / f"%0{padding}d.png"
+        else:
+            remotion_pattern = remotion_overlay / "%04d.png"
         
         cmd = [
             "ffmpeg", "-y",
             "-i", str(raw_video),
-            "-framerate", "25",
+            "-framerate", "30",
             "-i", str(remotion_pattern),
-            "-filter_complex", fc,
+            "-filter_complex", "[0:v][1:v]overlay=shortest=1[out]",
             "-map", "[out]", "-map", "0:a",
             "-c:v", "libx264", "-c:a", "copy", "-pix_fmt", "yuv420p",
             str(pro_video)
@@ -1141,7 +1015,7 @@ class Pipeline(BaseModelTool):
             subtitled_video,
             selected_music,
             final_with_music,
-            bg_volume=0.06  # Subtle atmosphere
+            bg_volume=self.BG_MUSIC_VOLUME
         )
 
         # 5. Updates state.
@@ -1176,6 +1050,8 @@ class Pipeline(BaseModelTool):
         # 3. Renames the final video.
         video_title = idea_obj.title if idea_obj.title else f"video_{idea_obj.id}"
         named_final = self.get_named_video_path(idea_obj.id, video_title)
+        if named_final.exists():
+            named_final.unlink()
         final_video.rename(named_final)
 
         # 4. Updates state.
@@ -1227,8 +1103,12 @@ class Pipeline(BaseModelTool):
         2. For each idea:
             a. Generates an AI-optimized description.
             b. Finds the final named video.
-            c. Uploads via FacebookTool.
-            d. Updates state to UPLOADED.
+            c. Generates thumbnail from video (frame at ~15%).
+            d. Uploads via FacebookTool.
+            e. Sets custom thumbnail on the published video.
+            f. Uploads English captions.
+            g. Posts engagement auto-comment.
+            h. Updates state to UPLOADED.
         """
         # 1. Retrieves COMPLETED ideas.
         # We use a loop to process all completed ones as requested by the user
@@ -1262,7 +1142,18 @@ class Pipeline(BaseModelTool):
             
             final_description = description + transparency_footer
 
-            # 4. Uploads via FacebookTool.
+            # 4. Generates thumbnail from the video
+            thumbnail_path = self.get_idea_asset_path(idea_obj.id, self.EDITIONS_DIR, "thumbnail.jpg")
+            try:
+                video_duration = self.ffmpeg.get_video_duration(video_path)
+                thumb_time = min(2.0, max(0.5, video_duration * 0.15))
+                self.ffmpeg.extract_frame(video_path, thumbnail_path, time_sec=thumb_time)
+                if thumbnail_path.exists():
+                    Messenger.success(f"   🖼️ Thumbnail generated: {thumbnail_path.name}")
+            except Exception as thumb_e:
+                Messenger.warning(f"   ⚠️ Failed to generate thumbnail: {thumb_e}")
+
+            # 5. Uploads via FacebookTool.
             try:
                 video_id = self.facebook.upload_video(
                     file_path=video_path,
@@ -1271,6 +1162,9 @@ class Pipeline(BaseModelTool):
                 )
                 
                 if video_id:
+                    # --- Thumbnail personalizado ---
+                    if thumbnail_path.exists():
+                        self.facebook.set_video_thumbnail(video_id, thumbnail_path)
                     # --- FASE 5: MULTILINGUAL CAPTIONS ---
                     try:
                         subs_srt = self.get_idea_asset_path(idea_obj.id, self.EDITIONS_DIR, self.FINAL_SUBS)
@@ -1299,7 +1193,7 @@ class Pipeline(BaseModelTool):
                     except Exception as e:
                         Messenger.warning(f"Failed to generate or post auto-comment: {e}")
 
-                # 5. Updates state to UPLOADED.
+                # 6. Updates state to UPLOADED.
                 idea_obj.state = State.UPLOADED
                 self.store.save(idea_obj)
                 Messenger.success(f"   Idea {idea_obj.id} uploaded and marked as {State.UPLOADED}.\n")

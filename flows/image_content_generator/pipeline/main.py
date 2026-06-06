@@ -6,9 +6,10 @@ from flows.image_content_generator.pipeline.pipeline import Pipeline
 from flows.image_content_generator.pipeline.schemas import VideoOrientation
 from tools.common.messenger import Messenger
 
-RESOURCE_BASE = Path("flows/image_content_generator/resource")
-LONG_OUT_BASE = Path("flows/image_content_generator/out_long")
-SHORT_OUT_BASE = Path("flows/image_content_generator/out_short")
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+RESOURCE_BASE = _PROJECT_ROOT / "flows" / "image_content_generator" / "resource"
+LONG_OUT_BASE = _PROJECT_ROOT / "flows" / "image_content_generator" / "out_long"
+SHORT_OUT_BASE = _PROJECT_ROOT / "flows" / "image_content_generator" / "out_short"
 
 
 class PipelineStep(str, Enum):
@@ -31,7 +32,7 @@ def main():
     parser.add_argument("orientation", type=VideoOrientation, choices=list(VideoOrientation))
     parser.add_argument("step", type=PipelineStep, choices=list(PipelineStep))
     parser.add_argument("--avoid", type=str, default="", help="List of topics to avoid")
-    parser.add_argument("--mode", type=str, default="standard", choices=["standard", "stickman", "geography", "trivias"], help="Content generation mode")
+    parser.add_argument("--mode", type=str, default="standard", choices=["standard", "stickman", "geography", "siete_niveles"], help="Content generation mode")
     args = parser.parse_args()
 
     # Determine output base based on orientation
@@ -65,20 +66,10 @@ def main():
     elif args.step == PipelineStep.ALL:
         Messenger.info("--- Starting Full Pipeline Run (Steps 1-8) ---")
         pipeline.step1_generate_story(extra_avoid=args.avoid)
-        # We run PRO subtitles instead of standard if step is ALL
-        # In trivias mode, skip Step 2 (AI image generation) since stock
-        # videos + text overlay is sufficient.
-        if args.mode in ("trivias",):
-            Messenger.info(f"⏭️ Skipping Step 2 (AI image generation) in '{args.mode}' mode — using stock videos instead.")
-            steps_to_run = [
-                PipelineStep.STEP2B, PipelineStep.STEP3, PipelineStep.STEP4,
-                PipelineStep.STEP5_PRO, PipelineStep.STEP6, PipelineStep.STEP7, PipelineStep.STEP8
-            ]
-        else:
-            steps_to_run = [
-                PipelineStep.STEP2, PipelineStep.STEP2B, PipelineStep.STEP3, PipelineStep.STEP4,
-                PipelineStep.STEP5_PRO, PipelineStep.STEP6, PipelineStep.STEP7, PipelineStep.STEP8
-            ]
+        steps_to_run = [
+            PipelineStep.STEP2, PipelineStep.STEP2B, PipelineStep.STEP3, PipelineStep.STEP4,
+            PipelineStep.STEP5_PRO, PipelineStep.STEP6, PipelineStep.STEP7, PipelineStep.STEP8
+        ]
         for step in steps_to_run:
             step_methods[step]()
         Messenger.success("Full pipeline cycle completed successfully.")

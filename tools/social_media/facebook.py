@@ -293,6 +293,38 @@ class FacebookTool(BaseModelTool):
         Messenger.success(f"✅ Comment added successfully! ID: {comment_id}")
         return comment_id
 
+    def set_video_thumbnail(self, video_id: str, thumbnail_path: Path) -> bool:
+        """
+        Sets a custom thumbnail for an already-published video.
+        Uses the POST /{video_id}/thumbnails endpoint with is_preferred=true.
+        """
+        if not thumbnail_path.exists():
+            Messenger.warning(f"⚠️ Thumbnail file not found: {thumbnail_path}")
+            return False
+
+        Messenger.info(f"🖼️ Setting custom thumbnail for video {video_id}...")
+        url = f"{self.base_url}/{video_id}/thumbnails"
+
+        try:
+            with open(thumbnail_path, "rb") as f:
+                files = {"source": ("thumbnail.jpg", f, "image/jpeg")}
+                data = {
+                    "is_preferred": "true",
+                    "access_token": self.access_token,
+                }
+                response = requests.post(url, data=data, files=files)
+                response.raise_for_status()
+                result = response.json()
+                if result.get("success") or result.get("id"):
+                    Messenger.success(f"✅ Custom thumbnail set successfully!")
+                    return True
+                else:
+                    Messenger.warning(f"⚠️ Thumbnail response: {response.text}")
+                    return False
+        except Exception as e:
+            Messenger.warning(f"⚠️ Failed to set custom thumbnail: {str(e)}")
+            return False
+
     def upload_captions(self, video_id: str, srt_file_path: Path, locale: str = "en_US") -> bool:
         """
         Uploads an SRT caption file to an existing video.

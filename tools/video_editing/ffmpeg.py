@@ -190,8 +190,13 @@ class FFmpegTool(BaseModelTool):
             "-of", "default=noprint_wrappers=1:nokey=1",
             str(video_path)
         ]
-        output = subprocess.check_output(cmd, text=True).strip()
-        return int(output)
+        try:
+            output = subprocess.check_output(cmd, text=True).strip()
+            if not output or output == "N/A":
+                return 0
+            return int(output)
+        except Exception:
+            return 0
 
     def get_video_width(self, video_path: Path) -> int:
         """
@@ -204,8 +209,13 @@ class FFmpegTool(BaseModelTool):
             "-of", "default=noprint_wrappers=1:nokey=1",
             str(video_path)
         ]
-        output = subprocess.check_output(cmd, text=True).strip()
-        return int(output)
+        try:
+            output = subprocess.check_output(cmd, text=True).strip()
+            if not output or output == "N/A":
+                return 0
+            return int(output)
+        except Exception:
+            return 0
 
     def create_composite_scene_video(
         self,
@@ -253,7 +263,10 @@ class FFmpegTool(BaseModelTool):
             # Pro Vignette Effect
             vignette = "vignette=PI/4"
             
-            vf = f"{vf_fill},zoompan=z='{z_expr}':d=1:{pos_filter}:s=1080x1920,format=yuv420p,{vignette}{glitch_filter}"
+            # Cinematic color grade: cool shadows, warm highlights, boosted contrast
+            cinematic_grade = ",eq=contrast=1.1:saturation=1.05:brightness=0.02,colorbalance=rs=-0.05:gs=-0.03:bs=0.08"
+            
+            vf = f"{vf_fill},zoompan=z='{z_expr}':d=1:{pos_filter}:s=1080x1920,format=yuv420p,{vignette}{cinematic_grade}{glitch_filter}"
 
             cmd = [
                 "ffmpeg", "-y", "-loop", "1",
@@ -286,6 +299,20 @@ class FFmpegTool(BaseModelTool):
         ]
         self._run(cmd)
 
+    def extract_frame(self, video_in: Path, frame_out: Path, time_sec: float = 1.0) -> None:
+        """
+        Extracts a single frame from a video at the specified time as a JPEG image.
+        """
+        cmd = [
+            "ffmpeg", "-y",
+            "-ss", str(time_sec),
+            "-i", str(video_in),
+            "-vframes", "1",
+            "-q:v", "2",
+            str(frame_out)
+        ]
+        self._run(cmd)
+
     def extract_audio(self, video_in: Path, audio_out: Path) -> None:
         """
         Extracts audio from a video file, optimized for Whisper STT.
@@ -297,6 +324,22 @@ class FFmpegTool(BaseModelTool):
             str(audio_out)
         ]
         self._run(cmd)
+
+    def adjust_tempo(self, audio_in: Path, audio_out: Path, tempo: float = 0.95) -> None:
+        """
+        Adjusts the playback speed of an audio file using atempo filter.
+        Values < 1.0 slow down, > 1.0 speed up.
+        """
+        cmd = [
+            "ffmpeg", "-y",
+            "-i", str(audio_in),
+            "-filter:a", f"atempo={tempo}",
+            "-c:a", "pcm_s16le",
+            "-v", "error",
+            str(audio_out)
+        ]
+        self._run(cmd)
+
     def add_subtitles_to_video(
         self,
         video_in: Path,
@@ -317,7 +360,7 @@ class FFmpegTool(BaseModelTool):
             f"OutlineColour=&H000000,BorderStyle=1,Outline=3,"
             f"Alignment=2,MarginV={margin_v}"
         )
-        sub_filter = f"subtitles={safe_srt}:force_style='{style}'"
+        sub_filter = f"subtitles='{safe_srt}':force_style='{style}'"
 
         cmd = [
             "ffmpeg", "-y",
@@ -336,12 +379,14 @@ class FFmpegTool(BaseModelTool):
         bg_volume: float = 0.12
     ) -> None:
         """
-        Mixes a background audio track into a video.
+        Mixes a background audio track into a video with sidechain ducking.
+        Music volume automatically lowers when narration is active.
         """
         filter_complex = (
-            f"[0:a]volume=1.0[v_a]; "
-            f"[1:a]volume={bg_volume}[bg_a]; "
-            "[v_a][bg_a]amix=inputs=2:duration=first[fixed_a]"
+            f"[0:a]asplit[voice][voice_side];"
+            f"[1:a]volume={bg_volume}[bg_a];"
+            f"[bg_a][voice_side]sidechaincompress=threshold=0.06:ratio=10:attack=0.5:release=100[bg_compressed];"
+            f"[voice][bg_compressed]amix=inputs=2:duration=first:weights=1 0.4[fixed_a]"
         )
         cmd = [
             "ffmpeg", "-y",

@@ -26,8 +26,8 @@ except ImportError:
 
 from tools.common.messenger import Messenger
 from tools.text_generation.gemini import GeminiTextGenerator
-from flows.image_content_generator.pipeline.prompt_shorts.trivias.models import TriviasHandler, TriviaIdea
-from flows.image_content_generator.pipeline.prompt_shorts.trivias import constants as trivia_constants
+from flows.image_content_generator.pipeline.prompt_shorts.siete_niveles.models import SieteNivelesHandler, SieteNivelesIdea
+from flows.image_content_generator.pipeline.prompt_shorts.siete_niveles import constants as sn_constants
 
 
 class PromptManagerShorts(BasePromptManager):
@@ -38,7 +38,7 @@ class PromptManagerShorts(BasePromptManager):
     CATEGORIES: Sequence[Type[CategoryHandler]] = (
         [StoryHandler]
         + ([GeographyHandler] if (HAS_GEOGRAPHY and GeographyHandler) else [])
-        + [TriviasHandler]
+        + [SieteNivelesHandler]
     )
 
     def generate_full_story(
@@ -55,12 +55,12 @@ class PromptManagerShorts(BasePromptManager):
             idea_prompt = geo_constants.IDEA_PROMPT_GEOGRAPHY
             script_prompt = geo_constants.SCRIPT_PROMPT_GEOGRAPHY
             series_name = "EnigmaIQ Geografía"
-        elif mode == "trivias":
-            category = "trivias"
-            idea_model = TriviaIdea
-            idea_prompt = trivia_constants.IDEA_PROMPT_TRIVIAS
-            script_prompt = trivia_constants.SCRIPT_PROMPT_TRIVIAS
-            series_name = "EnigmaIQ Trivias"
+        elif mode == "siete_niveles":
+            category = "siete_niveles"
+            idea_model = SieteNivelesIdea
+            idea_prompt = sn_constants.IDEA_PROMPT_SIETE_NIVELES
+            script_prompt = sn_constants.SCRIPT_PROMPT_SIETE_NIVELES
+            series_name = "EnigmaIQ 7 Niveles"
         else:
             category = "stories"
             idea_model = StoryIdea
@@ -88,8 +88,8 @@ class PromptManagerShorts(BasePromptManager):
                 "BIODIVERSIDAD Y CORDILLERAS: Cómo las tres cordilleras de los Andes dividen un solo país en mundos ecológicos aislados.",
                 "GEOGRAFÍA HISTÓRICA E INSÓLITA: Fronteras absurdas formadas por ríos caprichosos o montañas intransitables."
             ]
-        elif mode == "trivias":
-            focus_areas = trivia_constants.FOCUS_AREAS_TRIVIAS
+        elif mode == "siete_niveles":
+            focus_areas = sn_constants.FOCUS_AREAS_SIETE_NIVELES
         else:
             focus_areas = [
                 # 🧠 PSICOLOGÍA Y COMPORTAMIENTO HUMANO
@@ -223,12 +223,12 @@ class PromptManagerShorts(BasePromptManager):
                 "Base Style: Stylized topographic infographic map. High-contrast dark navy background with vibrant glowing yellow and neon green border contours.",
                 "Base Style: Dramatic cinematic National Geographic flight. Deep natural green and ocean blue colors, dramatic morning sun rays, and ultra-detailed relief textures.",
             ]
-        elif mode == "trivias":
+        elif mode == "siete_niveles":
             styles = [
-                "Base Style: High-contrast professional quiz show studio. Rich dark background with sleek neon teal and emerald green accents, dynamic theatrical down-lighting.",
-                "Base Style: Neon Cyberpunk Arcade. Dark obsidian background with glowing neon green and white tactical chalk lines, futuristic holographic displays, and micro-grid patterns.",
-                "Base Style: Elegant Minimalist Glassmorphism. Deep dark navy backdrop with frosted glass card placeholders, premium gold/amber glowing edges, and modern clean typography.",
-                "Base Style: Cinematic Documentary Trivia. Textured dark slate background, professional cinematic lighting, rich realistic textures (old parchment, magnifying glass, antique maps) in soft focus."
+                "Base Style: Dark cinematic documentary style. Deep shadows, dramatic side-lighting, mysterious atmosphere, rich textures and volumetric fog effects.",
+                "Base Style: High-contrast mystery magazine aesthetic. Dark backgrounds with glowing golden accents, bold typography-inspired compositions, dramatic spot lighting.",
+                "Base Style: Moody National Geographic explorer style. Warm earthy tones, vintage map textures, compass and parchment overlays, explorer's journal aesthetic.",
+                "Base Style: Dark sci-fi documentary style. Neon cyan and deep blue palette, holographic grid overlays, sleek data visualization elements, futuristic yet grounded.",
             ]
         else:
             styles = [
@@ -260,11 +260,13 @@ class PromptManagerShorts(BasePromptManager):
         # 4. Viral Script / Content Generation
         Messenger.info(f"\n--- Generating Viral {category.upper()} Content: {idea_data.title} ---")
         
-        if mode == "trivias":
+        if mode == "siete_niveles":
             full_script_prompt = (
-                script_prompt + 
+                script_prompt +
                 f"\n\nIDEA A DESARROLLAR: {idea_data.title}\n"
+                f"INTRIGUE HEADER DE LA IDEA: {getattr(idea_data, 'intrigue_header', '')}\n"
                 f"**ESTILOS VISUALES RECOMENDADOS:** {selected_style}\n"
+                f"\n\n**DATOS COMPLETOS DE LA IDEA (CONTEXTO):**\n{idea_data.model_dump_json(indent=2)}\n"
             )
         else:
             full_script_prompt = (
@@ -274,8 +276,8 @@ class PromptManagerShorts(BasePromptManager):
             )
         if mode == "geography":
             script_schema = GeographyHandler
-        elif mode == "trivias":
-            script_schema = TriviasHandler
+        elif mode == "siete_niveles":
+            script_schema = SieteNivelesHandler
         else:
             script_schema = VideoScript
         script = content_gen.generate_text(full_script_prompt, script_schema)
