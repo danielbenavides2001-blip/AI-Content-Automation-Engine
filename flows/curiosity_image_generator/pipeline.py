@@ -305,8 +305,28 @@ class CuriosityPipeline:
                     caption=post_data.caption
                 )
                 Messenger.success(f"🎉 Success! Photo post published to Facebook. ID: {photo_id}")
+                
+                # 5. Auto-comment to boost early engagement (algorithm signal)
+                if photo_id:
+                    try:
+                        Messenger.info("💬 Generating auto-engagement comment...")
+                        comment_prompt = (
+                            f'Eres el creador de "EnigmaIQ". Acabas de publicar una imagen sobre: "{post_data.title}".\n'
+                            f'Escribe un comentario corto (1 sola línea) en español como una pregunta curiosa '
+                            f'que invite a los seguidores a comentar su opinión o compartir si ya lo sabían.\n'
+                            f'El tono debe ser curioso, amigable y natural, sin hashtags.\n'
+                            f'Ejemplo: "¿Cuántos de ustedes ya conocían esta criatura? 😮 Comenten abajo 👇"'
+                        )
+                        comment_text = self.text_gen.generate(comment_prompt).strip()
+                        # photo_id format from /photos is 'page_id_photo_id', need to get post node
+                        self.fb_tool.add_comment(photo_id, comment_text)
+                        Messenger.success(f"✅ Auto-comment posted to drive engagement.")
+                    except Exception as comment_e:
+                        Messenger.warning(f"⚠️ Auto-comment failed (non-fatal): {comment_e}")
+                        
             except Exception as e:
                 Messenger.error(f"❌ Failed to publish photo post: {str(e)}")
                 raise e
         else:
             Messenger.success(f"💾 Dry-run complete. Styled card saved locally at: {composed_image_path}")
+
