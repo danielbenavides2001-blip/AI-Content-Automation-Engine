@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import time
 import urllib.request
+import pandas as pd
 from dotenv import load_dotenv
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
@@ -10,6 +11,7 @@ from tools.text_generation.gemini import GeminiTextGenerator
 from tools.image_generation.vertex_ai import VertexAIImageGenerator
 from tools.social_media.facebook import FacebookTool
 from flows.curiosity_image_generator.models import CuriosityPost
+
 
 class CuriosityPipeline:
     def __init__(self) -> None:
@@ -27,6 +29,13 @@ class CuriosityPipeline:
         
         self.resource_dir = Path(__file__).parent / "resources"
         self.resource_dir.mkdir(parents=True, exist_ok=True)
+        
+        # History CSV
+        self.history_csv = Path(__file__).parent / "curiosity_history.csv"
+        if not self.history_csv.exists():
+            df = pd.DataFrame(columns=["timestamp", "title", "headline"])
+            df.to_csv(self.history_csv, index=False)
+            Messenger.info("📊 Initialized new curiosity history tracker.")
         
         # Tools initialization
         self.text_gen = GeminiTextGenerator()
@@ -253,11 +262,31 @@ class CuriosityPipeline:
     def run(self, publish: bool = False) -> None:
         Messenger.info("✨ Starting Curiosity Photo Post Pipeline...")
         
+        # Load past curiosity topics to avoid repetition
+        past_topics = []
+        try:
+            if self.history_csv.exists():
+                df = pd.read_csv(self.history_csv)
+                if not df.empty:
+                    # Clean and take last 100 topics to prevent prompt overflow
+                    past_topics = df["title"].dropna().tail(100).tolist()
+        except Exception as e:
+            Messenger.warning(f"⚠️ Failed to read curiosity history: {e}")
+
         # 1. Generate Curiosity Text & Prompt using Gemini
+        avoid_instruction = ""
+        if past_topics:
+            avoid_instruction = (
+                "\nCRITICAL: Do NOT generate anything similar or related to these past topics/titles "
+                f"that have already been published: {', '.join(past_topics)}\n"
+                "Select a completely new, unique, and fresh curiosity topic."
+            )
+        
         prompt = (
             "Identify a recent, viral, or highly fascinating curiosity or discovery that occurred in the world "
             "(e.g., a rare animal color variant like a pink dolphin or blue lobster, a strange natural phenomenon, "
             "or a bizarre scientific discovery). Generate a compelling Facebook post about it in Spanish."
+            f"{avoid_instruction}"
         )
         
         Messenger.info("🧠 Generating curiosity story via Gemini...")
@@ -292,6 +321,20 @@ class CuriosityPipeline:
         
         # Clean up temporary raw image
         raw_image_path.unlink(missing_ok=True)
+        
+        # Save new topic to history
+        try:
+            new_row = pd.DataFrame([{
+                "timestamp": timestamp,
+                "title": post_data.title,
+                "headline": post_data.headline
+            }])
+            df_history = pd.read_csv(self.history_csv)
+            df_history = pd.concat([df_history, new_row], ignore_index=True)
+            df_history.to_csv(self.history_csv, index=False)
+            Messenger.success(f"💾 Added '{post_data.title}' to curiosity history.")
+        except Exception as hist_e:
+            Messenger.warning(f"⚠️ Failed to save to history file: {hist_e}")
             
         # 4. Publish to Facebook if requested
         if publish:

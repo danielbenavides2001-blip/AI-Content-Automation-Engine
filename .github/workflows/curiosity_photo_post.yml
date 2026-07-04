@@ -48,3 +48,12 @@ jobs:
         run: |
           echo "🚀 Generating curiosity and image post..."
           poetry run python -m flows.curiosity_image_generator.main --publish
+
+      - name: Commit and Push Changes (Tracking Repetition)
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -f flows/curiosity_image_generator/curiosity_history.csv
+          git commit -m "chore: update tracking and history [skip ci]" || echo "No changes to commit"
+          git pull --rebase --autostash origin main || { git rebase --abort 2>/dev/null; echo "Rebase failed (conflict). Skipping push."; exit 0; }
+          git push origin main || echo "No changes to push"
