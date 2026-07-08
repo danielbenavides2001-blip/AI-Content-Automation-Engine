@@ -18,7 +18,7 @@ class CuriosityPipeline:
         load_dotenv()
         
         # Read settings from environment
-        self.project_id = os.getenv("GCP_PROJECT_ID", "enigmaiq-bot")
+        self.project_id = os.getenv("GCP_PROJECT_ID", "")  # No default project: set GCP_PROJECT_ID when ready
         self.location = os.getenv("GCP_LOCATION", "us-central1")
         self.page_id = os.getenv("FACEBOOK_PAGE_ID")
         self.access_token = os.getenv("FACEBOOK_PAGE_ACCESS_TOKEN")
@@ -41,11 +41,17 @@ class CuriosityPipeline:
         self.text_gen = GeminiTextGenerator()
         
         # Initialize Vertex Image Generator (using 3:4 aspect ratio, then we crop to 4:5)
-        self.image_gen = VertexAIImageGenerator(
-            project_id=self.project_id,
-            location=self.location,
-            aspect_ratio="3:4"
-        )
+        # Only initialize if Vertex AI is enabled and a project is configured
+        use_vertex = os.getenv("USE_VERTEX_AI_IMAGE", "false").lower() == "true"
+        if use_vertex and self.project_id:
+            self.image_gen = VertexAIImageGenerator(
+                project_id=self.project_id,
+                location=self.location,
+                aspect_ratio="3:4"
+            )
+        else:
+            self.image_gen = None
+            Messenger.warning("⚠️  Vertex AI Image generation is DISABLED (USE_VERTEX_AI_IMAGE=false or GCP_PROJECT_ID not set).")
         
         if self.page_id and self.access_token:
             self.fb_tool = FacebookTool(
@@ -301,6 +307,10 @@ class CuriosityPipeline:
         timestamp = int(time.time())
         raw_image_path = self.output_dir / f"raw_curiosity_{timestamp}.jpg"
         composed_image_path = self.output_dir / f"curiosity_card_{timestamp}.jpg"
+        
+        if self.image_gen is None:
+            Messenger.error("❌ Cannot generate image: Vertex AI is disabled. Set USE_VERTEX_AI_IMAGE=true and GCP_PROJECT_ID in your environment to enable image generation.")
+            raise RuntimeError("Vertex AI Image generation is disabled. Update USE_VERTEX_AI_IMAGE and GCP_PROJECT_ID.")
         
         Messenger.info("🎨 Sending request to Vertex AI (Imagen 3)...")
         try:
