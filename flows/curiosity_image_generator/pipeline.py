@@ -18,7 +18,7 @@ class CuriosityPipeline:
         load_dotenv()
         
         # Read settings from environment
-        self.project_id = os.getenv("GCP_PROJECT_ID", "")  # No default project: set GCP_PROJECT_ID when ready
+        self.project_id = os.getenv("GCP_PROJECT_ID", "enigmaiq-bot")
         self.location = os.getenv("GCP_LOCATION", "us-central1")
         self.page_id = os.getenv("FACEBOOK_PAGE_ID")
         self.access_token = os.getenv("FACEBOOK_PAGE_ACCESS_TOKEN")

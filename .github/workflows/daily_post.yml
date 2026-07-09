@@ -72,8 +72,8 @@ jobs:
           FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
-          USE_VERTEX_AI_IMAGE: "false"  # PAUSADO: Creditos de enigmaiq-bot agotados
-          USE_VERTEX_AI_AUDIO: "false"  # PAUSADO: Creditos de enigmaiq-bot agotados
+          USE_VERTEX_AI_IMAGE: "true"
+          USE_VERTEX_AI_AUDIO: "true"
         run: |
           # Solo videos por defecto, imágenes desactivadas
           RUN_VIDEO=true
