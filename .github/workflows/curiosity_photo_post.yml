@@ -1,13 +1,12 @@
 name: Publish Curiosity Photo Post
 
 on:
-  # schedule:
-  #   - cron: '0 13 * * *'   # 08:00 AM Colombia/Mexico (GMT-5)
-  #   - cron: '0 16 * * *'   # 11:00 AM Colombia/Mexico (GMT-5)
-  #   - cron: '0 19 * * *'   # 02:00 PM Colombia/Mexico (GMT-5)
-  #   - cron: '0 22 * * *'   # 05:00 PM Colombia/Mexico (GMT-5)
-  #   - cron: '0 1 * * *'    # 08:00 PM Colombia/Mexico (GMT-5)
-  #   - cron: '0 4 * * *'    # 11:00 PM Colombia/Mexico (GMT-5)
+  schedule:
+    - cron: '0 13 * * *'   # 08:00 AM Colombia/Mexico (GMT-5)
+    - cron: '0 16 * * *'   # 11:00 AM Colombia/Mexico (GMT-5)
+    - cron: '0 19 * * *'   # 02:00 PM Colombia/Mexico (GMT-5)
+    - cron: '0 22 * * *'   # 05:00 PM Colombia/Mexico (GMT-5)
+    - cron: '0 1 * * *'    # 08:00 PM Colombia/Mexico (GMT-5)
   workflow_dispatch:
 
 jobs:
