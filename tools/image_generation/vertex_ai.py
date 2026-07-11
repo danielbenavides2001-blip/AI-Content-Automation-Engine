@@ -52,7 +52,7 @@ class VertexAIImageGenerator:
         for attempt in range(1, max_attempts + 1):
             try:
                 response = self.client.models.generate_images(
-                    model='imagen-3.0-generate-001',
+                    model='gemini-2.5-flash-image',
                     prompt=prompt,
                     config=types.GenerateImagesConfig(
                         number_of_images=1,
