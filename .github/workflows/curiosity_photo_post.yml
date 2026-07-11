@@ -1,12 +1,12 @@
 name: Publish Curiosity Photo Post
 
 on:
-  # schedule:  # PAUSADO: creditos GCP agotados
-  #   - cron: '0 13 * * *'   # 08:00 AM Colombia/Mexico (GMT-5)
-  #   - cron: '0 16 * * *'   # 11:00 AM Colombia/Mexico (GMT-5)
-  #   - cron: '0 19 * * *'   # 02:00 PM Colombia/Mexico (GMT-5)
-  #   - cron: '0 22 * * *'   # 05:00 PM Colombia/Mexico (GMT-5)
-  #   - cron: '0 1 * * *'    # 08:00 PM Colombia/Mexico (GMT-5)
+  schedule:
+    - cron: '0 13 * * *'   # 08:00 AM Colombia/Mexico (GMT-5)
+    - cron: '0 16 * * *'   # 11:00 AM Colombia/Mexico (GMT-5)
+    - cron: '0 19 * * *'   # 02:00 PM Colombia/Mexico (GMT-5)
+    - cron: '0 22 * * *'   # 05:00 PM Colombia/Mexico (GMT-5)
+    - cron: '0 1 * * *'    # 08:00 PM Colombia/Mexico (GMT-5)
   workflow_dispatch:
 
 jobs:
@@ -43,7 +43,7 @@ jobs:
           GCP_LOCATION: ${{ secrets.GCP_LOCATION }}
           FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
           FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
-          USE_VERTEX_AI_IMAGE: "false"  # PAUSADO: creditos GCP agotados
+          USE_VERTEX_AI_IMAGE: "true"
         run: |
           echo "🚀 Generating curiosity and image post..."
           poetry run python -m flows.curiosity_image_generator.main --publish
