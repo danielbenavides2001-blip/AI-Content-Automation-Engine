@@ -129,6 +129,9 @@ class GeminiBase(BaseModelTool):
             if kwargs['model'] != original_model:
                 Messenger.info(f"🔄 [VERTEX MAPPING] mapped model {original_model} -> {kwargs['model']}")
 
+        import time
+        # RATE LIMIT PROTECTION: Sleep 6 seconds between requests to stay below 15 RPM (free trial limits)
+        time.sleep(6.0)
         try:
             return func(*args, **kwargs)
         except errors.ClientError as e:
