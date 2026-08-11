@@ -98,7 +98,7 @@ class GeminiBase(BaseModelTool):
         retry=retry_if_exception_type((errors.APIError, httpx.RequestError, httpx.RemoteProtocolError, httpx.HTTPError)),
         before_sleep=lambda retry_state: Messenger.warning(
             f"⏳ [Intento {retry_state.attempt_number}/7] Gemini saturado: "
-            f"{type(retry_state.outcome.exception()).__name__}. "
+            f"{type(retry_state.outcome.exception()).__name__} - {str(retry_state.outcome.exception())}. "
             f"Reintentando en {retry_state.next_action.sleep:.0f}s..."
         ),
         reraise=True,
