@@ -64,8 +64,8 @@ class DailyAutomator:
         unsafe_words = ["muerte", "mortal", "masacre", "asesin", "mata", "letal", "tragedia", "destru", "sangre", "gore", "cadáver", "herido", "suicidi", "manson", "infierno", "terror", "violaci"]
         safe_topics = [t for t in unique_topics if not any(w in str(t).lower() for w in unsafe_words)]
 
-        # Pass up to 30 topics (Limitado a 30 para evitar que el prompt explote a 50,000+ caracteres y lance Error 400 en Vertex AI)
-        avoid_list = "\n- ".join(safe_topics[-30:]) 
+        # Pass up to 150 topics to ensure strict anti-repetition rules now that we know the 400 error was due to the model name and not the prompt length.
+        avoid_list = "\n- ".join(safe_topics[-150:]) 
         
         return f"\n\n**CRITICAL - ANTI-REPETITION RULES:**\nDO NOT repeat, reuse or get inspired by the following themes, metaphors or titles (THEY ARE ALREADY POSTED):\n- {avoid_list}\n\nBe creative. EXPLORE NEW VISUAL TERRITORIES."
 

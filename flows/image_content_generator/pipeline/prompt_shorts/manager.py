@@ -109,9 +109,9 @@ class PromptManagerShorts(BasePromptManager):
         # Filtramos titles_to_avoid para no enviar palabras violentas del pasado a la IA
         combined_avoid = [t for t in titles_to_avoid if not any(w in str(t).lower() for w in unsafe_words)]
         
-        # LÍMITE CRÍTICO: Vertex AI falla (Error 400) si el prompt es excesivamente largo con Structured Outputs.
-        # Pasamos solo los últimos 30 temas para mantener el prompt por debajo de 5,000 caracteres.
-        combined_avoid = combined_avoid[-30:]
+        # LÍMITE CRÍTICO DE MEMORIA: Ahora que usamos gemini-2.5-flash, podemos enviar un historial mucho más largo.
+        # Pasamos los últimos 150 temas para asegurar máxima variedad y evitar repeticiones a toda costa.
+        combined_avoid = combined_avoid[-150:]
         
         if extra_avoid:
             # extra_avoid already comes as a formatted string from get_recent_topics (ya filtrado)
