@@ -32,7 +32,7 @@ Divide la historia en **6 a 8 escenas cortas** (alta densidad visual, cambios r�
 Para cada escena debes definir:
 1. `visual_type`: Escoge `"stock_video"` si es algo común que se puede grabar en la vida real (ej: gente caminando, cielo, ciudad, naturaleza). Escoge `"ai_image"` si es algo abstracto, fantástico, histórico, científico o imposible de capturar (ej: neuronas, ADN, concepto abstracto, criatura rara).
 2. `pexels_query`: Solo si elegiste "stock_video", escribe 1 a 3 palabras clave EN INGLÉS.
-3. `image_prompt`: La descripción detallada EN INGLÉS. **CRÍTICO:** Debe describir literalmente la acción, el evento histórico, científico o el desastre geológico específico mencionado en la narración. Usa detalles visuales hiperrealistas (ej: 'ruins of a city after an earthquake, dust in the air, cinematic lighting'). **PROHIBIDO** usar descripciones genéricas, arte abstracto o personajes posando si la escena habla de la fuerza de la naturaleza o la historia.
+3. `image_prompt`: La descripción detallada EN INGLÉS. **CRÍTICO:** Debe describir literalmente la acción, el misterio, el artefacto antiguo o la cultura específica mencionada en la narración. Usa detalles visuales hiperrealistas y de estructura viral (ej: 'ancient golden artifact glowing in a dark cave, hyper-realistic, cinematic lighting, national geographic photography'). **PROHIBIDO** usar descripciones genéricas o arte abstracto. El enfoque visual debe atrapar al espectador desde el primer segundo mostrando algo fascinante y visualmente asombroso.
 4. `narration`: Lo que dirá el locutor.
 
 REGLAS CRÍTICAS DE RETENCIÓN:
