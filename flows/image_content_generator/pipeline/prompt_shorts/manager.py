@@ -92,87 +92,11 @@ class PromptManagerShorts(BasePromptManager):
             focus_areas = sn_constants.FOCUS_AREAS_SIETE_NIVELES
         else:
             focus_areas = [
-                # 🧠 PSICOLOGÍA Y COMPORTAMIENTO HUMANO
-                "SESGOS COGNITIVOS Y TRAMPAS MENTALES: Cómo tu propio cerebro te engaña a diario sin que lo notes. Efecto Dunning-Kruger, sesgo de confirmación, paradoja de la elección.",
-                "POR QUÉ HACES LO QUE HACES: Los secretos de la psicología conductual que explican tus compulsiones, miedos irracionales y malas decisiones.",
-                "EL PODER OCULTO DE TU INCONSCIENTE: Cómo decisiones que crees tuyas están siendo manipuladas por tu entorno, colores, música y palabras.",
-                "MANIPULACIÓN PSICOLÓGICA: Técnicas reales de persuasión que usan empresas, gobiernos y publicidad para controlar tus decisiones.",
-                "TRASTORNOS CEREBRALES ALUCINANTES: Casos reales de personas con condiciones cerebrales extrañas como no reconocer caras, sentir que todo es falso o no sentir dolor.",
-                # 🧬 EL CUERPO HUMANO
-                "SECRETOS DE TU CUERPO QUE NADIE TE CONTÓ: Datos fascinantes sobre cómo funciona tu organismo sin que te des cuenta. El poder del sistema inmune, la regeneración celular.",
-                "SUPERPODERES OCULTOS DEL CUERPO HUMANO: La asombrosa capacidad de regeneración del hígado, cómo el corazón crea su propio campo eléctrico o por qué bostezamos en contagio.",
-                "LO QUE LA CIENCIA AÚN NO ENTIENDE DEL CUERPO: Misterios médicos sin resolver como el efecto placebo, la anestesia o por qué soñamos.",
-                "LOS LÍMITES EXTREMOS DEL CUERPO HUMANO: Hasta dónde puede aguantar el cuerpo sin dormir, sin comer, en frío extremo o bajo presión. Casos reales de supervivencia.",
-                "MICROBIOS QUE CONTROLAN TU MENTE: Cómo las bacterias en tu intestino afectan tu estado de ánimo, tus decisiones e incluso tu personalidad.",
-                # 🐾 MUNDO ANIMAL
-                "SUPERPODERES ANIMALES QUE PARECEN FICCIÓN: Criaturas con capacidades que desafían la lógica. Animales que brillan, regeneran partes del cuerpo o ven lo invisible.",
-                "LAS ESTRATEGIAS MÁS BRUTALES DE SUPERVIVENCIA ANIMAL: Engaños, mimetismo, sacrificios y tácticas extremas en el reino animal.",
-                "ANIMALES CON COMPORTAMIENTOS HUMANOS: Criaturas que usan herramientas, hacen duelo por sus muertos, comercian, tienen guerras o esclavizan a otras especies.",
-                "DEPREDADORES SUBESTIMADOS: Los animales más letales que no parecen peligrosos pero lo son. El animal más mortal del mundo te sorprenderá.",
-                "MISTERIOS DEL COMPORTAMIENTO ANIMAL: Comportamientos que la ciencia no puede explicar. Migraciones imposibles, suicidios colectivos o comunicación interestelar.",
-                # 🌍 NATURALEZA Y FENÓMENOS NATURALES
-                "FENÓMENOS NATURALES QUE PARECEN MAGIA: Relámpagos volcánicos, agujeros azules, glaciares sangrantes, nubes que parecen ovnis y lagos que explotan.",
-                "LOS LUGARES MÁS EXTREMOS E INHÓSPITOS DEL PLANETA: Puntos donde la vida parece imposible pero existe. Desiertos helados, profundidades oceánicas, volcanes activos.",
-                "MISTERIOS GEOGRÁFICOS QUE LA CIENCIA NO EXPLICA: Límites que la naturaleza impone de formas extrañas. Fronteras invisibles, ecosistemas aislados, anomalías magnéticas.",
-                "PLANTAS Y HONGOS CON PODERES OCULTOS: Especies con habilidades increíbles. Redes subterráneas de comunicación, hongos que controlan mentes, plantas carnívoras sorprendentes.",
-                "DESASTRES NATURALES QUE CAMBIARON LA HISTORIA: Eventos catastróficos que moldearon civilizaciones enteras y de los que casi nadie habla.",
-                # 🔬 CIENCIA Y TECNOLOGÍA
-                "INVENTOS ACCIDENTALES QUE CAMBIARON EL MUNDO: Descubrimientos científicos que ocurrieron por error. Microondas, penicilina, rayos X, post-it, Viagra.",
-                "TECNOLOGÍA QUE PARECE MAGIA NEGRA: Innovaciones actuales tan avanzadas que suenan a ciencia ficción. Edición genética, computación cuántica, interfaces cerebro-máquina.",
-                "LO QUE LA CIENCIA SABE PERO NO TE CUENTA: Descubrimientos científicos reales que suenan a conspiración o son demasiado perturbadores para el público general.",
-                "PARADOJAS CIENTÍFICAS QUE TE ROMPERÁN LA CABEZA: Paradojas de la física, el tiempo y la lógica que desafían todo lo que crees saber.",
-                "EL LADO OSCURO DE LA TECNOLOGÍA: Cómo funciona realmente internet, la deep web, vigilancia masiva, algoritmos que te conocen mejor que tú mismo.",
-                # 🍔 ALIMENTACIÓN Y COCINA
-                "LA CIENCIA DETRÁS DE TUS COMIDAS FAVORITAS: Por qué el queso hace agujeros, qué hace que la pizza sea adictiva o por qué la comida sabe diferente en el avión.",
-                "ALIMENTOS QUE FUNCIONAN COMO DROGAS: Ciertos alimentos activan los mismos receptores cerebrales que las drogas. Adicción al azúcar, umami, capsaicina y el picante.",
-                "LA HISTORIA OCULTA DE LOS ALIMENTOS: El origen sorprendente de lo que comes cada día. Cómo se inventaron los cereales, las patatas fritas, el café instantáneo.",
-                "MITOS ALIMENTICIOS QUE LA CIENCIA DESMINTIÓ: Creencias populares sobre comida que son completamente falsas. El mito de las 8 horas de sueño, las 5 comidas al día.",
-                "COMIDAS TAN EXTREMAS QUE POCOS SE ATREVEN A PROBAR: Platos de todo el mundo que desafían el estómago y la mente. Delicatessen peligrosas, ingredientes prohibidos.",
-                # 🔎 MISTERIOS MODERNOS SIN RESOLVER
-                "CASOS SIN RESOLVER QUE DESAFÍAN LA LÓGICA: Desapariciones inexplicables, crímenes perfectos, misterios que la policía no pudo resolver y siguen abiertos.",
-                "EXPEDIENTES DESCLASIFICADOS: Secretos de gobierno que salieron a la luz después de décadas. Programas ocultos, experimentos, avistamientos.",
-                "FENÓMENOS EXTRAÑOS QUE LA CIENCIA NO PUEDE EXPLICAR: Eventos documentados pero sin explicación científica. Luces fantasmas, sonidos del cielo, lluvias de animales.",
-                "HISTORIAS DE GENTE QUE DESAPARECIÓ SIN DEJAR RASTRO: Casos reales de desapariciones misteriosas donde no hubo crimen, solo silencio absoluto.",
-                "MENSAJES Y CÓDIGOS QUE NADIE HA PODIDO DESCIFRAR: Manuscritos antiguos, códigos imposibles, mensajes cifrados que han resistido siglos de intentos.",
-                # 💪 HISTORIAS DE SUPERVIVENCIA Y SUPERACIÓN
-                "HISTORIAS REALES DE SUPERVIVENCIA EXTREMA: Personas que sobrevivieron a situaciones imposibles. Perdidos en el mar, atrapados en montañas, abandonados en la nada.",
-                "CASOS DE RESILIENCIA HUMANA QUE PAREN FICCIÓN: Personas que superaron condiciones brutales y salieron adelante contra todo pronóstico.",
-                "LOS ERRORES HUMANOS MÁS COSTOSOS DE LA HISTORIA: Errores simples que tuvieron consecuencias catastróficas. Un clic, una palabra, una decisión que cambió todo.",
-                "ACTOS DE HEROÍSMO ANÓNIMO QUE SALVARON MILES DE VIDA: Personas comunes que hicieron algo extraordinario sin buscar reconocimiento.",
-                "FRAUDES Y ESTAFAS QUE ENGAÑARON A TODO EL MUNDO: Los timos más grandes de la historia. Gente que vendió la Torre Eiffel, islas falsas, engaños que duraron décadas.",
-                # 💡 CURIOSIDADES DE LA VIDA COTIDIANA
-                "EL ORIGEN SECRETO DE LAS COSAS COTIDIANAS: Cómo se inventaron objetos que usas a diario. El tenedor, el papel higiénico, el cepillo de dientes. Historias bizarras.",
-                "DATOS QUE CAMBIARÁN CÓMO VES EL MUNDO: Hechos tan sorprendentes sobre la vida diaria que después de saberlos no podrás dejar de pensarlos.",
-                "EL DINERO Y SUS SECRETOS MÁS OSCUROS: Cómo se crea el dinero, por qué inflación, el origen de la deuda, el sistema bancario explicado sin rodeos.",
-                "LEYENDAS URBANAS QUE RESULTARON SER CIERTAS: Mitos populares que todos creían falsos pero que realmente ocurrieron. Historias que suenan a mentira pero son verdad.",
-                "EL PODER DEL AZAR Y LA PROBABILIDAD EN TU VIDA: Coincidencias imposibles, estadísticas alucinantes, la lotería genética y cómo el azar define tu destino.",
-                # 🏆 RÉCORDS Y EXTREMOS
-                "RÉCORDS HUMANOS TAN EXTREMOS QUE PAREN MENTIRA: Las marcas más insólitas jamás registradas. Resistencia, fuerza, velocidad, memoria.",
-                "CASOS EXTREMOS DE LA NATURALEZA HUMANA: Personas con condiciones, habilidades o historias de vida tan extremas que parecen sacadas de una película.",
-                "LOS MAYORES EXPERTOS DEL MUNDO EN COCOSAS: Personas que dedicaron su vida a dominar habilidades absurdas o extremadamente específicas.",
-                "OBJETOS Y LUGARES CON RÉCORDS IMPOSIBLES: La cosa más cara, más grande, más pequeña, más antigua, más rara del planeta.",
-                # 🌌 EL ESPACIO Y EL UNIVERSO
-                "DATOS DEL UNIVERSO QUE TE HARÁN SENTIR INMENSO: Curiosidades sobre el cosmos, agujeros negros, planetas imposibles y el tamaño inimaginable del universo.",
-                "LO QUE LA NASA OCULTA SOBRE EL ESPACIO: Datos sorprendentes y poco conocidos sobre las misiones espaciales, la vida en órbita y lo que hay más allá.",
-                "EL LADO ATERRADOR DEL ESPACIO: Fenómenos cósmicos que son tan violentos o extraños que cuesta creer que existan. Cuásares, púlsares, estrellas de neutrones.",
-                "LA BÚSQUEDA DE VIDA EXTRATERRESTRE: Lo que realmente se sabe sobre ovnis, señales del espacio, planetas habitables y la ecuación de Drake.",
-                # 🎨 LENGUAJE, ARTE Y CULTURA
-                "CURIOSIDADES DEL LENGUAJE QUE TE SORPRENDERÁN: Palabras intraducibles, idiomas que se extinguen, el origen de las palabras que usas todos los días.",
-                "HISTORIAS DETRÁS DE OBRAS DE ARTE FAMOSAS: Secretos y anécdotas ocultas en pinturas, canciones, películas y libros que conoces pero no sabías su trasfondo.",
-                "EL SIGNIFICADO OCULTO DETRÁS DE SÍMBOLOS COTIDIANOS: El verdadero origen y significado de símbolos que ves a diario. Marca registrada, play, corazón, símbolos religiosos.",
-                "CANCIONES CON HISTORIAS PERTURBADORAS: Hits famosos que esconden tragedias, crímenes o mensajes ocultos que cambiaron la vida de sus creadores.",
-                # 💻 INTERNET Y MUNDO DIGITAL
-                "LOS SECRETOS DE INTERNET QUE POCOS CONOCEN: Cómo funciona realmente la red, el lado oscuro de los algoritmos, quién controla lo que ves.",
-                "HISTORIAS DE HACKERS Y CIBERCRÍMENES ALUCINANTES: Los ataques más increíbles de la historia, robos digitales imposibles, cómo se protege la información.",
-                "EL NEGOCIO OCULTO DE TUS DATOS PERSONALES: Cómo las empresas ganan dinero con tu información, qué saben de ti y cómo usarlo a tu favor.",
-                "FENÓMENOS VIRALES QUE NADIE ESPERABA: Memes, trends y fenómenos de internet que explotaron sin razón aparente y cambiaron la cultura digital.",
-                # 🧩 GENÉTICA Y EVOLUCIÓN
-                "CURIOSIDADES DE TU ADN QUE NO SABÍAS: Datos fascinantes sobre tu código genético. Cuánto compartes con un plátano, qué genes heredaste de Neandertal, ADN basura.",
-                "LA EVOLUCIÓN EN ACCIÓN: Ejemplos de evolución que están ocurriendo AHORA MISMO en animales y humanos. Adaptaciones rápidas, mutaciones sorprendentes.",
-                "LO QUE LA GENÉTICA PUEDE HACER HOY: Edición genética CRISPR, bebés de diseño, resucitar especies extintas. La ciencia ficción ya es realidad.",
-                "ENFERMEDADES GENÉTICAS RARAS: Condiciones médicas tan extrañas que afectan a un puñado de personas en el mundo. Casos documentados fascinantes.",
-                # 🏛️ CIVILIZACIONES (ocasional, no dominante)
-                "DATOS POCO CONOCIDOS DE CIVILIZACIONES ANTIGUAS: Una curiosidad específica y poco conocida de alguna civilización antigua que NO se haya tratado antes.",
+                "CURIOSIDADES DE LOS TERREMOTOS: Datos científicos asombrosos sobre cómo se producen los sismos, luces de terremoto, y la energía liberada que nadie conoce.",
+                "LOS PEORES TERREMOTOS DE LA HISTORIA: Relatos impactantes de los sismos más destructivos y mortales que han cambiado la geografía y la historia humana.",
+                "HISTORIAS DE TERREMOTOS EN LATINOAMÉRICA: Sucesos impactantes, milagros y tragedias ocurridas durante los sismos más recordados en América Latina (Chile, México, Perú).",
+                "TERREMOTOS EN COLOMBIA: Un repaso por la historia sísmica de Colombia, por qué tiembla tanto y los eventos más memorables que han marcado al país.",
+                "TERREMOTO EN COLOMBIA (AGOSTO 2026): El devastador sismo de magnitud 7.4 con epicentro en San José del Palmar, Chocó. Historias de impacto, daños en ciudades principales y la fuerza de la naturaleza en vivo."
             ]
         selected_area = random.choice(focus_areas)
         Messenger.info(f"🎯 Random Focus Area: {selected_area}")
