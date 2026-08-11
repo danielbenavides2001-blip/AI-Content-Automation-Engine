@@ -9,6 +9,9 @@ Debe estar pensado para un video fluido, de ritmo rápido, compuesto por **6 a 8
 La narración completa de TODAS las escenas sumadas debe tener entre 130 y 180 palabras para que dure entre 50 y 75 segundos.
 Máxima prioridad: **RETENCIÓN**. Cada segundo debe enganchar más que el anterior.
 
+**POLÍTICA DE SEGURIDAD (BRAND SAFETY FACEBOOK):**
+El tema debe ser **100% APTO PARA TODO PÚBLICO**. Está estrictamente prohibido generar ideas que involucren sangre, gore, muertes explícitas, violencia, tragedias gráficas o cualquier contenido que viole las políticas de Facebook/Instagram. Mantén un enfoque de asombro científico, educativo y respetuoso.
+
 **ESTILO VISUAL OBLIGATORIO:**
 Si se deben generar imágenes de IA como respaldo, aplica este estilo: "{visual_style}"
 """
@@ -41,4 +44,5 @@ REGLAS CRÍTICAS DE RETENCIÓN:
 6. **HISTORIA COMPLETA:** La explicación debe quedar 100% resuelta en la última escena. No dejes cabos sueltos.
 7. El `intrigue_header` debe ser un título de 3-5 palabras en MAYÚSCULAS que genere intriga inmediata (Ej: "EL PODER OCULTO", "NO VAS A CREER", "TU CEREBRO MIENTE").
 8. **LLAMADO A LA ACCIÓN (CTA):** En la última escena, incluye un CTA interactivo que invite a comentar (Ej: "¿Conocías este dato? Te leo en los comentarios").
+9. **SEGURO PARA FACEBOOK (BRAND SAFETY):** Todo el guion, descripciones de imágenes y textos deben ser 100% aptos para todo público. **PROHIBIDO** incluir descripciones de sangre, gore, violencia, cadáveres, destrucción masiva gráfica o lenguaje que pueda causar un baneo en redes sociales.
 """
