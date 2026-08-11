@@ -22,9 +22,9 @@ class GeminiUsage(BaseModelTool):
 
 
 def _is_daily_quota_exhausted(exc: Exception) -> bool:
-    """Returns True if the error is a hard daily quota limit (limit: 0), not a per-minute rate limit."""
+    """Returns True if the error is a hard daily quota limit, not a per-minute rate limit."""
     msg = str(exc)
-    return "limit: 0" in msg and "GenerateRequestsPerDayPerProjectPerModel" in msg
+    return "GenerateRequestsPerDayPerProjectPerModel" in msg
 
 
 class GeminiBase(BaseModelTool):
@@ -134,11 +134,11 @@ class GeminiBase(BaseModelTool):
         time.sleep(6.0)
         try:
             return func(*args, **kwargs)
-        except errors.ClientError as e:
-            # If daily quota is hard-exhausted (limit: 0), rotate to next key immediately
+        except (errors.ClientError, errors.APIError) as e:
+            # If daily quota is exhausted, rotate to next key immediately
             if _is_daily_quota_exhausted(e):
                 if self._rotate_to_next_client():
-                    # Retry immediately (re-raise as APIError to trigger tenacity retry, which will resolve new client method)
+                    # Retry immediately (re-raise to trigger tenacity retry, which will resolve new client method)
                     raise errors.APIError(str(e), None)  # type: ignore[arg-type]
                 else:
                     Messenger.error("🚫 Todas las claves API han alcanzado su cuota diaria. Reintentando en backoff...")
