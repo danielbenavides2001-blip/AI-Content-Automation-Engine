@@ -8,6 +8,8 @@ from tools.common.messenger import Messenger
 T = TypeVar("T", bound=BaseModel)
 
 
+from google.genai import types
+
 class GeminiTextGenerator(GeminiBase):
     text_model: str = "gemini-2.0-flash"
 
@@ -30,6 +32,24 @@ class GeminiTextGenerator(GeminiBase):
             config={
                 'response_mime_type': 'application/json',
                 'response_schema': schema,
+                'safety_settings': [
+                    types.SafetySetting(
+                        category=types.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                        threshold=types.HarmBlockThreshold.BLOCK_NONE,
+                    ),
+                    types.SafetySetting(
+                        category=types.HarmCategory.HARM_CATEGORY_HARASSMENT,
+                        threshold=types.HarmBlockThreshold.BLOCK_NONE,
+                    ),
+                    types.SafetySetting(
+                        category=types.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                        threshold=types.HarmBlockThreshold.BLOCK_NONE,
+                    ),
+                    types.SafetySetting(
+                        category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                        threshold=types.HarmBlockThreshold.BLOCK_NONE,
+                    ),
+                ]
             }
         )
         self._extract_usage(response, self.text_model)
@@ -46,7 +66,27 @@ class GeminiTextGenerator(GeminiBase):
         response = self._execute_with_retry(
             "models.generate_content",
             model=self.text_model,
-            contents=[prompt]
+            contents=[prompt],
+            config={
+                'safety_settings': [
+                    types.SafetySetting(
+                        category=types.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                        threshold=types.HarmBlockThreshold.BLOCK_NONE,
+                    ),
+                    types.SafetySetting(
+                        category=types.HarmCategory.HARM_CATEGORY_HARASSMENT,
+                        threshold=types.HarmBlockThreshold.BLOCK_NONE,
+                    ),
+                    types.SafetySetting(
+                        category=types.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                        threshold=types.HarmBlockThreshold.BLOCK_NONE,
+                    ),
+                    types.SafetySetting(
+                        category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                        threshold=types.HarmBlockThreshold.BLOCK_NONE,
+                    ),
+                ]
+            }
         )
         self._extract_usage(response, self.text_model)
 
@@ -74,7 +114,27 @@ SRT CONTENT:
         response = self._execute_with_retry(
             "models.generate_content",
             model=self.text_model,
-            contents=[prompt]
+            contents=[prompt],
+            config={
+                'safety_settings': [
+                    types.SafetySetting(
+                        category=types.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                        threshold=types.HarmBlockThreshold.BLOCK_NONE,
+                    ),
+                    types.SafetySetting(
+                        category=types.HarmCategory.HARM_CATEGORY_HARASSMENT,
+                        threshold=types.HarmBlockThreshold.BLOCK_NONE,
+                    ),
+                    types.SafetySetting(
+                        category=types.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                        threshold=types.HarmBlockThreshold.BLOCK_NONE,
+                    ),
+                    types.SafetySetting(
+                        category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                        threshold=types.HarmBlockThreshold.BLOCK_NONE,
+                    ),
+                ]
+            }
         )
         self._extract_usage(response, self.text_model)
         
