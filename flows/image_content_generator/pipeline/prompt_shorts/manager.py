@@ -164,11 +164,11 @@ class PromptManagerShorts(BasePromptManager):
             ]
         else:
             styles = [
-                "Base Estilo: Hyper-realistic cinematic lighting. Dark moody colors, misty background, high detail, professional photography style.",
-                "Base Estilo: Cinematic National Geographic style documentary. Vibrant colors, ultra-detailed, mysterious and awe-inspiring atmosphere.",
-                "Base Estilo: Vintage anatomical/technical sketch on aged parchment. Sepia ink, detailed, mysterious journal look.",
-                "Base Estilo: Dark digital art. Neon accents, glitchy textures, high contrast, futuristic mystery vibe.",
-                "Base Estilo: Surreal fantasy realism. Luminous ethereal particles, deep cosmic purples and magentas, magical atmosphere, rich volumetric glows."
+                "Base Estilo: Hyper-realistic cinematic documentary footage. Sharp focus, natural earthy colors, high detail, professional photography style capturing raw nature.",
+                "Base Estilo: Cinematic National Geographic style documentary. Vibrant colors, ultra-detailed textures of earth and structures, realistic awe-inspiring atmosphere.",
+                "Base Estilo: Highly detailed 3D historical reconstruction. Photorealistic rendering, cinematic lighting, dust and atmospheric depth, intense realism.",
+                "Base Estilo: Dramatic photojournalism style. High contrast, raw emotion, gritty realism, capturing the raw power of geological forces.",
+                "Base Estilo: Epic cinematic realism. Sweeping landscapes, dramatic natural lighting, hyper-detailed geological formations, immersive and powerful."
             ]
         
         base_style = random.choice(styles)
