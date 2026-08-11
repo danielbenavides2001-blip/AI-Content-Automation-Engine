@@ -58,8 +58,14 @@ class DailyAutomator:
         
         # Deduplicate and format
         unique_topics = list(set([str(t).strip() for t in topics if str(t).strip()]))
+        
+        # Filtro de Brand Safety: Evitar enviar títulos del pasado que tengan palabras violentas 
+        # (ya que Gemini lee todo el prompt y si ve "Masacre" en el historial, bloquea la petición nueva).
+        unsafe_words = ["muerte", "mortal", "masacre", "asesin", "mata", "letal", "tragedia", "destru", "sangre", "gore", "cadáver", "herido", "suicidi", "manson", "infierno", "terror", "violaci"]
+        safe_topics = [t for t in unique_topics if not any(w in str(t).lower() for w in unsafe_words)]
+
         # Pass up to 250 topics (enough memory without breaking CLI limits)
-        avoid_list = "\n- ".join(unique_topics[-250:]) 
+        avoid_list = "\n- ".join(safe_topics[-250:]) 
         
         return f"\n\n**CRITICAL - ANTI-REPETITION RULES:**\nDO NOT repeat, reuse or get inspired by the following themes, metaphors or titles (THEY ARE ALREADY POSTED):\n- {avoid_list}\n\nBe creative. EXPLORE NEW VISUAL TERRITORIES."
 

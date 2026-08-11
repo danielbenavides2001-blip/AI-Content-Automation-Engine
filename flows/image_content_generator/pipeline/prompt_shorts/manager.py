@@ -104,9 +104,13 @@ class PromptManagerShorts(BasePromptManager):
         avoid_msg = ""
         banned_words = "Pobre, Rico, Mentalidad, Escasez, Abundancia, Mindset, Millonario"
         
-        combined_avoid = list(titles_to_avoid)
+        unsafe_words = ["muerte", "mortal", "masacre", "asesin", "mata", "letal", "tragedia", "destru", "sangre", "gore", "cadáver", "herido", "suicidi", "manson", "infierno", "terror", "violaci"]
+        
+        # Filtramos titles_to_avoid para no enviar palabras violentas del pasado a la IA
+        combined_avoid = [t for t in titles_to_avoid if not any(w in str(t).lower() for w in unsafe_words)]
+        
         if extra_avoid:
-            # extra_avoid already comes as a formatted string from get_recent_topics
+            # extra_avoid already comes as a formatted string from get_recent_topics (ya filtrado)
             combined_avoid.append(extra_avoid)
             
         if combined_avoid:
