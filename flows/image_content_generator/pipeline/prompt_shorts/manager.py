@@ -92,11 +92,11 @@ class PromptManagerShorts(BasePromptManager):
             focus_areas = sn_constants.FOCUS_AREAS_SIETE_NIVELES
         else:
             focus_areas = [
-                "CURIOSIDADES DE LOS TERREMOTOS: Datos científicos asombrosos sobre cómo se producen los sismos, luces de terremoto, y la inmensa energía liberada que la geología sigue estudiando.",
-                "LOS MAYORES SISMOS DE LA HISTORIA: Relatos impactantes de los sismos de mayor magnitud que han cambiado la geografía del planeta y cómo la humanidad se adaptó a ellos.",
-                "HISTORIAS DE TERREMOTOS EN LATINOAMÉRICA: Eventos históricos, milagros de supervivencia y la increíble resiliencia de la población ocurrida durante los sismos más recordados en América Latina (Chile, México, Perú).",
-                "TERREMOTOS EN COLOMBIA: Un repaso por la historia geológica y sísmica de Colombia, por qué tiembla tanto y los eventos naturales más memorables que han marcado al país.",
-                "TERREMOTO EN COLOMBIA (AGOSTO 2026): El impresionante sismo de magnitud 7.4 con epicentro en San José del Palmar, Chocó. Historias de impacto, cómo reaccionaron las ciudades principales y la inmensa fuerza de la naturaleza en vivo."
+                "MISTERIOS SIN RESOLVER: Enigmas históricos y científicos que la humanidad aún no logra descifrar, desapariciones inexplicables y artefactos fuera de su tiempo.",
+                "CURIOSIDADES DE LA ANTIGÜEDAD: Secretos de civilizaciones perdidas, tecnologías antiguas sorprendentes y prácticas culturales extrañas que dejaron huella en la historia.",
+                "FENÓMENOS EXTRAÑOS Y CURIOSOS: Eventos naturales inexplicables, comportamientos animales asombrosos y cosas extraordinarias de nuestro planeta que parecen sacadas de la ciencia ficción.",
+                "CULTURAS FASCINANTES: Tradiciones únicas, mitos impactantes y rituales milenarios de diferentes culturas alrededor del mundo que atrapan al espectador.",
+                "DESCUBRIMIENTOS INCREÍBLES: Hallazgos arqueológicos recientes, revelaciones científicas que cambian paradigmas y secretos desenterrados que cuentan historias olvidadas."
             ]
         selected_area = random.choice(focus_areas)
         Messenger.info(f"🎯 Random Focus Area: {selected_area}")
