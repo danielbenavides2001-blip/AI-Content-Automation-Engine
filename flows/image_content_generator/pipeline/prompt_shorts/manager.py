@@ -96,7 +96,8 @@ class PromptManagerShorts(BasePromptManager):
                 "CURIOSIDADES DE LA ANTIGÜEDAD: Secretos de civilizaciones perdidas, tecnologías antiguas sorprendentes y prácticas culturales extrañas que dejaron huella en la historia.",
                 "FENÓMENOS EXTRAÑOS Y CURIOSOS: Eventos naturales inexplicables, comportamientos animales asombrosos y cosas extraordinarias de nuestro planeta que parecen sacadas de la ciencia ficción.",
                 "CULTURAS FASCINANTES: Tradiciones únicas, mitos impactantes y rituales milenarios de diferentes culturas alrededor del mundo que atrapan al espectador.",
-                "DESCUBRIMIENTOS INCREÍBLES: Hallazgos arqueológicos recientes, revelaciones científicas que cambian paradigmas y secretos desenterrados que cuentan historias olvidadas."
+                "DESCUBRIMIENTOS INCREÍBLES: Hallazgos arqueológicos recientes, revelaciones científicas que cambian paradigmas y secretos desenterrados que cuentan historias olvidadas.",
+                "DATOS RANDOM ALUCINANTES: Cualquier dato científico, histórico, biológico o espacial que sea 100% real pero suene inventado. Usa tu máxima creatividad para explorar temas completamente nuevos."
             ]
         selected_area = random.choice(focus_areas)
         Messenger.info(f"🎯 Random Focus Area: {selected_area}")

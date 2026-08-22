@@ -56,18 +56,18 @@ class DailyAutomator:
         if not topics:
             return ""
         
-        # Deduplicate and format
-        unique_topics = list(set([str(t).strip() for t in topics if str(t).strip()]))
+        # Deduplicate and format preserving order (most recent at the end)
+        unique_topics = list(dict.fromkeys([str(t).strip() for t in topics if str(t).strip()]))
         
         # Filtro de Brand Safety: Evitar enviar títulos del pasado que tengan palabras violentas 
         # (ya que Gemini lee todo el prompt y si ve "Masacre" en el historial, bloquea la petición nueva).
         unsafe_words = ["muerte", "mortal", "masacre", "asesin", "mata", "letal", "tragedia", "destru", "sangre", "gore", "cadáver", "herido", "suicidi", "manson", "infierno", "terror", "violaci"]
         safe_topics = [t for t in unique_topics if not any(w in str(t).lower() for w in unsafe_words)]
 
-        # Pass up to 150 topics to ensure strict anti-repetition rules now that we know the 400 error was due to the model name and not the prompt length.
-        avoid_list = "\n- ".join(safe_topics[-150:]) 
+        # Pass up to 250 topics to ensure strict anti-repetition rules now that we know the 400 error was due to the model name and not the prompt length.
+        avoid_list = "\n- ".join(safe_topics[-250:]) 
         
-        return f"\n\n**CRITICAL - ANTI-REPETITION RULES:**\nDO NOT repeat, reuse or get inspired by the following themes, metaphors or titles (THEY ARE ALREADY POSTED):\n- {avoid_list}\n\nBe creative. EXPLORE NEW VISUAL TERRITORIES."
+        return f"\n\n**CRITICAL - ANTI-REPETITION RULES:**\nDO NOT repeat, reuse or get inspired by the following themes, metaphors or titles (THEY ARE ALREADY POSTED):\n- {avoid_list}\n\nBe creative. EXPLORE COMPLETELY NEW SUBJECTS, CULTURES, AND MYSTERIES THAT HAVE NOT BEEN MENTIONED ABOVE."
 
 
     def sync_to_github(self):
@@ -136,8 +136,16 @@ class DailyAutomator:
             cmd_step8 = [sys.executable, "-m", "flows.image_content_generator.pipeline.main", "short", "step8_image", "--mode", "standard"]
             subprocess.run(cmd_step8, check=True)
             
+            try:
+                import pandas as pd
+                video_csv = Path("flows/image_content_generator/out_short/ideas_tracking.csv")
+                df = pd.read_csv(video_csv)
+                last_title = df.iloc[-1]["title"]
+            except Exception:
+                last_title = "Curiosity Image"
+                
             Messenger.success("✅ Curiosity Image post completed!")
-            self.log_post("image", "Curiosity Image")
+            self.log_post("image", f"Curiosity Image: {last_title}")
             self.sync_to_github()
         except Exception as e:
             Messenger.error(f"❌ Failed to generate/upload Curiosity Image: {e}")
