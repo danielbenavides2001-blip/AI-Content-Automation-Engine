@@ -1215,13 +1215,13 @@ class Pipeline(BaseModelTool):
         Necesitamos tres textos en formato JSON:
         1. **card_text**: Un dato curioso súper interesante, breve y fascinante sobre el tema. 
            Debe ser de máximo 25-30 palabras (2-3 líneas). Debe estar perfectamente redactado, sin errores ortográficos, fácil de entender y extremadamente impactante.
-           Ejemplo: "Los pulpos tienen tres corazones, nueve cerebros y su sangre es de color azul brillante debido a una proteína basada en cobre."
+           Ejemplo: "En 1902, se descubrió el Mecanismo de Anticitera en un naufragio griego. Es una computadora analógica de 2000 años de antigüedad usada para predecir posiciones astronómicas."
         
         2. **post_description**: El caption para acompañar la imagen en Facebook. Máximo 2 líneas, tono curioso y natural, 4 hashtags relevantes (incluye #Curiosidades y #EnigmaIQ).
         
         3. **image_prompt**: Un prompt altamente descriptivo y detallado en inglés para generar una imagen fotorrealista de altísima calidad que represente EXACTAMENTE el dato curioso explicado en `card_text`. 
-           El prompt debe ser extremadamente específico sobre el animal o tema exacto de `card_text` para que no haya ninguna incoherencia. El sujeto principal debe estar centrado y no demasiado cerca de los bordes para permitir un recorte horizontal.
-           Ejemplo: "A highly detailed close-up shot of a colorful chameleon on a green branch, focusing on its unique rotating eyes looking in different directions. Cinematic lighting, photorealistic, 8k resolution, depth of field."
+           El prompt debe ser extremadamente específico sobre el objeto, lugar, suceso científico o misterio exacto de `card_text` para que no haya ninguna incoherencia. El sujeto principal debe estar centrado y no demasiado cerca de los bordes para permitir un recorte horizontal.
+           Ejemplo: "A highly detailed, hyper-realistic ancient Greek bronze gear mechanism resting on a dark ocean floor, partially covered in coral and sand, dramatic underwater rays of light, cinematic, 8k resolution."
 
         Formato de salida obligatorio en JSON:
         {{
