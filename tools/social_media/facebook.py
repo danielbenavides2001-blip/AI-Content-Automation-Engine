@@ -361,3 +361,51 @@ class FacebookTool(BaseModelTool):
         except Exception as e:
             Messenger.error(f"❌ Exception uploading captions: {str(e)}")
             return False
+
+    def publish_photo_story(self, file_path: Path) -> str:
+        """
+        Publishes a native, standalone Photo Story to the Facebook Page using Graph API.
+        Process:
+        1. Upload photo as unpublished (published=false) -> returns photo_id.
+        2. POST /{page_id}/photo_stories with photo_id -> publishes the Story.
+        Includes robust exponential backoff retry.
+        """
+        if not file_path.exists():
+            raise FileNotFoundError(f"Story photo file not found: {file_path}")
+
+        Messenger.info(f"📱 Uploading native Facebook Story: {file_path.name}")
+        
+        # Step 1: Upload photo as unpublished
+        photo_id = self.upload_photo_unpublished(file_path)
+        if not photo_id:
+            raise RuntimeError("Failed to upload photo for Story (no photo_id returned).")
+
+        Messenger.info(f"📸 Unpublished photo uploaded (ID: {photo_id}). Publishing to Facebook Stories...")
+        
+        url = f"{self.base_url}/{self.page_id}/photo_stories"
+        
+        max_attempts = 4
+        base_delay = 5.0
+        
+        for attempt in range(1, max_attempts + 1):
+            try:
+                params = {
+                    "photo_id": photo_id,
+                    "access_token": self.access_token
+                }
+                
+                response = requests.post(url, params=params)
+                response.raise_for_status()
+                
+                res_json = response.json()
+                story_id = res_json.get("post_id") or res_json.get("id") or photo_id
+                Messenger.success(f"🎉 Native Facebook Story published successfully! ID: {story_id}")
+                return str(story_id)
+            except Exception as e:
+                Messenger.warning(f"⚠️ Attempt {attempt}/{max_attempts} failed to publish photo story: {str(e)}")
+                if attempt == max_attempts:
+                    raise e
+                
+                sleep_time = (base_delay * (2 ** (attempt - 1))) + random.uniform(1.0, 3.0)
+                Messenger.warning(f"🔄 Sleeping for {sleep_time:.2f}s before retrying story publishing...")
+                time.sleep(sleep_time)

@@ -1,0 +1,75 @@
+name: Publish Facebook Stories (10x Daily 150% Bonus)
+
+on:
+  schedule:
+    - cron: '0 12 * * *'   # 07:00 AM Colombia/Mexico (GMT-5)
+    - cron: '30 13 * * *'  # 08:30 AM Colombia/Mexico (GMT-5)
+    - cron: '0 15 * * *'   # 10:00 AM Colombia/Mexico (GMT-5)
+    - cron: '30 16 * * *'  # 11:30 AM Colombia/Mexico (GMT-5)
+    - cron: '0 18 * * *'   # 01:00 PM Colombia/Mexico (GMT-5)
+    - cron: '30 19 * * *'  # 02:30 PM Colombia/Mexico (GMT-5)
+    - cron: '0 21 * * *'   # 04:00 PM Colombia/Mexico (GMT-5)
+    - cron: '30 22 * * *'  # 05:30 PM Colombia/Mexico (GMT-5)
+    - cron: '0 0 * * *'    # 07:00 PM Colombia/Mexico (GMT-5)
+    - cron: '30 1 * * *'   # 08:30 PM Colombia/Mexico (GMT-5)
+  workflow_dispatch:
+    inputs:
+      count:
+        description: 'Cantidad de historias a publicar en este disparo'
+        required: false
+        default: '1'
+        type: string
+
+jobs:
+  publish-story:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Poetry
+        run: pipx install poetry
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'poetry'
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Create GCP Credentials
+        env:
+          GCP_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
+        run: |
+          python -c "import os, json; f=open('gcp_credentials.json', 'w'); json.dump(json.loads(os.environ.get('GCP_JSON', '{}'), strict=False), f, indent=2)"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/gcp_credentials.json" >> $GITHUB_ENV
+
+      - name: Run Facebook Story Generation & Publish
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GCP_LOCATION: ${{ secrets.GCP_LOCATION }}
+          FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+          FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
+          USE_VERTEX_AI_IMAGE: "true"
+        run: |
+          COUNT="${{ github.event.inputs.count }}"
+          if [ -z "$COUNT" ]; then
+            COUNT="1"
+          fi
+          echo "🚀 Generating and publishing $COUNT native Facebook Story(ies)..."
+          poetry run python -m flows.facebook_stories_generator.main --publish --count $COUNT
+
+      - name: Commit and Push Changes (Tracking Repetition)
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -f flows/facebook_stories_generator/story_history.csv
+          git commit -m "chore: update story tracking history [skip ci]" || echo "No changes to commit"
+          git pull --rebase --autostash origin main || { git rebase --abort 2>/dev/null; echo "Rebase failed (conflict). Skipping push."; exit 0; }
+          git push origin main || echo "No changes to push"
