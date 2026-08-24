@@ -11,6 +11,7 @@ from tools.common.messenger import Messenger
 from tools.text_generation.gemini import GeminiTextGenerator
 from tools.image_generation.vertex_ai import VertexAIImageGenerator
 from tools.social_media.facebook import FacebookTool
+from tools.image_generation.story_card_engine import StoryCardEngine
 from flows.facebook_stories_generator.models import FacebookStoryPost
 
 
@@ -417,10 +418,15 @@ Tu objetivo es crear una HISTORIA VERTICAL (9:16) de altísimo impacto y curiosi
             Messenger.error(f"❌ Failed to generate story image: {e}")
             raise e
             
-        self.compose_story_card(
-            original_img_path=raw_img_path,
+        # 3. Compose 9:16 vertical story selecting randomly between the 5 viral templates
+        card_engine = StoryCardEngine()
+        card_engine.compose_random_template(
+            img_path=raw_img_path,
             output_path=composed_img_path,
-            post_data=post_data
+            headline=post_data.headline,
+            fact_text=post_data.fact_text,
+            category=post_data.category_label,
+            is_story=True,
         )
         
         raw_img_path.unlink(missing_ok=True)

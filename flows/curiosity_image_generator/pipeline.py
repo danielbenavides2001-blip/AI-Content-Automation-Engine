@@ -11,6 +11,7 @@ from tools.common.messenger import Messenger
 from tools.text_generation.gemini import GeminiTextGenerator
 from tools.image_generation.vertex_ai import VertexAIImageGenerator
 from tools.social_media.facebook import FacebookTool
+from tools.image_generation.story_card_engine import StoryCardEngine
 from flows.curiosity_image_generator.models import CuriosityPost
 
 
@@ -387,11 +388,15 @@ Tu misión es generar una publicación gráfica y viral de altísimo impacto sob
             Messenger.error(f"❌ Failed to generate image via Vertex AI: {str(e)}")
             raise e
             
-        # 3. Compose styled graphic card
-        self.compose_card(
-            original_img_path=raw_image_path,
+        # 3. Compose styled graphic card selecting randomly between the 5 viral templates
+        card_engine = StoryCardEngine()
+        card_engine.compose_random_template(
+            img_path=raw_image_path,
             output_path=composed_image_path,
-            headline=post_data.headline
+            headline=post_data.headline,
+            fact_text=post_data.caption.split("\n")[0] if post_data.caption else post_data.title,
+            category=post_data.title[:20],
+            is_story=False,
         )
         
         # Clean up temporary raw image
