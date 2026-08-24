@@ -10,6 +10,12 @@ class CuriosityPost(BaseModel):
             "Example: '¡ARQUEÓLOGOS [HALLAN] UNA MISTERIOSA [ESTRUCTURA] EN EL [FONDO MARINO]!'"
         )
     )
+    card_fact: str = Field(
+        description=(
+            "A very brief 1-sentence explanation of 12 to 18 words to show on the image card under the headline. "
+            "Example: 'Fue hallada a 200 metros bajo tierra y data de hace más de 3000 años.'"
+        )
+    )
     caption: str = Field(
         description=(
             "An engaging, viral Facebook post caption in Spanish. "

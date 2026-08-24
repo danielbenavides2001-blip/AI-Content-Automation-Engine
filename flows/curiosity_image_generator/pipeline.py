@@ -395,7 +395,7 @@ Tu misión es generar una publicación gráfica y viral de altísimo impacto sob
             img_path=raw_image_path,
             output_path=composed_image_path,
             headline=post_data.headline,
-            fact_text=post_data.caption.split("\n")[0] if post_data.caption else post_data.title,
+            fact_text=post_data.card_fact,
             category=post_data.title[:20],
             is_story=False,
         )
