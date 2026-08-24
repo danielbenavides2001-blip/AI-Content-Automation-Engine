@@ -357,7 +357,8 @@ Tu misión es generar una publicación gráfica y viral de altísimo impacto sob
 2. 🚫 **PALABRAS PROHIBIDAS:** {banned_words}
 3. 🛡️ **BRAND SAFETY (FACEBOOK):** 100% apto para todo público. Cero gore, cero violencia, cero sangre, cero tragedias gráficas.
 4. 🌟 **MÁXIMO IMPACTO Y CURIOSIDAD:** Debe ser un hecho 100% real, verificable y asombroso que despierte curiosidad inmediata.
-5. 🎨 **IMAGEN HIPERREALISTA:** El `image_prompt` debe describir el objeto, estructura, fenómeno o lugar con estética cinematográfica de National Geographic / 8k, ubicando el elemento principal en el 60% superior de la imagen (aspect ratio 4:5 vertical) para dejar el 40% inferior libre para el texto.
+5. ✍️ **TEXTO ULTRA-CORTO Y PUNCHY (MÁXIMA LEGIBILIDAD):** `headline` debe ser BREVE, de MÁXIMO 8 a 12 PALABRAS en mayúsculas con 2-3 palabras clave envueltas en `[corchetes]`. NO escribas titulares largos ni párrafos completos.
+6. 🎨 **IMAGEN HIPERREALISTA:** El `image_prompt` debe describir el objeto, estructura, fenómeno o lugar con estética cinematográfica de National Geographic / 8k, ubicando el elemento principal en el 60% superior de la imagen (aspect ratio 4:5 vertical) para dejar el 40% inferior libre para el texto.
 {avoid_instruction}
 """
         

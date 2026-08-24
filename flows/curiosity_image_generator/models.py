@@ -1,15 +1,13 @@
 from pydantic import BaseModel, Field
 
 class CuriosityPost(BaseModel):
-    title: str = Field(description="A short title for the curiosity (e.g. 'El Mecanismo de Anticitera', 'El Ojo del Sahara', 'Las Bóvedas de Svalbard')")
+    title: str = Field(description="A short title for the curiosity (e.g. 'El Mecanismo de Anticitera', 'El Ojo del Sahara')")
     headline: str = Field(
         description=(
-            "A high-impact news headline in Spanish, all in uppercase. "
-            "It must describe the curious fact in a shocking or dramatic way. "
-            "Limit to 10-18 words. "
-            "CRITICAL: Wrap the 2-4 most important keywords (verbs, nouns, adjectives) "
-            "that should be highlighted in cian in square brackets. "
-            "Example: 'ARQUEÓLOGOS [HALLAN] UNA MISTERIOSA [ESTRUCTURA] SUMERGIDA EN EL [TRIÁNGULO DE LAS BERMUDAS].'"
+            "A short, high-impact news headline in Spanish, all in uppercase. "
+            "STRICT LIMIT: 8 to 12 words only! Do not write long paragraphs. "
+            "CRITICAL: Wrap the 2-3 most important keywords in square brackets for neon highlight. "
+            "Example: '¡ARQUEÓLOGOS [HALLAN] UNA MISTERIOSA [ESTRUCTURA] EN EL [FONDO MARINO]!'"
         )
     )
     caption: str = Field(

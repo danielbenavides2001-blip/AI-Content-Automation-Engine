@@ -10,17 +10,16 @@ class FacebookStoryPost(BaseModel):
     )
     headline: str = Field(
         description=(
-            "A high-impact, shocking headline question or hook for the story in Spanish, all in uppercase. "
-            "Limit to 8-15 words. "
-            "CRITICAL: Wrap the 2-4 most powerful words (verbs, key nouns, shocking adjectives) "
-            "in square brackets so they will be rendered in glowing cyan/yellow. "
-            "Example: '¿SABÍAS QUE [ESTA PUERTA] LLEVA [50 AÑOS ARDIENDO] SIN [APAGARSE NUNCA]?'"
+            "A short, shocking headline question or hook for the story in Spanish, all in uppercase. "
+            "STRICT LIMIT: 8 to 12 words only! Do not write long paragraphs. "
+            "CRITICAL: Wrap the 2-3 most powerful words in square brackets for neon highlight. "
+            "Example: '¿SABÍAS QUE [ESTA PUERTA] LLEVA [50 AÑOS ARDIENDO] SIN [APAGARSE]?'"
         )
     )
     fact_text: str = Field(
         description=(
-            "A concise, mind-blowing explanation of 25-40 words that answers the mystery or reveals the shocking fact. "
-            "Clear, engaging, and easy to read quickly on a mobile screen."
+            "A short, concise explanation of 15 to 22 words that answers the mystery or reveals the shocking fact. "
+            "Extremely easy to read in 3 seconds on a mobile screen."
         )
     )
     image_prompt: str = Field(

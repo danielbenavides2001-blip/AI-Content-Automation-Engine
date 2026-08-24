@@ -385,8 +385,8 @@ Tu objetivo es crear una HISTORIA VERTICAL (9:16) de altísimo impacto y curiosi
 1. 🚫 **PROHIBICIÓN TOTAL DE ANIMALES:** Está TERMINANTEMENTE PROHIBIDO generar contenido sobre animales, fauna, biología, insectos o mascotas. Concéntrate 100% en historia, civilizaciones, arqueología, espacio, ciencia, geografía o tecnología.
 2. 🚫 **PALABRAS PROHIBIDAS:** {banned_words}
 3. 🛡️ **BRAND SAFETY:** 100% apto para todo público. Cero gore, cero violencia, cero sangre, cero tragedias gráficas.
-4. 💥 **GANCHO EXPLOSIVO:** `headline` debe ser una pregunta intrigante o afirmación impactante de 8-15 palabras con 2-4 palabras clave envueltas en `[corchetes]`.
-5. 📖 **DATO CURIOSO:** `fact_text` debe ser una explicación clara y asombrosa de 25-40 palabras que deje al usuario con la boca abierta.
+4. 💥 **GANCHO EXPLOSIVO Y BREVE:** `headline` debe ser una pregunta impactante de ÚNICAMENTE 8 a 12 PALABRAS con 2-3 palabras clave envueltas en `[corchetes]`. NO escribas oraciones largas ni explicaciones en el titular.
+5. 📖 **DATO CURIOSO BREVE:** `fact_text` debe ser una explicación ultra-clara de MÁXIMO 15 a 22 PALABRAS.
 6. 🎨 **PROMPT VISUAL:** `image_prompt` en inglés para Imagen 3 (9:16 vertical), ultra detallado, cinematográfico, con el sujeto principal en la mitad superior.
 {avoid_instruction}
 """
