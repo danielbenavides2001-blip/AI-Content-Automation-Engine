@@ -1,4 +1,5 @@
 import os
+import random
 from pathlib import Path
 import time
 import urllib.request
@@ -265,35 +266,99 @@ class CuriosityPipeline:
         final_canvas.save(output_path, "JPEG", quality=95)
         Messenger.success(f"🎨 Stylized branded card created at: {output_path}")
 
+    def get_past_topics(self) -> list[str]:
+        """
+        Unifies topic history from curiosity_history.csv, ideas_tracking.csv,
+        and automated_posts_history.csv to ensure global zero repetition.
+        Preserves chronological order and filters unsafe keywords.
+        """
+        raw_topics = []
+        
+        # 1. Read curiosity_history.csv
+        if self.history_csv.exists():
+            try:
+                df = pd.read_csv(self.history_csv)
+                if not df.empty and "title" in df.columns:
+                    raw_topics.extend(df["title"].dropna().tolist())
+            except Exception as e:
+                Messenger.warning(f"⚠️ Could not read curiosity_history.csv: {e}")
+
+        # 2. Read ideas_tracking.csv
+        ideas_csv = Path(__file__).resolve().parent.parent / "image_content_generator" / "out_short" / "ideas_tracking.csv"
+        if ideas_csv.exists():
+            try:
+                df_ideas = pd.read_csv(ideas_csv)
+                if not df_ideas.empty and "title" in df_ideas.columns:
+                    raw_topics.extend(df_ideas["title"].dropna().tolist())
+            except Exception as e:
+                Messenger.warning(f"⚠️ Could not read ideas_tracking.csv: {e}")
+
+        # 3. Read automated_posts_history.csv
+        auto_csv = Path(__file__).resolve().parent.parent / "image_content_generator" / "out_short" / "automated_posts_history.csv"
+        if auto_csv.exists():
+            try:
+                df_auto = pd.read_csv(auto_csv)
+                if not df_auto.empty and "topic" in df_auto.columns:
+                    raw_topics.extend(df_auto["topic"].dropna().tolist())
+            except Exception as e:
+                Messenger.warning(f"⚠️ Could not read automated_posts_history.csv: {e}")
+
+        # Deduplicate while preserving chronological order (most recent at the end)
+        deduped = list(dict.fromkeys([str(t).strip() for t in raw_topics if str(t).strip() and str(t).strip().lower() != "curiosity image"]))
+        
+        # Filter out violent/unsafe words for Facebook brand safety
+        unsafe_words = ["muerte", "mortal", "masacre", "asesin", "mata", "letal", "tragedia", "destru", "sangre", "gore", "cadáver", "herido", "suicidi", "manson", "infierno", "terror", "violaci"]
+        safe_topics = [t for t in deduped if not any(w in str(t).lower() for w in unsafe_words)]
+        
+        # Keep up to the last 300 topics
+        return safe_topics[-300:]
+
     def run(self, publish: bool = False) -> None:
         Messenger.info("✨ Starting Curiosity Photo Post Pipeline...")
         
-        # Load past curiosity topics to avoid repetition
-        past_topics = []
-        try:
-            if self.history_csv.exists():
-                df = pd.read_csv(self.history_csv)
-                if not df.empty:
-                    # Clean and take last 100 topics to prevent prompt overflow
-                    past_topics = df["title"].dropna().tail(100).tolist()
-        except Exception as e:
-            Messenger.warning(f"⚠️ Failed to read curiosity history: {e}")
+        # 1. Diverse Focus Areas for Global Curiosities (NO ANIMALS)
+        focus_areas = [
+            "ARQUEOLOGÍA Y CIVILIZACIONES ANTIGUAS: Misterios de civilizaciones perdidas (Egipto, Mayas, Mesopotamia, Sumeria, Grecia antigua), templos ocultos, construcciones megalíticas imposibles y tumbas ancestrales.",
+            "ENIGMAS HISTÓRICOS Y RELIQUIAS: Artefactos fuera de su tiempo (ooparts), manuscritos indescifrables (como el Manuscrito Voynich), mapas antiguos imposibles y tesoros históricos perdidos.",
+            "MISTERIOS DEL COSMOS Y ASTRONOMÍA: Descubrimientos espaciales alucinantes, exoplanetas con climas extremos (lluvia de vidrio o diamantes), estructuras cósmicas gigantescas, señales espaciales y anomalías del universo.",
+            "FENÓMENOS TERRESTRES Y GEOLOGÍA INSÓLITA: Lugares en la Tierra que parecen de otro planeta (el Ojo del Sahara, la Puerta al Infierno en Turkmenistán, cuevas de cristales gigantes de Naica, lagos rosados, anomalías magnéticas).",
+            "CIENCIA FASCINANTE Y FÍSICA ASOMBROSA: Paradojas de la física cuántica, experimentos científicos históricos revolucionarios, propiedades extrañas de la materia y descubrimientos que desafían la intuición humana.",
+            "INVENTOS Y TECNOLOGÍA ANCESTRAL: Computadoras y mecanismos de hace miles de años (Mecanismo de Anticitera), arquitectura antisísmica milenaria, el fuego griego, y tecnologías olvidadas de la antigüedad.",
+            "CULTURAS Y TRADICIONES DEL MUNDO: Prácticas misteriosas, rituales milenarios, templos sagrados prohibidos y ciudades subterráneas (como Derinkuyu en Turquía).",
+            "DATOS CURIOSOS GLOBALES Y LUGARES ENIGMÁTICOS: Hechos 100% reales sobre monumentos, lugares prohibidos (Bóveda Global de Semillas de Svalbard, Zona del Silencio), ciudades fantasma y secretos de nuestro planeta."
+        ]
+        selected_focus = random.choice(focus_areas)
+        Messenger.info(f"🎯 Selected Focus Area: {selected_focus}")
 
-        # 1. Generate Curiosity Text & Prompt using Gemini
+        # Load unified history
+        past_topics = self.get_past_topics()
         avoid_instruction = ""
         if past_topics:
+            avoid_list_str = "\n- ".join(past_topics)
             avoid_instruction = (
-                "\nCRITICAL: Do NOT generate anything similar or related to these past topics/titles "
-                f"that have already been published: {', '.join(past_topics)}\n"
-                "Select a completely new, unique, and fresh curiosity topic."
+                "\n\n🚨 **REGLA DE ORO DE NO REPETICIÓN ABSOLUTA:** 🚨\n"
+                "Está ESTRICTAMENTE PROHIBIDO repetir, reutilizar o inspirarte en CUALQUIERA de estos temas ya publicados:\n"
+                f"- {avoid_list_str}\n\n"
+                "Debes elegir un tema, lugar, artefacto o suceso COMPLETAMENTE NUEVO y diferente a la lista anterior."
             )
-        
-        prompt = (
-            "Identify a recent, viral, or highly fascinating curiosity or discovery that occurred in the world "
-            "(e.g., a rare animal color variant like a pink dolphin or blue lobster, a strange natural phenomenon, "
-            "or a bizarre scientific discovery). Generate a compelling Facebook post about it in Spanish."
-            f"{avoid_instruction}"
-        )
+
+        banned_words = "animal, animales, pájaro, ave, pez, peces, insecto, insectos, reptil, reptiles, mamífero, mamíferos, fauna, perro, gato, pulpo, delfín, ballena, araña, tarántula, langosta, cangrejo, loro, guacamaya, especie, criatura, biológico, biología, mascota, mascotas"
+
+        prompt = f"""
+Eres un redactor e investigador experto para la página "EnigmaIQ" en Facebook.
+Tu misión es generar una publicación gráfica y viral de altísimo impacto sobre una curiosidad o descubrimiento fascinante del mundo.
+
+**ÁREA DE ENFOQUE OBLIGATORIA:**
+{selected_focus}
+
+**REGLAS ESTRICTAS DE CONTENIDO:**
+1. 🚫 **PROHIBICIÓN TOTAL DE ANIMALES:** Está TERMINANTEMENTE PROHIBIDO hablar de animales, fauna, especies biológicas, insectos, aves o criaturas vivas. Enfócate 100% en historia, civilizaciones, arqueología, espacio, ciencia, geografía o tecnología.
+2. 🚫 **PALABRAS PROHIBIDAS:** {banned_words}
+3. 🛡️ **BRAND SAFETY (FACEBOOK):** 100% apto para todo público. Cero gore, cero violencia, cero sangre, cero tragedias gráficas.
+4. 🌟 **MÁXIMO IMPACTO Y CURIOSIDAD:** Debe ser un hecho 100% real, verificable y asombroso que despierte curiosidad inmediata.
+5. 🎨 **IMAGEN HIPERREALISTA:** El `image_prompt` debe describir el objeto, estructura, fenómeno o lugar con estética cinematográfica de National Geographic / 8k, ubicando el elemento principal en el 60% superior de la imagen (aspect ratio 4:5 vertical) para dejar el 40% inferior libre para el texto.
+{avoid_instruction}
+"""
         
         Messenger.info("🧠 Generating curiosity story via Gemini...")
         post_data: CuriosityPost = self.text_gen.generate_text(prompt, CuriosityPost)
@@ -339,7 +404,7 @@ class CuriosityPipeline:
                 "title": post_data.title,
                 "headline": post_data.headline
             }])
-            df_history = pd.read_csv(self.history_csv)
+            df_history = pd.read_csv(self.history_csv) if self.history_csv.exists() else pd.DataFrame(columns=["timestamp", "title", "headline"])
             df_history = pd.concat([df_history, new_row], ignore_index=True)
             df_history.to_csv(self.history_csv, index=False)
             Messenger.success(f"💾 Added '{post_data.title}' to curiosity history.")
@@ -365,13 +430,12 @@ class CuriosityPipeline:
                         Messenger.info("💬 Generating auto-engagement comment...")
                         comment_prompt = (
                             f'Eres el creador de "EnigmaIQ". Acabas de publicar una imagen sobre: "{post_data.title}".\n'
-                            f'Escribe un comentario corto (1 sola línea) en español como una pregunta curiosa '
-                            f'que invite a los seguidores a comentar su opinión o compartir si ya lo sabían.\n'
-                            f'El tono debe ser curioso, amigable y natural, sin hashtags.\n'
-                            f'Ejemplo: "¿Cuántos de ustedes ya conocían esta criatura? 😮 Comenten abajo 👇"'
+                            f'Escribe un comentario corto (1 sola línea) en español como una pregunta intrigante '
+                            f'que invite a los seguidores a debatir o comentar si ya conocían este misterio, lugar o descubrimiento.\n'
+                            f'El tono debe ser curioso, amigable y natural, sin hashtags ni preguntas sobre animales.\n'
+                            f'Ejemplo: "¿Sabías de la existencia de este lugar? ¿Te atreverías a visitarlo? 🏛️ Dejen su opinión abajo 👇"'
                         )
                         comment_text = self.text_gen.generate(comment_prompt).strip()
-                        # photo_id format from /photos is 'page_id_photo_id', need to get post node
                         self.fb_tool.add_comment(photo_id, comment_text)
                         Messenger.success(f"✅ Auto-comment posted to drive engagement.")
                     except Exception as comment_e:
