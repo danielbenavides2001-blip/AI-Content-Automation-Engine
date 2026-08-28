@@ -1,12 +1,28 @@
-name: Publish Curiosity Photo Post
+name: Publish Curiosity Photo Post (Feed Images)
 
 on:
   schedule:
-    - cron: '0 13 * * *'   # 08:00 AM Colombia/Mexico (GMT-5)
-    - cron: '0 16 * * *'   # 11:00 AM Colombia/Mexico (GMT-5)
-    - cron: '0 19 * * *'   # 02:00 PM Colombia/Mexico (GMT-5)
-    - cron: '0 22 * * *'   # 05:00 PM Colombia/Mexico (GMT-5)
-    - cron: '0 1 * * *'    # 08:00 PM Colombia/Mexico (GMT-5)
+    # 20 Publicaciones al día en el Feed cada hora (06:00 AM - 01:00 AM Colombia/México GMT-5)
+    - cron: '0 11 * * *'  # 06:00 AM GMT-5
+    - cron: '0 12 * * *'  # 07:00 AM GMT-5
+    - cron: '0 13 * * *'  # 08:00 AM GMT-5
+    - cron: '0 14 * * *'  # 09:00 AM GMT-5
+    - cron: '0 15 * * *'  # 10:00 AM GMT-5
+    - cron: '0 16 * * *'  # 11:00 AM GMT-5
+    - cron: '0 17 * * *'  # 12:00 PM GMT-5
+    - cron: '0 18 * * *'  # 01:00 PM GMT-5
+    - cron: '0 19 * * *'  # 02:00 PM GMT-5
+    - cron: '0 20 * * *'  # 03:00 PM GMT-5
+    - cron: '0 21 * * *'  # 04:00 PM GMT-5
+    - cron: '0 22 * * *'  # 05:00 PM GMT-5
+    - cron: '0 23 * * *'  # 06:00 PM GMT-5
+    - cron: '0 0 * * *'   # 07:00 PM GMT-5
+    - cron: '0 1 * * *'   # 08:00 PM GMT-5
+    - cron: '0 2 * * *'   # 09:00 PM GMT-5
+    - cron: '0 3 * * *'   # 10:00 PM GMT-5
+    - cron: '0 4 * * *'   # 11:00 PM GMT-5
+    - cron: '0 5 * * *'   # 12:00 AM GMT-5
+    - cron: '0 6 * * *'   # 01:00 AM GMT-5
   workflow_dispatch:
 
 jobs:
@@ -47,7 +63,7 @@ jobs:
           FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
           USE_VERTEX_AI_IMAGE: "true"
         run: |
-          echo "🚀 Generating curiosity and image post..."
+          echo "🚀 Generating curiosity and image post for Facebook Feed..."
           poetry run python -m flows.curiosity_image_generator.main --publish
 
       - name: Commit and Push Changes (Tracking Repetition)
