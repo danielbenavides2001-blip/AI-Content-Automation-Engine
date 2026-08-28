@@ -317,16 +317,18 @@ class CuriosityPipeline:
     def run(self, publish: bool = False) -> None:
         Messenger.info("✨ Starting Curiosity Photo Post Pipeline...")
         
-        # 1. Diverse Focus Areas for Global Curiosities (NO ANIMALS)
+        # 1. Diverse Focus Areas for Global Curiosities (ALL TOPICS INCLUDED: Animals, Prehistory, Space, Archaeology, Science, Oceans)
         focus_areas = [
-            "ARQUEOLOGÍA Y CIVILIZACIONES ANTIGUAS: Misterios de civilizaciones perdidas (Egipto, Mayas, Mesopotamia, Sumeria, Grecia antigua), templos ocultos, construcciones megalíticas imposibles y tumbas ancestrales.",
-            "ENIGMAS HISTÓRICOS Y RELIQUIAS: Artefactos fuera de su tiempo (ooparts), manuscritos indescifrables (como el Manuscrito Voynich), mapas antiguos imposibles y tesoros históricos perdidos.",
-            "MISTERIOS DEL COSMOS Y ASTRONOMÍA: Descubrimientos espaciales alucinantes, exoplanetas con climas extremos (lluvia de vidrio o diamantes), estructuras cósmicas gigantescas, señales espaciales y anomalías del universo.",
-            "FENÓMENOS TERRESTRES Y GEOLOGÍA INSÓLITA: Lugares en la Tierra que parecen de otro planeta (el Ojo del Sahara, la Puerta al Infierno en Turkmenistán, cuevas de cristales gigantes de Naica, lagos rosados, anomalías magnéticas).",
-            "CIENCIA FASCINANTE Y FÍSICA ASOMBROSA: Paradojas de la física cuántica, experimentos científicos históricos revolucionarios, propiedades extrañas de la materia y descubrimientos que desafían la intuición humana.",
-            "INVENTOS Y TECNOLOGÍA ANCESTRAL: Computadoras y mecanismos de hace miles de años (Mecanismo de Anticitera), arquitectura antisísmica milenaria, el fuego griego, y tecnologías olvidadas de la antigüedad.",
-            "CULTURAS Y TRADICIONES DEL MUNDO: Prácticas misteriosas, rituales milenarios, templos sagrados prohibidos y ciudades subterráneas (como Derinkuyu en Turquía).",
-            "DATOS CURIOSOS GLOBALES Y LUGARES ENIGMÁTICOS: Hechos 100% reales sobre monumentos, lugares prohibidos (Bóveda Global de Semillas de Svalbard, Zona del Silencio), ciudades fantasma y secretos de nuestro planeta."
+            "REINO ANIMAL INSÓLITO Y ADAPTACIONES EXTREMAS: Animales con habilidades asombrosas, criaturas de las profundidades abisales, camuflajes imposibles, animales bioluminiscentes y récords del reino animal (fuerza, velocidad, longevidad, sentidos).",
+            "PREHISTORIA, PALEONTOLOGÍA Y FÓSILES: Criaturas prehistóricas colosales (megalodón, titanoboa, dinosaurios, mamuts lanudos), fósiles asombrosos y misterios de la evolución en la Tierra.",
+            "ARQUEOLOGÍA Y CIVILIZACIONES ANTIGUAS: Misterios de civilizaciones perdidas (Egipto, Mayas, Mesopotamia, Sumeria, Grecia antigua), templos ocultos, construcciones megalíticas y tumbas ancestrales.",
+            "ENIGMAS HISTÓRICOS Y RELIQUIAS: Artefactos fuera de su tiempo (ooparts), manuscritos indescifrables, mapas antiguos imposibles y tesoros históricos perdidos.",
+            "MISTERIOS DEL COSMOS Y ASTRONOMÍA: Descubrimientos espaciales alucinantes, exoplanetas con climas extremos, agujeros negros, señales cósmicas y anomalías del universo.",
+            "FENÓMENOS TERRESTRES Y GEOLOGÍA INSÓLITA: Lugares en la Tierra que parecen de otro planeta (el Ojo del Sahara, cuevas de cristales gigantes de Naica, volcanes de lava azul, lagos rosados).",
+            "CIENCIA FASCINANTE Y FÍSICA ASOMBROSA: Paradojas cuánticas, experimentos científicos históricos revolucionarios, propiedades extrañas de la materia y descubrimientos que desafían la intuición humana.",
+            "INVENTOS Y TECNOLOGÍA ANCESTRAL: Mecanismos de hace miles de años (Mecanismo de Anticitera), arquitectura antisísmica milenaria, el fuego griego, y tecnologías olvidadas de la antigüedad.",
+            "OCÉANOS Y ABISMOS MARINOS: Fosas oceánicas inexploradas (Fosa de las Marianas), criaturas de la zona abisal, ciudades sumergidas y anomalías submarinas.",
+            "DATOS CURIOSOS GLOBALES Y LUGARES ENIGMÁTICOS: Hechos 100% reales sobre monumentos, lugares prohibidos (Bóveda Global de Semillas de Svalbard, Zona del Silencio), ciudades subterráneas y secretos de nuestro planeta."
         ]
         selected_focus = random.choice(focus_areas)
         Messenger.info(f"🎯 Selected Focus Area: {selected_focus}")
@@ -340,25 +342,24 @@ class CuriosityPipeline:
                 "\n\n🚨 **REGLA DE ORO DE NO REPETICIÓN ABSOLUTA:** 🚨\n"
                 "Está ESTRICTAMENTE PROHIBIDO repetir, reutilizar o inspirarte en CUALQUIERA de estos temas ya publicados:\n"
                 f"- {avoid_list_str}\n\n"
-                "Debes elegir un tema, lugar, artefacto o suceso COMPLETAMENTE NUEVO y diferente a la lista anterior."
+                "Debes elegir un tema, animal, especie, artefacto, lugar o suceso COMPLETAMENTE NUEVO y diferente a la lista anterior."
             )
-
-        banned_words = "animal, animales, pájaro, ave, pez, peces, insecto, insectos, reptil, reptiles, mamífero, mamíferos, fauna, perro, gato, pulpo, delfín, ballena, araña, tarántula, langosta, cangrejo, loro, guacamaya, especie, criatura, biológico, biología, mascota, mascotas"
 
         prompt = f"""
 Eres un redactor e investigador experto para la página "EnigmaIQ" en Facebook.
-Tu misión es generar una publicación gráfica y viral de altísimo impacto sobre una curiosidad o descubrimiento fascinante del mundo.
+Tu misión es generar una publicación gráfica y viral de altísimo impacto sobre una curiosidad o descubrimiento fascinante del mundo (animales insólitos, prehistoria, arqueología, espacio, ciencia o misterios del planeta).
 
 **ÁREA DE ENFOQUE OBLIGATORIA:**
 {selected_focus}
 
 **REGLAS ESTRICTAS DE CONTENIDO:**
-1. 🚫 **PROHIBICIÓN TOTAL DE ANIMALES:** Está TERMINANTEMENTE PROHIBIDO hablar de animales, fauna, especies biológicas, insectos, aves o criaturas vivas. Enfócate 100% en historia, civilizaciones, arqueología, espacio, ciencia, geografía o tecnología.
-2. 🚫 **PALABRAS PROHIBIDAS:** {banned_words}
-3. 🛡️ **BRAND SAFETY (FACEBOOK):** 100% apto para todo público. Cero gore, cero violencia, cero sangre, cero tragedias gráficas.
-4. 🌟 **MÁXIMO IMPACTO Y CURIOSIDAD:** Debe ser un hecho 100% real, verificable y asombroso que despierte curiosidad inmediata.
-5. ✍️ **TEXTO ULTRA-CORTO Y PUNCHY (MÁXIMA LEGIBILIDAD):** `headline` debe ser BREVE, de MÁXIMO 8 a 12 PALABRAS en mayúsculas con 2-3 palabras clave envueltas en `[corchetes]`. NO escribas titulares largos ni párrafos completos.
-6. 🎨 **IMAGEN HIPERREALISTA:** El `image_prompt` debe describir el objeto, estructura, fenómeno o lugar con estética cinematográfica de National Geographic / 8k, ubicando el elemento principal en el 60% superior de la imagen (aspect ratio 4:5 vertical) para dejar el 40% inferior libre para el texto.
+1. 🛡️ **BRAND SAFETY (FACEBOOK):** 100% apto para todo público. Cero gore, cero violencia, cero sangre, cero crueldad.
+2. 🌟 **MÁXIMO IMPACTO Y CURIOSIDAD:** Debe ser un hecho 100% real, verificable y asombroso que despierte curiosidad inmediata.
+3. 🎯 **COHERENCIA TOTAL:** El `image_prompt`, el `headline`, el `card_fact` y el `caption` deben estar 100% sincronizados y coincidir exactamente con el mismo tema específico.
+4. ✍️ **TEXTO ULTRA-CORTO Y PUNCHY (MÁXIMA LEGIBILIDAD):** 
+   - `headline`: DEBE ser breve y potente, de ÚNICAMENTE 8 A 12 PALABRAS en mayúsculas, con 2-3 palabras clave envueltas en `[corchetes]`.
+   - `card_fact`: Una sola frase breve de 12 a 18 palabras explicando el dato asombroso para mostrar en la imagen.
+5. 🎨 **IMAGEN HIPERREALISTA:** El `image_prompt` debe describir el sujeto (animal, fósil, estructura, fenómeno o lugar) con estética cinematográfica de National Geographic / 8k, ubicando el elemento principal en el 60% superior de la imagen (aspect ratio 4:5 vertical) para dejar el 40% inferior libre para el texto.
 {avoid_instruction}
 """
         
