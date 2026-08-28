@@ -2,27 +2,27 @@ name: Publish Curiosity Photo Post (Feed Images)
 
 on:
   schedule:
-    # 20 Publicaciones al día en el Feed cada hora (06:00 AM - 01:00 AM Colombia/México GMT-5)
-    - cron: '0 11 * * *'  # 06:00 AM GMT-5
-    - cron: '0 12 * * *'  # 07:00 AM GMT-5
-    - cron: '0 13 * * *'  # 08:00 AM GMT-5
-    - cron: '0 14 * * *'  # 09:00 AM GMT-5
-    - cron: '0 15 * * *'  # 10:00 AM GMT-5
-    - cron: '0 16 * * *'  # 11:00 AM GMT-5
-    - cron: '0 17 * * *'  # 12:00 PM GMT-5
-    - cron: '0 18 * * *'  # 01:00 PM GMT-5
-    - cron: '0 19 * * *'  # 02:00 PM GMT-5
-    - cron: '0 20 * * *'  # 03:00 PM GMT-5
-    - cron: '0 21 * * *'  # 04:00 PM GMT-5
-    - cron: '0 22 * * *'  # 05:00 PM GMT-5
-    - cron: '0 23 * * *'  # 06:00 PM GMT-5
-    - cron: '0 0 * * *'   # 07:00 PM GMT-5
-    - cron: '0 1 * * *'   # 08:00 PM GMT-5
-    - cron: '0 2 * * *'   # 09:00 PM GMT-5
-    - cron: '0 3 * * *'   # 10:00 PM GMT-5
-    - cron: '0 4 * * *'   # 11:00 PM GMT-5
-    - cron: '0 5 * * *'   # 12:00 AM GMT-5
-    - cron: '0 6 * * *'   # 01:00 AM GMT-5
+    # 20 Publicaciones al día en el Feed cada hora iniciando a las 02:00 AM (02:00 AM - 09:00 PM Colombia/México GMT-5)
+    - cron: '0 7 * * *'   # 02:00 AM GMT-5 (07:00 UTC)
+    - cron: '0 8 * * *'   # 03:00 AM GMT-5 (08:00 UTC)
+    - cron: '0 9 * * *'   # 04:00 AM GMT-5 (09:00 UTC)
+    - cron: '0 10 * * *'  # 05:00 AM GMT-5 (10:00 UTC)
+    - cron: '0 11 * * *'  # 06:00 AM GMT-5 (11:00 UTC)
+    - cron: '0 12 * * *'  # 07:00 AM GMT-5 (12:00 UTC)
+    - cron: '0 13 * * *'  # 08:00 AM GMT-5 (13:00 UTC)
+    - cron: '0 14 * * *'  # 09:00 AM GMT-5 (14:00 UTC)
+    - cron: '0 15 * * *'  # 10:00 AM GMT-5 (15:00 UTC)
+    - cron: '0 16 * * *'  # 11:00 AM GMT-5 (16:00 UTC)
+    - cron: '0 17 * * *'  # 12:00 PM GMT-5 (17:00 UTC)
+    - cron: '0 18 * * *'  # 01:00 PM GMT-5 (18:00 UTC)
+    - cron: '0 19 * * *'  # 02:00 PM GMT-5 (19:00 UTC)
+    - cron: '0 20 * * *'  # 03:00 PM GMT-5 (20:00 UTC)
+    - cron: '0 21 * * *'  # 04:00 PM GMT-5 (21:00 UTC)
+    - cron: '0 22 * * *'  # 05:00 PM GMT-5 (22:00 UTC)
+    - cron: '0 23 * * *'  # 06:00 PM GMT-5 (23:00 UTC)
+    - cron: '0 0 * * *'   # 07:00 PM GMT-5 (00:00 UTC)
+    - cron: '0 1 * * *'   # 08:00 PM GMT-5 (01:00 UTC)
+    - cron: '0 2 * * *'   # 09:00 PM GMT-5 (02:00 UTC)
   workflow_dispatch:
 
 jobs:
