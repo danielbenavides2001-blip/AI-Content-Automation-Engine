@@ -22,6 +22,15 @@ class FacebookStoryPost(BaseModel):
             "Extremely easy to read in 3 seconds on a mobile screen."
         )
     )
+    post_caption: str = Field(
+        description=(
+            "An engaging, viral Facebook feed caption in Spanish for when this image is published as a regular post. "
+            "It must start with an attention-grabbing hook, explain the fascinating story in detail (2-3 short paragraphs), "
+            "use relevant emojis, include hashtags (e.g. #EnigmaIQ, #curiosidades, #misterios, #historia), "
+            "and end with an interactive question to drive comments. "
+            "Strictly brand safe (no gore, no violence, no death)."
+        )
+    )
     image_prompt: str = Field(
         description=(
             "A detailed prompt in English for Imagen 3/Vertex AI to generate a vertical (9:16 aspect ratio) cinematic, "

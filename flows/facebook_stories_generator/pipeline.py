@@ -402,13 +402,14 @@ Tu objetivo es crear una HISTORIA VERTICAL (9:16) de altísimo impacto y curiosi
         
         timestamp = int(time.time())
         raw_img_path = self.output_dir / f"raw_story_{timestamp}.jpg"
-        composed_img_path = self.output_dir / f"story_card_{timestamp}.jpg"
+        composed_story_path = self.output_dir / f"story_card_{timestamp}.jpg"
+        composed_feed_path = self.output_dir / f"feed_card_{timestamp}.jpg"
         
         if self.image_gen is None:
             Messenger.error("❌ Vertex AI Image generator is disabled.")
             raise RuntimeError("Vertex AI is disabled. Update USE_VERTEX_AI_IMAGE and GCP_PROJECT_ID.")
             
-        Messenger.info("🎨 Generating 9:16 vertical image via Vertex AI (Imagen 3)...")
+        Messenger.info("🎨 Generating single image via Vertex AI (Imagen 3) for dual publishing...")
         try:
             self.image_gen.generate_image(
                 prompt=post_data.image_prompt,
@@ -418,20 +419,32 @@ Tu objetivo es crear una HISTORIA VERTICAL (9:16) de altísimo impacto y curiosi
             Messenger.error(f"❌ Failed to generate story image: {e}")
             raise e
             
-        # 3. Compose 9:16 vertical story selecting randomly between the 5 viral templates
+        # 3. Compose TWO visual formats from the single generated image (50% Vertex credit savings!)
         card_engine = StoryCardEngine()
+        
+        # 3a. Compose 9:16 vertical story card
         card_engine.compose_random_template(
             img_path=raw_img_path,
-            output_path=composed_img_path,
+            output_path=composed_story_path,
             headline=post_data.headline,
             fact_text=post_data.fact_text,
             category=post_data.category_label,
             is_story=True,
         )
         
+        # 3b. Compose 4:5 regular feed post card
+        card_engine.compose_random_template(
+            img_path=raw_img_path,
+            output_path=composed_feed_path,
+            headline=post_data.headline,
+            fact_text=post_data.fact_text,
+            category=post_data.category_label,
+            is_story=False,
+        )
+        
         raw_img_path.unlink(missing_ok=True)
         
-        # Save to history CSV
+        # Save to history CSV (both story_history.csv and curiosity_history.csv)
         try:
             new_row = pd.DataFrame([{
                 "timestamp": timestamp,
@@ -443,20 +456,60 @@ Tu objetivo es crear una HISTORIA VERTICAL (9:16) de altísimo impacto y curiosi
             df_history = pd.concat([df_history, new_row], ignore_index=True)
             df_history.to_csv(self.history_csv, index=False)
             Messenger.success(f"💾 Added '{post_data.title}' to Facebook Stories history.")
+            
+            curiosity_csv = Path(__file__).resolve().parent.parent / "curiosity_image_generator" / "curiosity_history.csv"
+            if curiosity_csv.exists():
+                cur_row = pd.DataFrame([{"timestamp": timestamp, "title": post_data.title, "headline": post_data.headline}])
+                df_cur = pd.read_csv(curiosity_csv)
+                df_cur = pd.concat([df_cur, cur_row], ignore_index=True)
+                df_cur.to_csv(curiosity_csv, index=False)
         except Exception as hist_e:
             Messenger.warning(f"⚠️ Failed to save history: {hist_e}")
             
-        # Publish if requested
+        # 4. Dual Publishing to Facebook if requested
         if publish:
             if not self.fb_tool:
                 raise ValueError("❌ Cannot publish: Facebook credentials are missing in .env")
+                
+            # 4a. Publish Native Facebook Story
             Messenger.info("🚀 Publishing native Facebook Story to Page...")
-            story_id = self.fb_tool.publish_photo_story(composed_img_path)
-            Messenger.success(f"🎉 Success! Native Story live on Facebook. ID: {story_id}")
+            try:
+                story_id = self.fb_tool.publish_photo_story(composed_story_path)
+                Messenger.success(f"🎉 Success! Native Story live on Facebook. ID: {story_id}")
+            except Exception as story_err:
+                Messenger.error(f"❌ Failed to publish Story: {story_err}")
+                
+            # 4b. Publish Regular Facebook Feed Photo Post
+            Messenger.info("🚀 Publishing regular Photo Post to Facebook Feed...")
+            try:
+                caption_text = post_data.post_caption if hasattr(post_data, "post_caption") and post_data.post_caption else post_data.headline
+                photo_id = self.fb_tool.upload_photo(
+                    file_path=composed_feed_path,
+                    caption=caption_text
+                )
+                Messenger.success(f"🎉 Success! Photo post live on Facebook Feed. ID: {photo_id}")
+                
+                # 4c. Auto-comment to drive early post engagement
+                if photo_id:
+                    try:
+                        comment_prompt = (
+                            f'Eres el creador de "EnigmaIQ". Acabas de publicar una imagen sobre: "{post_data.title}".\n'
+                            f'Escribe un comentario corto (1 sola línea) en español como una pregunta intrigante '
+                            f'que invite a los seguidores a debatir o comentar si ya conocían este misterio o lugar.\n'
+                            f'El tono debe ser curioso, amigable y natural, sin hashtags ni menciones de animales.\n'
+                            f'Ejemplo: "¿Sabías de la existencia de este lugar? ¿Te atreverías a visitarlo? 🏛️ Dejen su opinión abajo 👇"'
+                        )
+                        comment_text = self.text_gen.generate(comment_prompt).strip()
+                        self.fb_tool.add_comment(photo_id, comment_text)
+                        Messenger.success(f"✅ Auto-comment posted to drive engagement.")
+                    except Exception as comment_e:
+                        Messenger.warning(f"⚠️ Auto-comment failed (non-fatal): {comment_e}")
+            except Exception as feed_err:
+                Messenger.error(f"❌ Failed to publish Feed Photo Post: {feed_err}")
         else:
-            Messenger.success(f"💾 Dry-run: Story card saved locally at {composed_img_path}")
+            Messenger.success(f"💾 Dry-run: Story card saved at {composed_story_path} and Feed card saved at {composed_feed_path}")
             
-        return composed_img_path
+        return composed_story_path
 
     def run(self, publish: bool = False, count: int = 1) -> None:
         Messenger.info(f"✨ Starting Facebook Stories Generator (Batch Count: {count}, Publish: {publish})...")
