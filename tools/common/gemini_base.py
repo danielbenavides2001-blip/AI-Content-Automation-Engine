@@ -22,16 +22,15 @@ class GeminiUsage(BaseModelTool):
 
 
 def _is_daily_quota_exhausted(exc: Exception) -> bool:
-    """Returns True if the error indicates the daily free-tier request quota is fully spent."""
+    """Returns True if the error indicates key quota exhaustion or server unavailability on free tier."""
     msg = str(exc)
-    # Los errores 503 y UNAVAILABLE son picos temporales de carga del servidor, no cuota diaria agotada
-    if "503" in msg or "unavailable" in msg.lower():
-        return False
     keywords = [
         "GenerateRequestsPerDayPerProjectPerModel",
         "quota exceeded",
         "RESOURCE_EXHAUSTED",
-        "429"
+        "429",
+        "503",
+        "UNAVAILABLE"
     ]
     return any(k.lower() in msg.lower() for k in keywords)
 
