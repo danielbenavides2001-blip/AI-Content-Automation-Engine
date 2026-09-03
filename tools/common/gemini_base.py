@@ -22,9 +22,17 @@ class GeminiUsage(BaseModelTool):
 
 
 def _is_daily_quota_exhausted(exc: Exception) -> bool:
-    """Returns True if the error is a hard daily quota limit, not a per-minute rate limit."""
+    """Returns True if the error should trigger immediate key rotation (quota, 429, or 503 unavailable on free tier)."""
     msg = str(exc)
-    return "GenerateRequestsPerDayPerProjectPerModel" in msg
+    keywords = [
+        "GenerateRequestsPerDayPerProjectPerModel",
+        "RESOURCE_EXHAUSTED",
+        "429",
+        "503",
+        "UNAVAILABLE",
+        "quota"
+    ]
+    return any(k.lower() in msg.lower() for k in keywords)
 
 
 class GeminiBase(BaseModelTool):
@@ -135,8 +143,8 @@ class GeminiBase(BaseModelTool):
         try:
             return func(*args, **kwargs)
         except (errors.ClientError, errors.APIError) as e:
-            # If daily quota is exhausted, rotate to next key immediately
-            if _is_daily_quota_exhausted(e):
+            # Si la cuota o disponibilidad de la clave gratuita falla, rotar a la siguiente inmediatamente
+            if not self.is_vertex_client and _is_daily_quota_exhausted(e):
                 if self._rotate_to_next_client():
                     # Retry immediately (re-raise to trigger tenacity retry, which will resolve new client method)
                     raise errors.APIError(str(e), None)  # type: ignore[arg-type]
