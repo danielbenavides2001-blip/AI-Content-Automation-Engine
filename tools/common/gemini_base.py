@@ -22,15 +22,16 @@ class GeminiUsage(BaseModelTool):
 
 
 def _is_daily_quota_exhausted(exc: Exception) -> bool:
-    """Returns True if the error should trigger immediate key rotation (quota, 429, or 503 unavailable on free tier)."""
+    """Returns True if the error indicates the daily free-tier request quota is fully spent."""
     msg = str(exc)
+    # Los errores 503 y UNAVAILABLE son picos temporales de carga del servidor, no cuota diaria agotada
+    if "503" in msg or "unavailable" in msg.lower():
+        return False
     keywords = [
         "GenerateRequestsPerDayPerProjectPerModel",
+        "quota exceeded",
         "RESOURCE_EXHAUSTED",
-        "429",
-        "503",
-        "UNAVAILABLE",
-        "quota"
+        "429"
     ]
     return any(k.lower() in msg.lower() for k in keywords)
 
@@ -93,12 +94,18 @@ class GeminiBase(BaseModelTool):
 
     def _rotate_to_next_client(self) -> bool:
         """Rotates to the next available client. Returns True if rotation succeeded, False if all exhausted."""
+        if not self._clients_info:
+            return False
         if self._client_index + 1 < len(self._clients_info):
             self._client_index += 1
             label = "Vertex AI" if self.is_vertex_client else f"clave #{self._client_index + 1}"
-            Messenger.warning(f"🔄 [KEY ROTATION] Clave #{self._client_index} agotada. Cambiando a {label} (cliente #{self._client_index + 1}/{len(self._clients_info)})...")
+            Messenger.warning(f"🔄 [KEY ROTATION] Cambiando a {label} (cliente #{self._client_index + 1}/{len(self._clients_info)})...")
             return True
-        return False
+        else:
+            self._client_index = 0
+            label = "Vertex AI" if self.is_vertex_client else "clave #1"
+            Messenger.info(f"🔄 Reiniciando ciclo de clientes (volviendo a {label} #1/{len(self._clients_info)})...")
+            return True
 
     @retry(
         wait=wait_exponential(multiplier=2, min=5, max=60),
