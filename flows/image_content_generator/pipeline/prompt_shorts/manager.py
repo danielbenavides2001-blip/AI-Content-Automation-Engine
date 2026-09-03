@@ -92,41 +92,53 @@ class PromptManagerShorts(BasePromptManager):
             focus_areas = sn_constants.FOCUS_AREAS_SIETE_NIVELES
         else:
             focus_areas = [
-                "MISTERIOS SIN RESOLVER: Enigmas históricos y científicos que la humanidad aún no logra descifrar, desapariciones inexplicables y artefactos fuera de su tiempo.",
-                "CURIOSIDADES DE LA ANTIGÜEDAD: Secretos de civilizaciones perdidas, tecnologías antiguas sorprendentes y prácticas culturales extrañas que dejaron huella en la historia.",
-                "FENÓMENOS EXTRAÑOS Y CURIOSOS: Eventos naturales inexplicables, anomalías magnéticas y cosas extraordinarias de nuestro planeta que parecen sacadas de la ciencia ficción.",
-                "CULTURAS FASCINANTES: Tradiciones únicas, mitos impactantes y rituales milenarios de diferentes culturas alrededor del mundo que atrapan al espectador.",
-                "DESCUBRIMIENTOS INCREÍBLES: Hallazgos arqueológicos recientes, revelaciones científicas que cambian paradigmas y secretos desenterrados que cuentan historias olvidadas.",
-                "DATOS RANDOM ALUCINANTES: Cualquier dato científico, histórico, arquitectónico o espacial que sea 100% real pero suene inventado. Usa tu máxima creatividad para explorar temas completamente nuevos."
+                "FAUNA ASOMBROSA Y CRIATURAS EXTREMAS: Animales con adaptaciones alienígenas en la Tierra, criaturas bioluminiscentes, ojos con visión imposible, camuflajes activos y récords de longevidad o resistencia en el reino animal.",
+                "PREHISTORIA Y BESTIAS COLOSALES: Megafauna extinta del Pleistoceno, depredadores marinos gigantes (Megalodón, Mosasaurio), titanoboas, descubrimientos fósiles que desafían la paleontología.",
+                "MISTERIOS DE LOS ABISMOS OCEÁNICOS: Criaturas de la zona hadal en la Fosa de las Marianas, fuentes hidrotermales, anomalías acústicas submarinas y ecosistemas sin luz solar.",
+                "MISTERIOS SIN RESOLVER: Enigmas históricos y científicos que la humanidad aún no logra descifrar, desapariciones documentadas y artefactos fuera de su tiempo (ooparts).",
+                "CURIOSIDADES DE LA ANTIGÜEDAD: Secretos de civilizaciones perdidas, tecnologías antiguas sorprendentes (Mecanismo de Anticitera, fuego griego) y construcciones megalíticas milenarias.",
+                "FENÓMENOS EXTRAÑOS Y GEOLOGÍA INSÓLITA: Eventos naturales inexplicables en la Tierra (el Ojo del Sahara, cuevas de cristales gigantes de Naica, volcanes de lava azul, lagos explosivos).",
+                "PARADOJAS DEL COSMOS Y ASTRONOMÍA: Exoplanetas con climas extremos (lluvia de cristal, vientos de hierro), agujeros negros supermasivos, señales cósmicas y anomalías del universo.",
+                "EXPERIMENTOS Y ANOMALÍAS CIENTÍFICAS: Propiedades cuánticas alucinantes, experimentos históricos revolucionarios, paradojas de la física y descubrimientos que desafían el sentido común.",
+                "CULTURAS Y TRADICIONES FASCINANTES: Prácticas ancestrales, ciudades subterráneas habitadas por miles de personas (Derinkuyu) y rituales milenarios.",
+                "HAZAÑAS HUMANAS Y RÉCORDS IMPOSIBLES: Casos reales de personas que desafiaron a la muerte contra probabilidades de una en un millón, sobrevivientes extremos de frío, calor o caídas libres.",
+                "SECRETOS OCULTOS DEL CUERPO HUMANO: Anomalías genéticas reales, personas inmunes al dolor, memoria fotográfica absoluta y curiosidades biológicas extraordinarias.",
+                "DATOS RANDOM ALUCINANTES: Curiosidades 100% reales, verificables y fascinantes de la historia, la naturaleza, la ciencia o la tecnología que suenan a ciencia ficción."
             ]
         selected_area = random.choice(focus_areas)
         Messenger.info(f"🎯 Random Focus Area: {selected_area}")
 
         avoid_msg = ""
-        banned_words = "Pobre, Rico, Mentalidad, Escasez, Abundancia, Mindset, Millonario, Animales, Biología, Especies, Animal, Fauna, Mascotas, Insectos, Naturaleza viva"
+        # Palabras de spam/clickbait barato a evitar
+        banned_words = "Pobre, Rico, Mentalidad, Escasez, Abundancia, Mindset, Millonario"
+        unsafe_words = ["muerte", "mortal", "masacre", "asesin", "mata", "letal", "tragedia", "destru", "sangre", "gore", "cadáver", "herido", "suicidi", "manson", "terror", "violaci"]
         
-        unsafe_words = ["muerte", "mortal", "masacre", "asesin", "mata", "letal", "tragedia", "destru", "sangre", "gore", "cadáver", "herido", "suicidi", "manson", "infierno", "terror", "violaci"]
+        # Limpiar títulos de sufijos como [Hook B] o números de partes para tener temas puros
+        clean_titles = []
+        for t in titles_to_avoid:
+            t_str = str(t).replace("[Hook B]", "").replace("[Hook A]", "").strip()
+            if t_str and not any(w in t_str.lower() for w in unsafe_words):
+                clean_titles.append(t_str)
         
-        # Filtramos titles_to_avoid para no enviar palabras violentas del pasado a la IA
-        combined_avoid = [t for t in titles_to_avoid if not any(w in str(t).lower() for w in unsafe_words)]
+        # Eliminar duplicados preservando el orden
+        unique_avoid = list(dict.fromkeys(clean_titles))
         
-        # LÍMITE CRÍTICO DE MEMORIA: Ahora que usamos gemini-2.5-flash, podemos enviar un historial mucho más largo.
-        # Pasamos los últimos 150 temas para asegurar máxima variedad y evitar repeticiones a toda costa.
-        combined_avoid = combined_avoid[-150:]
+        # Pasamos hasta 450 temas históricos limpios para garantizar variedad absoluta
+        recent_avoid = unique_avoid[-450:]
         
-        if extra_avoid:
-            # extra_avoid already comes as a formatted string from get_recent_topics (ya filtrado)
-            combined_avoid.append(extra_avoid)
+        avoid_items = [f"- {t}" for t in recent_avoid]
+        if extra_avoid and not any(t in extra_avoid for t in recent_avoid[-10:]):
+            avoid_items.append(extra_avoid)
             
-        if combined_avoid:
-            avoid_list_str = "\n".join([str(t) for t in combined_avoid])
+        if avoid_items:
+            avoid_list_str = "\n".join(avoid_items)
             avoid_msg = (
                 f"\n\n🚨 **REGLA DE ORO DE NO REPETICIÓN ABSOLUTA:** 🚨\n"
-                f"Está ESTRICTAMENTE PROHIBIDO repetir CUALQUIERA de estos temas, historias o conceptos que ya fueron publicados:\n"
+                f"Está ESTRICTAMENTE PROHIBIDO repetir, reutilizar o basarte en CUALQUIERA de estos temas ya publicados:\n"
                 f"{avoid_list_str}\n\n"
-                f"Si generas una historia similar a las anteriores, el sistema fallará. DEBES INVENTAR UN TEMA COMPLETAMENTE NUEVO.\n"
-                f"🚫 **REGLA ESTRICTA:** ESTÁ TOTALMENTE PROHIBIDO HABLAR DE ANIMALES. NO generes curiosidades sobre fauna, biología animal o insectos. Concéntrate EXCLUSIVAMENTE en historia, geografía, espacio, arquitectura, culturas y misterios humanos.\n"
-                f"🚫 **PALABRAS PROHIBIDAS (NO USAR):** {banned_words}"
+                f"Debes explorar un caso, criatura, fenómeno, descubrimiento o misterio COMPLETAMENTE NUEVO que NO aparezca en la lista anterior.\n"
+                f"🛡️ **BRAND SAFETY:** Contenido 100% apto para Facebook (cero violencia, cero sangre, cero crueldad animal).\n"
+                f"🚫 **PALABRAS PROHIBIDAS:** {banned_words}"
             )
 
         # 3. Dynamic Visual Style Selector (With high diversity to prevent template-like feel)

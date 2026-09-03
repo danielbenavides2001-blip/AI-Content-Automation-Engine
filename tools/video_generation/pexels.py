@@ -26,55 +26,63 @@ class PexelsTool(BaseModelTool):
             Messenger.warning("⚠️ Query de Pexels vacío. Saltando búsqueda.")
             return False
 
-        Messenger.info(f"🔎 Buscando video en Pexels para: '{query}'...")
+        clean_query = query.strip()
+        Messenger.info(f"🔎 Buscando video en Pexels para: '{clean_query}'...")
         url = "https://api.pexels.com/videos/search"
         headers = {"Authorization": self.api_key}
         
-        # Aleatoriedad fuerte: página al azar entre 1 y 3 para evitar repetir siempre los mismos clips top.
-        random_page = random.randint(1, 3)
-        params = {
-            "query": query,
-            "orientation": "portrait",
-            "per_page": 15,
-            "page": random_page,
-            "size": "large"
-        }
+        # Intentos progresivos: 1) Portrait específico, 2) Sin restricción estricta de size, 3) Orientación general
+        search_attempts = [
+            {"query": clean_query, "orientation": "portrait", "per_page": 15, "page": random.randint(1, 2), "size": "large"},
+            {"query": clean_query, "orientation": "portrait", "per_page": 15, "page": 1},
+            {"query": clean_query, "per_page": 15, "page": 1},
+        ]
+        
+        # Si la consulta tiene varias palabras, agregar fallback con las 2 primeras palabras
+        words = clean_query.split()
+        if len(words) > 2:
+            search_attempts.append({"query": " ".join(words[:2]), "orientation": "portrait", "per_page": 15, "page": 1})
+            search_attempts.append({"query": words[0], "per_page": 15, "page": 1})
+
+        videos = []
+        for attempt_params in search_attempts:
+            try:
+                response = requests.get(url, headers=headers, params=attempt_params, timeout=10)
+                if response.status_code == 200:
+                    data = response.json()
+                    vids = data.get("videos", [])
+                    if vids:
+                        videos = vids
+                        break
+            except Exception:
+                continue
+
+        if not videos:
+            Messenger.warning(f"⚠️ No se encontraron videos para '{clean_query}' en Pexels.")
+            return False
 
         try:
-            response = requests.get(url, headers=headers, params=params)
-            response.raise_for_status()
-            data = response.json()
-
-            videos = data.get("videos", [])
-            if not videos:
-                # Fallback a la pagina 1 si la pagina random no tiene resultados
-                if random_page > 1:
-                    params["page"] = 1
-                    response = requests.get(url, headers=headers, params=params)
-                    data = response.json()
-                    videos = data.get("videos", [])
-                    
-                if not videos:
-                    Messenger.warning(f"⚠️ No se encontraron videos verticales para '{query}' en Pexels.")
-                    return False
-
-            # Elegir uno al azar de la lista completa
+            # Elegir uno al azar de la lista
             selected_video = random.choice(videos)
-            
-            # Buscar el archivo de video de mejor calidad
             video_files = selected_video.get("video_files", [])
             if not video_files:
                 return False
                 
-            # Ordenar por calidad (vertical 1080x1920 o similar)
-            # Priorizamos calidad 'hd'
+            # Buscar el archivo de video de mejor calidad (vertical o HD)
             best_file = None
             for f in video_files:
                 if f.get("quality") == "hd" and f.get("width") and f.get("height") and f.get("height") > f.get("width"):
                     best_file = f
                     break
             
-            # Fallback a cualquiera si no hay hd vertical
+            # Si no hay hd vertical, buscar cualquier archivo vertical
+            if not best_file:
+                for f in video_files:
+                    if f.get("width") and f.get("height") and f.get("height") > f.get("width"):
+                        best_file = f
+                        break
+            
+            # Fallback a cualquiera de buena resolucion
             if not best_file:
                 best_file = video_files[0]
                 
@@ -82,8 +90,8 @@ class PexelsTool(BaseModelTool):
             if not download_link:
                 return False
 
-            Messenger.info(f"⬇️ Descargando video de Pexels ({selected_video.get('duration')}s)...")
-            vid_res = requests.get(download_link, stream=True)
+            Messenger.info(f"⬇️ Descargando video de Pexels ({selected_video.get('duration', 0)}s)...")
+            vid_res = requests.get(download_link, stream=True, timeout=20)
             vid_res.raise_for_status()
             
             out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -91,9 +99,70 @@ class PexelsTool(BaseModelTool):
                 for chunk in vid_res.iter_content(chunk_size=8192):
                     f.write(chunk)
             
-            Messenger.success(f"✅ Video descargado con éxito: {out_path.name}")
-            return True
+            if out_path.exists() and out_path.stat().st_size > 10240:
+                Messenger.success(f"✅ Video descargado con éxito: {out_path.name}")
+                return True
+            return False
 
         except Exception as e:
-            Messenger.error(f"❌ Error al consultar Pexels API: {e}")
+            Messenger.error(f"❌ Error al descargar video de Pexels: {e}")
+            return False
+
+    def fetch_photo(self, query: str, out_path: Path) -> bool:
+        """
+        Descarga una foto vertical de alta resolución desde Pexels Photo API.
+        Sirve como respaldo inmediato y de alta calidad cuando no hay clips de video disponibles.
+        """
+        if not self.api_key or not query or not query.strip():
+            return False
+
+        clean_query = query.strip()
+        Messenger.info(f"🔎 Buscando foto de respaldo en Pexels para: '{clean_query}'...")
+        url = "https://api.pexels.com/v1/search"
+        headers = {"Authorization": self.api_key}
+
+        attempts = [
+            {"query": clean_query, "orientation": "portrait", "per_page": 15, "page": 1},
+            {"query": clean_query, "per_page": 15, "page": 1},
+        ]
+        words = clean_query.split()
+        if len(words) > 2:
+            attempts.append({"query": " ".join(words[:2]), "per_page": 15, "page": 1})
+
+        photos = []
+        for params in attempts:
+            try:
+                res = requests.get(url, headers=headers, params=params, timeout=10)
+                if res.status_code == 200:
+                    data = res.json()
+                    p_list = data.get("photos", [])
+                    if p_list:
+                        photos = p_list
+                        break
+            except Exception:
+                continue
+
+        if not photos:
+            return False
+
+        try:
+            chosen = random.choice(photos)
+            src = chosen.get("src", {})
+            img_url = src.get("large2x") or src.get("large") or src.get("original")
+            if not img_url:
+                return False
+
+            img_res = requests.get(img_url, timeout=15)
+            img_res.raise_for_status()
+
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(out_path, "wb") as f:
+                f.write(img_res.content)
+
+            if out_path.exists() and out_path.stat().st_size > 5120:
+                Messenger.success(f"✅ Foto de respaldo Pexels guardada: {out_path.name}")
+                return True
+            return False
+        except Exception as e:
+            Messenger.warning(f"⚠️ Error al descargar foto de Pexels: {e}")
             return False

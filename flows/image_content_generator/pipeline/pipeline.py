@@ -444,12 +444,15 @@ class Pipeline(BaseModelTool):
                 return True
 
             visual_type = getattr(scene, "visual_type", "stock_video")
-            query = getattr(scene, "pexels_query", "")
+            query = getattr(scene, "pexels_query", "").strip()
+            if not query:
+                # Extraer consulta por defecto desde el prompt o título del nivel
+                level_title = getattr(scene, "titulo_nivel", "")
+                query = level_title if level_title else idea_obj.title
 
+            # 1. Animación 3D de Mapa (si fue solicitada)
             if visual_type == "map_3d":
                 Messenger.info(f"   🗺️ Scene {scene.scene_number} requested 'map_3d'. Rendering Mapbox GL JS animation via Remotion...")
-                
-                # Extract camera settings
                 camera = getattr(scene, "camera", None)
                 lat = camera.latitude if camera else 4.570868
                 lon = camera.longitude if camera else -74.297333
@@ -457,86 +460,106 @@ class Pipeline(BaseModelTool):
                 pitch = camera.pitch if camera else 45.0
                 bearing = camera.bearing if camera else -10.0
                 
-                highlight_region = getattr(scene, "highlight_region", "none")
-                arrow_direction = getattr(scene, "arrow_direction", "none")
-                floating_label = getattr(scene, "floating_label", "none")
-                
                 props = {
-                    "latitude": lat,
-                    "longitude": lon,
-                    "zoom": zoom,
-                    "pitch": pitch,
-                    "bearing": bearing,
-                    "highlightRegion": highlight_region,
-                    "arrowDirection": arrow_direction,
-                    "floatingLabel": floating_label,
-                    "durationInFrames": 240, # 8 seconds at 30 fps
-                    "fps": 30
+                    "latitude": lat, "longitude": lon, "zoom": zoom, "pitch": pitch, "bearing": bearing,
+                    "highlightRegion": getattr(scene, "highlight_region", "none"),
+                    "arrowDirection": getattr(scene, "arrow_direction", "none"),
+                    "floatingLabel": getattr(scene, "floating_label", "none"),
+                    "durationInFrames": 240, "fps": 30
                 }
-                
                 try:
                     remotion_root = Path(self.REMOTION_DIR)
-                    self.remotion.render_composition(
-                        remotion_path=remotion_root,
-                        output_path=clip_path,
-                        composition_id="MapRender",
-                        props=props
-                    )
-                    if clip_path.exists() and clip_path.stat().st_size > 1024:
+                    self.remotion.render_composition(remotion_root, clip_path, "MapRender", props)
+                    if clip_path.exists() and clip_path.stat().st_size > 10240:
                         return True
                 except Exception as remotion_e:
-                    Messenger.error(f"   ❌ Remotion MapRender failed: {remotion_e}")
-                    Messenger.warning("   ⚠️ Falling back to stock video search...")
+                    Messenger.warning(f"   ⚠️ Remotion MapRender falló: {remotion_e}. Pasando a stock video.")
 
+            # 2. Búsqueda de Video de Stock (Pexels -> Pixabay)
             if visual_type != "ai_image":
-                # 1. Intentar Pexels (Prioridad 1)
-                if pexels_tool.fetch_video(query, clip_path):
-                    if clip_path.exists() and clip_path.stat().st_size > 1024:
-                        return True
+                if pexels_tool.fetch_video(query, clip_path) and clip_path.exists() and clip_path.stat().st_size > 10240:
+                    return True
+                if pixabay_tool.fetch_video(query, clip_path) and clip_path.exists() and clip_path.stat().st_size > 10240:
+                    return True
+                Messenger.warning(f"   ⚠️ No se encontró video de stock para '{query}'. Activando respaldo de imagen.")
 
-                # 2. Intentar Pixabay (Prioridad 2)
-                if pixabay_tool.fetch_video(query, clip_path):
-                    if clip_path.exists() and clip_path.stat().st_size > 1024:
-                        return True
+            # 3. Respaldo Visual Basado en Imagen (Garantía de Cero Pantalla Negra)
+            # Aseguramos que img_path exista con contenido real
+            if not img_path.exists() or img_path.stat().st_size < 5120:
+                Messenger.info(f"   🔄 Obteniendo imagen de respaldo para Escena {scene.scene_number}...")
                 
-                Messenger.warning(f"   ⚠️ APIs failed for query '{query}'. Falling back to AI Image.")
-            else:
-                Messenger.info(f"   🎨 Scene {scene.scene_number} explicitly requested 'ai_image'. Skipping stock video search.")
+                # A) Intentar foto de alta definición desde Pexels Photos
+                if pexels_tool.fetch_photo(query, img_path) and img_path.exists() and img_path.stat().st_size > 5120:
+                    Messenger.success(f"   ✅ Foto de stock de Pexels descargada para escena {scene.scene_number}")
+                
+                # B) Intentar foto de alta definición desde Pixabay Photos
+                elif pixabay_tool.fetch_photo(query, img_path) and img_path.exists() and img_path.stat().st_size > 5120:
+                    Messenger.success(f"   ✅ Foto de stock de Pixabay descargada para escena {scene.scene_number}")
+                
+                # C) Intentar generar con Vertex AI con prompt de la escena
+                elif hasattr(scene, "image_prompt") and scene.image_prompt:
+                    try:
+                        self.image_gen.generate_image(scene.image_prompt, img_path)
+                    except Exception as gen_err:
+                        Messenger.warning(f"   ⚠️ Generación de emergencia falló: {gen_err}")
 
-            # 3. Fallback: Ken Burns sobre imagen (Último recurso o forzado)
-            if not img_path.exists() or img_path.stat().st_size < 1024:
-                Messenger.warning(f"   ⚠️ No image available for Scene {scene.scene_number}. Generating gradient placeholder clip.")
+                # D) Reutilizar cualquier imagen válida ya generada en el proyecto
+                if not img_path.exists() or img_path.stat().st_size < 5120:
+                    images_dir = self.get_idea_asset_path(idea_obj.id, self.IMAGES_DIR, "")
+                    existing_imgs = [p for p in images_dir.glob("*.png") if p.exists() and p.stat().st_size > 5120]
+                    if existing_imgs:
+                        import shutil
+                        donor = existing_imgs[0]
+                        shutil.copyfile(donor, img_path)
+                        Messenger.info(f"   🔄 Reutilizando imagen {donor.name} para escena {scene.scene_number}")
+
+            # 4. Crear Clip Animado Ken Burns a partir de la imagen (NUNCA FONDO NEGRO)
+            if img_path.exists() and img_path.stat().st_size > 1024:
+                Messenger.info(f"   🎬 Generando animación Ken Burns para Escena {scene.scene_number}...")
                 try:
                     subprocess.run(
                         [
-                            "ffmpeg", "-y", "-f", "lavfi",
-                            "-i", "gradients=s=1080x1920:c0=0a0f1e:c1=1a1f3e:c2=0d1225:c3=151a35:rate=30:duration=6",
-                            "-t", "6", "-c:v", "libx264", "-pix_fmt", "yuv420p", str(clip_path)
+                            "ffmpeg", "-y", "-loop", "1", "-i", str(img_path),
+                            "-vf", "scale='max(1080,iw*1920/ih)':'max(1920,ih*1080/iw)',crop=1080:1920,zoompan=z='min(zoom+0.0008,1.15)':d=180:s=1080x1920",
+                            "-c:v", "libx264", "-t", "7", "-pix_fmt", "yuv420p", str(clip_path)
                         ],
                         check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
                     )
-                    if clip_path.exists():
+                    if clip_path.exists() and clip_path.stat().st_size > 10240:
                         return True
-                except Exception as placeholder_e:
-                    Messenger.error(f"   ❌ Scene {scene.scene_number}: Placeholder clip failed: {placeholder_e}")
-                return False
-                
-            Messenger.info(f"   🎬 Generating Ken Burns fallback for Scene {scene.scene_number}...")
+                except Exception as ffmpeg_e:
+                    Messenger.warning(f"   ⚠️ Ken Burns zoompan falló: {ffmpeg_e}. Aplicando render estático simple...")
+                    try:
+                        subprocess.run(
+                            [
+                                "ffmpeg", "-y", "-loop", "1", "-i", str(img_path),
+                                "-vf", "scale='max(1080,iw*1920/ih)':'max(1920,ih*1080/iw)',crop=1080:1920",
+                                "-c:v", "libx264", "-t", "7", "-pix_fmt", "yuv420p", str(clip_path)
+                            ],
+                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+                        )
+                        if clip_path.exists() and clip_path.stat().st_size > 10240:
+                            return True
+                    except Exception as static_e:
+                        Messenger.error(f"   ❌ Render estático falló: {static_e}")
+
+            # 5. Respaldo Final de Emergencia (Gradiente Cósmico Dinámico con Luz y Contraste, NUNCA NEGRO)
+            Messenger.warning(f"   ⚠️ Generando canvas dinámico de emergencia para Escena {scene.scene_number}...")
             try:
                 subprocess.run(
                     [
-                        "ffmpeg", "-loop", "1", "-i", str(img_path),
-                        "-vf", "zoompan=z='min(zoom+0.0005,1.1)':d=150:s=1080x1920",
-                        "-c:v", "libx264", "-t", "6", "-pix_fmt", "yuv420p", "-y", str(clip_path)
+                        "ffmpeg", "-y", "-f", "lavfi",
+                        "-i", "gradients=s=1080x1920:c0=0d324d:c1=7f1d1d:c2=1e3a8a:c3=b45309:rate=30:duration=7",
+                        "-t", "7", "-c:v", "libx264", "-pix_fmt", "yuv420p", str(clip_path)
                     ],
                     check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
                 )
-                return True
-            except Exception as ffmpeg_e:
-                Messenger.error(f"   ❌ FFmpeg fallback failed: {ffmpeg_e}")
+                return clip_path.exists() and clip_path.stat().st_size > 10240
+            except Exception as e:
+                Messenger.error(f"   ❌ Fallo crítico en canvas de emergencia: {e}")
                 return False
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
             results = list(executor.map(process_scene, script.scenes))
 
         if not all(results):

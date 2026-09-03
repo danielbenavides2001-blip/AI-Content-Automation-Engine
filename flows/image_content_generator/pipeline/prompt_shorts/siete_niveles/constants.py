@@ -93,16 +93,26 @@ Vas a escribir un guion para un video de tipo "Los 7 niveles de [TEMÁTICA]".
 
 
 FOCUS_AREAS_SIETE_NIVELES = [
-    "LUGARES PROHIBIDOS: Sitios en la Tierra a los que está prohibido acceder. Bóvedas secretas, islas restringidas, archivos clasificados, zonas militares cerradas, templos vedados al público.",
-    "ISLAS MISTERIOSAS: Islas remotas con historias extrañas, desapariciones, civilizaciones perdidas, bases secretas o fenómenos inexplicables.",
-    "SECRETOS OCULTOS EN LA TIERRA: Bunkers subterráneos, ciudades perdidas, tesoros escondidos, bases bajo el hielo, túneles que conectan continentes.",
-    "FRONTERAS EXTRAÑAS: Límites geopolíticos absurdos, fronteras invisibles, territorios disputados, enclaves, exclaves y rarezas cartográficas.",
-    "CIUDADES ABANDONADAS: Pueblos fantasma, metrópolis devastadas, complejos abandonados, estaciones fantasmas, lugares donde el tiempo se detuvo.",
-    "FENÓMENOS INEXPLICABLES: Eventos que la ciencia no puede explicar. Luces en el cielo, sonidos del abismo, desapariciones masivas, anomaly magnéticas.",
-    "CONSTRUCCIONES IMPOSIBLES: Edificios, templos y monumentos que desafiaban la tecnología de su época. Pirámides, megalitos, estructuras subterráneas colosales.",
-    "LUGARES PELIGROSOS: Sitios donde la muerte acecha en cada rincón. Islas letales, montañas malditas, cuevas mortales, zonas de exclusión radioactiva.",
-    "DESCUBRIMIENTOS ARQUEOLÓGICOS: Hallazgos que reescribieron la historia. Tumbas intactas, ciudades perdidas, artefactos imposibles, jeroglíficos descifrados.",
-    "MISTERIOS SIN RESOLVER: Casos que siguen abiertos. Desapariciones, códigos indescifrables, fenómenos sin explicación, expediciones perdidas.",
+    "DEPREDADORES PREHISTÓRICOS Y MONSTRUOS EXTINTOS: Criaturas colosales del pasado más aterradoras que el T-Rex, monstruos marinos de hace millones de años (Megalodón, Mosasaurio, Basilosaurio, Titanoboa, aves del terror).",
+    "REINO ANIMAL INSÓLITO Y ADAPTACIONES EXTREMAS: Animales con habilidades alienígenas en la Tierra, criaturas con venenos paralizantes, bioluminiscencia abisal, defensas de pesadilla, camuflaje óptico y sentidos imposibles.",
+    "ABISMOS MARINOS Y CRIATURAS DE LA ZONA HADAL: Especies de las profundidades de la Fosa de las Marianas, fosas inexploradas, anomalías acústicas submarinas, fuentes hidrotermales y ecosistemas donde nunca llega la luz.",
+    "PARADOJAS DEL UNIVERSO Y FÍSICA ROTA: Agujeros negros supermasivos, exoplanetas con climas de pesadilla (lluvia de vidrio, vientos de hierro líquido), estrellas zombi, el vacío cósmico de Boötes y anomalías del espacio-tiempo.",
+    "FENÓMENOS GEOLÓGICOS QUE DESAFÍAN LA CIENCIA: Lugares en la Tierra que parecen de otro planeta (el Ojo del Sahara, volcanes de lava azul de Kawah Ijen, lagos explosivos, cuevas de cristales gigantes de Naica).",
+    "CIVILIZACIONES PERDIDAS Y ARQUEOLOGÍA INEXPLICABLE: Ciudades sumergidas hace 10,000 años, templos megalíticos tallados en roca madre sólida, tumbas intactas y misterios de la historia antigua.",
+    "ARTEFACTOS FUERA DEL TIEMPO (OOPARTS): Reliquias milenarias con tecnología anacrónica, mapas antiguos imposibles, engranajes milenarios y baterías ancestrales.",
+    "INGENIOS Y MECANISMOS ANCESTRALES: Inventos olvidados de la antigüedad (el Mecanismo de Anticitera, arquitectura antisísmica milenaria de Japón y los Incas, fuego griego, acueductos imposibles).",
+    "HAZAÑAS DE SUPERVIVENCIA HUMANA EXTREMA: Personas que sobrevivieron a caídas desde aviones sin paracaídas, naufragios de meses en el océano abierto, congelamiento médico y retorno a la vida.",
+    "ANOMALÍAS MÉDICAS Y DEL CUERPO HUMANO: Mutaciones genéticas extraordinarias reales (personas que no sienten dolor, visión tetracromática, memoria autobiográfica total), casos médicos que desafían la biología.",
+    "LUGARES PROHIBIDOS Y BÓVEDAS SECRETAS: Sitios de acceso vetado en la Tierra, búnkers impenetrables, bóvedas globales (Svalbard) y archivos celosamente guardados.",
+    "CIUDADES SUBTERRÁNEAS Y TÚNELES SECRETOS: Ciudades bajo tierra como Derinkuyu en Capadocia, redes de túneles secretos milenarios y complejos militares bajo roca sólida.",
+    "ISLAS MISTERIOSAS Y AISLADAS: Islas volcánicas inaccesibles, atolones prohibidos, islas infestadas de especies únicas y territorios remotos que rompen la geografía.",
+    "EXPERIMENTOS CIENTÍFICOS PERTURBADORES: Experimentos históricos revolucionarios de la psicología y la física que pusieron a prueba los límites del conocimiento y la mente humana.",
+    "RÉCORDS EXTREMOS Y LÍMITES DE LA MATERIA: Las temperaturas más extremas jamás creadas en laboratorio, el material más oscuro y resistente del cosmos, el sonido más ensordecedor registrado en la Tierra.",
+    "MISTERIOS SIN RESOLVER DE LA HISTORIA: Expediciones que se desvanecieron sin dejar rastro, códigos y manuscritos indescifrables como el Manuscrito Voynich.",
+    "FRONTERAS EXTRAÑAS Y RAREZAS DEL MAPA: Enclaves absurdos, fronteras que atraviesan casas, líneas geopolíticas que desafían la lógica del planeta.",
+    "CIUDADES ABANDONADAS Y LUGARES EN PAUSA: Metrópolis desiertas donde la naturaleza tomó el control, complejos industriales fantasma, pueblos congelados en el tiempo.",
+    "LUGARES PELIGROSOS Y CONDICIONES MORTALES: Sitios donde la atmósfera te quitaría la vida en minutos, lagos de ácido, desiertos donde jamás ha llovido.",
+    "REINO FÚNGICO Y VEGETAL INSÓLITO: Hongos bioluminiscentes, organismos que controlan la mente de insectos (Cordyceps), plantas carnívoras gigantes y seres vivos milenarios."
 ]
 
 

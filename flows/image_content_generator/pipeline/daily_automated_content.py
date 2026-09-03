@@ -36,7 +36,7 @@ class DailyAutomator:
     def get_recent_topics(self) -> str:
         import pandas as pd
         topics = []
-        # 1. Get automated posts history
+        # 1. Automated posts history
         if self.history_file.exists():
             try:
                 df_auto = pd.read_csv(self.history_file)
@@ -44,7 +44,7 @@ class DailyAutomator:
             except Exception:
                 pass
         
-        # 2. Get video titles history
+        # 2. Video titles history
         video_csv = Path("flows/image_content_generator/out_short/ideas_tracking.csv")
         if video_csv.exists():
             try:
@@ -53,19 +53,35 @@ class DailyAutomator:
             except Exception:
                 pass
             
+        # 3. Curiosity photo posts history
+        curiosity_csv = Path("flows/curiosity_image_generator/curiosity_history.csv")
+        if curiosity_csv.exists():
+            try:
+                df_curio = pd.read_csv(curiosity_csv)
+                if "topic" in df_curio.columns:
+                    topics.extend(df_curio["topic"].tolist())
+            except Exception:
+                pass
+
         if not topics:
             return ""
         
-        # Deduplicate and format preserving order (most recent at the end)
-        unique_topics = list(dict.fromkeys([str(t).strip() for t in topics if str(t).strip()]))
+        # Limpieza de sufijos técnicos como [Hook B], [Hook A], Curiosity Reel...
+        clean_topics = []
+        for t in topics:
+            t_clean = str(t).replace("[Hook B]", "").replace("[Hook A]", "").replace("Curiosity Reel (siete_niveles)", "").replace("Curiosity Reel (standard)", "").strip()
+            if t_clean and len(t_clean) > 4:
+                clean_topics.append(t_clean)
+
+        # Deduplicar preservando el orden
+        unique_topics = list(dict.fromkeys(clean_topics))
         
-        # Filtro de Brand Safety: Evitar enviar títulos del pasado que tengan palabras violentas 
-        # (ya que Gemini lee todo el prompt y si ve "Masacre" en el historial, bloquea la petición nueva).
-        unsafe_words = ["muerte", "mortal", "masacre", "asesin", "mata", "letal", "tragedia", "destru", "sangre", "gore", "cadáver", "herido", "suicidi", "manson", "infierno", "terror", "violaci"]
+        # Filtro de Brand Safety
+        unsafe_words = ["muerte", "mortal", "masacre", "asesin", "mata", "letal", "tragedia", "destru", "sangre", "gore", "cadáver", "herido", "suicidi", "manson", "terror", "violaci"]
         safe_topics = [t for t in unique_topics if not any(w in str(t).lower() for w in unsafe_words)]
 
-        # Pass up to 250 topics to ensure strict anti-repetition rules now that we know the 400 error was due to the model name and not the prompt length.
-        avoid_list = "\n- ".join(safe_topics[-250:]) 
+        # Pasamos hasta 450 temas para asegurar máxima variedad
+        avoid_list = "\n- ".join(safe_topics[-450:]) 
         
         return f"\n\n**CRITICAL - ANTI-REPETITION RULES:**\nDO NOT repeat, reuse or get inspired by the following themes, metaphors or titles (THEY ARE ALREADY POSTED):\n- {avoid_list}\n\nBe creative. EXPLORE COMPLETELY NEW SUBJECTS, CULTURES, AND MYSTERIES THAT HAVE NOT BEEN MENTIONED ABOVE."
 
