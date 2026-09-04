@@ -73,7 +73,7 @@ jobs:
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
           USE_VERTEX_AI_IMAGE: "true"
-          USE_VERTEX_AI_AUDIO: "true"
+          USE_VERTEX_AI_AUDIO: "false"  # Usa Gemini TTS con voz Fenrir y tono cinematografico (la voz aprobada)
         run: |
           # Solo videos por defecto, imágenes desactivadas
           RUN_VIDEO=true

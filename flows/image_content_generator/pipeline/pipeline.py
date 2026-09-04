@@ -857,57 +857,10 @@ class Pipeline(BaseModelTool):
 
     def step5_generate_subtitles(self):
         """
-        Generate Subtitles: Adds subtitles to the video.
-        1. Retrieves the VIDEO_GENERATED idea.
-        2. Prepares directories.
-        3. Extracts audio.
-        4. Generates srt.
-        5. Adds subtitles to final video.
-        6. Updates state.
+        Generate Subtitles: Redirects to high-end Remotion animated subtitles
+        to ensure every generated video has the modern karaoke styling.
         """
-        # 1. Retrieves VIDEO_GENERATED idea.
-        idea_obj = self.store.get_first_by_state(State.VIDEO_GENERATED)
-        if not idea_obj:
-            Messenger.error("No video ready for subtitle generation.")
-            return
-
-        Messenger.info("\n--- Generating subtitles for the video ---")
-
-        # 2. Prepares directories.
-        raw_video = self.get_idea_asset_path(
-            idea_obj.id, self.EDITIONS_DIR, self.RAW_VIDEO
-        )
-        audio_wav = self.get_idea_asset_path(
-            idea_obj.id, self.EDITIONS_DIR, self.FINAL_AUDIO
-        )
-        subs_srt = self.get_idea_asset_path(
-            idea_obj.id, self.EDITIONS_DIR, self.FINAL_SUBS
-        )
-        subtitled_video = self.get_idea_asset_path(
-            idea_obj.id, self.EDITIONS_DIR, self.SUBTITLED_VIDEO
-        )
-
-        # 3. Extract Audio (skip if already exists from Step 4)
-        if not audio_wav.exists():
-            Messenger.info("Extracting audio for transcription...")
-            self.ffmpeg.extract_audio(raw_video, audio_wav)
-        else:
-            Messenger.info("Audio already extracted, skipping...")
-
-        # 4. Generate srt with script context for perfect spelling
-        Messenger.info("Transcribing audio via Whisper...")
-        script_data = self.load_script(idea_obj)
-        full_narration = " ".join([s.narration for s in script_data.scenes])
-        self.whisper.generate_srt(audio_wav, subs_srt, prompt=full_narration)
-
-        # 5. Add Subtitles
-        Messenger.info("Adding subtitles to final video...")
-        self.ffmpeg.add_subtitles_to_video(raw_video, subs_srt, subtitled_video, font_size=self.SUBTITLE_FONT_SIZE)
-
-        # 6. Updates state.
-        idea_obj.state = State.VIDEO_SUBTITLED
-        self.store.save(idea_obj)
-        Messenger.success(f"Step 5 ready: {State.VIDEO_SUBTITLED} finalized.\n")
+        return self.step5_pro_subtitles()
 
     def step5_pro_subtitles(self):
         """
