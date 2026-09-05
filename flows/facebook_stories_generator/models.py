@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 
 class FacebookStoryPost(BaseModel):
     title: str = Field(
-        description="A short title identifying the curiosity/mystery (e.g. 'La Puerta al Infierno de Darvaza', 'Las Bóvedas de Semillas de Svalbard', 'El Mecanismo de Anticitera')"
+        description="A short title identifying the specific curiosity or mystery. Must be unique and captivating."
     )
     category_label: str = Field(
         description="A short 1-2 word category in uppercase for the top badge (e.g., 'ARQUEOLOGÍA', 'COSMOS', 'MISTERIO', 'CIENCIA', 'GEOLOGÍA', 'ENIGMA')"
@@ -13,7 +13,7 @@ class FacebookStoryPost(BaseModel):
             "A short, shocking headline question or hook for the story in Spanish, all in uppercase. "
             "STRICT LIMIT: 8 to 12 words only! Do not write long paragraphs. "
             "CRITICAL: Wrap the 2-3 most powerful words in square brackets for neon highlight. "
-            "Example: '¿SABÍAS QUE [ESTA PUERTA] LLEVA [50 AÑOS ARDIENDO] SIN [APAGARSE]?'"
+            "Example: '¿SABÍAS QUE [ESTA ESTRUCTURA] TIENE [MÁS DE 10.000 AÑOS] DE [ANTIGÜEDAD]?'"
         )
     )
     fact_text: str = Field(

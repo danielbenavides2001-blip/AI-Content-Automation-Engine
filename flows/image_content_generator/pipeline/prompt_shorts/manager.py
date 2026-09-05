@@ -28,6 +28,7 @@ from tools.common.messenger import Messenger
 from tools.text_generation.gemini import GeminiTextGenerator
 from flows.image_content_generator.pipeline.prompt_shorts.siete_niveles.models import SieteNivelesHandler, SieteNivelesIdea
 from flows.image_content_generator.pipeline.prompt_shorts.siete_niveles import constants as sn_constants
+from tools.common.topic_validator import TopicValidator
 
 
 class PromptManagerShorts(BasePromptManager):
@@ -111,17 +112,9 @@ class PromptManagerShorts(BasePromptManager):
         avoid_msg = ""
         # Palabras de spam/clickbait barato a evitar
         banned_words = "Pobre, Rico, Mentalidad, Escasez, Abundancia, Mindset, Millonario"
-        unsafe_words = ["muerte", "mortal", "masacre", "asesin", "mata", "letal", "tragedia", "destru", "sangre", "gore", "cadáver", "herido", "suicidi", "manson", "terror", "violaci"]
         
-        # Limpiar títulos de sufijos como [Hook B] o números de partes para tener temas puros
-        clean_titles = []
-        for t in titles_to_avoid:
-            t_str = str(t).replace("[Hook B]", "").replace("[Hook A]", "").strip()
-            if t_str and not any(w in t_str.lower() for w in unsafe_words):
-                clean_titles.append(t_str)
-        
-        # Eliminar duplicados preservando el orden
-        unique_avoid = list(dict.fromkeys(clean_titles))
+        # Limpiar títulos preservando TODOS los temas históricos sin filtrar palabras clave
+        unique_avoid = TopicValidator.clean_past_titles(titles_to_avoid)
         
         # Pasamos hasta 450 temas históricos limpios para garantizar variedad absoluta
         recent_avoid = unique_avoid[-450:]
@@ -191,17 +184,52 @@ class PromptManagerShorts(BasePromptManager):
         
         Messenger.info(f"🎨 Selected Visual Style: {selected_style}")
 
-        # Inyectar el estilo y el área de enfoque
-        full_idea_prompt = (
-            f"{idea_prompt.format(visual_style=selected_style)}\n\n"
-            f"**TEMA CENTRAL OBLIGATORIO:** {selected_area}\n"
-            f"**ESTE CONTENIDO IS LA PARTE {next_part}** de la serie '{series_name}'."
-        )
-        
-        idea_data = content_gen.generate_text(
-            full_idea_prompt + avoid_msg, 
-            idea_model
-        )
+        # Rejection & Anti-Repetition Loop for Video Ideas (up to 5 attempts)
+        max_attempts = 5
+        idea_data = None
+        current_rejection_note = ""
+
+        for attempt in range(1, max_attempts + 1):
+            full_idea_prompt = (
+                f"{idea_prompt.format(visual_style=selected_style)}\n\n"
+                f"**TEMA CENTRAL OBLIGATORIO:** {selected_area}\n"
+                f"**ESTE CONTENIDO ES LA PARTE {next_part}** de la serie '{series_name}'."
+            )
+            
+            candidate_idea = content_gen.generate_text(
+                full_idea_prompt + avoid_msg + current_rejection_note, 
+                idea_model
+            )
+
+            # Check duplicate against past titles
+            is_dup, matched_past, reason = TopicValidator.is_duplicate(
+                candidate=candidate_idea.title,
+                past_titles=unique_avoid
+            )
+
+            if is_dup:
+                Messenger.warning(
+                    f"⚠️ [RECHAZO VIDEO - Intento {attempt}/{max_attempts}]:\n"
+                    f"   Propuesta descartada: '{candidate_idea.title}'\n"
+                    f"   Colisiona con tema previo: '{matched_past}'\n"
+                    f"   Motivo: {reason}\n"
+                    f"   Generando tema alternativo..."
+                )
+                selected_area = random.choice(focus_areas)
+                current_rejection_note = (
+                    f"\n\n🚨 ERROR CRÍTICO DE REPETICIÓN: Tu propuesta anterior '{candidate_idea.title}' fue RECHAZADA "
+                    f"porque coincide con el tema ya publicado: '{matched_past}' ({reason}). "
+                    f"Está TOTALMENTE PROHIBIDO repetir este tema o entidad. Genera un tema COMPLETAMENTE DISTINTO."
+                )
+                continue
+
+            idea_data = candidate_idea
+            Messenger.success(f"🎉 Tema de video 100% único y validado: '{idea_data.title}'")
+            break
+
+        if idea_data is None:
+            idea_data = candidate_idea
+            Messenger.warning("⚠️ Se agotaron los intentos de validación; usando última propuesta generada.")
 
         # 4. Viral Script / Content Generation
         Messenger.info(f"\n--- Generating Viral {category.upper()} Content: {idea_data.title} ---")

@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 
 class CuriosityPost(BaseModel):
-    title: str = Field(description="A short title for the curiosity (e.g. 'El Mecanismo de Anticitera', 'El Ojo del Sahara')")
+    title: str = Field(description="A short title identifying the specific curiosity, discovery or mystery. Must be concise, captivating and completely unique.")
     headline: str = Field(
         description=(
             "A short, high-impact news headline in Spanish, all in uppercase. "

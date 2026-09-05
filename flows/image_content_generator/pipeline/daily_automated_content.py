@@ -11,6 +11,7 @@ from tools.common.messenger import Messenger
 from tools.text_generation.gemini import GeminiTextGenerator
 from tools.image_generation.vertex_ai import VertexAIImageGenerator
 from tools.social_media.facebook import FacebookTool
+from tools.common.topic_validator import TopicValidator
 import time
 
 load_dotenv()
@@ -66,22 +67,11 @@ class DailyAutomator:
         if not topics:
             return ""
         
-        # Limpieza de sufijos técnicos como [Hook B], [Hook A], Curiosity Reel...
-        clean_topics = []
-        for t in topics:
-            t_clean = str(t).replace("[Hook B]", "").replace("[Hook A]", "").replace("Curiosity Reel (siete_niveles)", "").replace("Curiosity Reel (standard)", "").strip()
-            if t_clean and len(t_clean) > 4:
-                clean_topics.append(t_clean)
+        # Limpieza y deduplicación con TopicValidator (mantiene toda la lista negra histórica intacta)
+        unique_topics = TopicValidator.clean_past_titles(topics)
 
-        # Deduplicar preservando el orden
-        unique_topics = list(dict.fromkeys(clean_topics))
-        
-        # Filtro de Brand Safety
-        unsafe_words = ["muerte", "mortal", "masacre", "asesin", "mata", "letal", "tragedia", "destru", "sangre", "gore", "cadáver", "herido", "suicidi", "manson", "terror", "violaci"]
-        safe_topics = [t for t in unique_topics if not any(w in str(t).lower() for w in unsafe_words)]
-
-        # Pasamos hasta 450 temas para asegurar máxima variedad
-        avoid_list = "\n- ".join(safe_topics[-450:]) 
+        # Pasamos hasta 500 temas para asegurar máxima variedad
+        avoid_list = "\n- ".join(unique_topics[-500:]) 
         
         return f"\n\n**CRITICAL - ANTI-REPETITION RULES:**\nDO NOT repeat, reuse or get inspired by the following themes, metaphors or titles (THEY ARE ALREADY POSTED):\n- {avoid_list}\n\nBe creative. EXPLORE COMPLETELY NEW SUBJECTS, CULTURES, AND MYSTERIES THAT HAVE NOT BEEN MENTIONED ABOVE."
 
@@ -190,7 +180,14 @@ class DailyAutomator:
                 cmd = [sys.executable, "-m", "flows.image_content_generator.pipeline.main", "short", "all", "--avoid", avoid_msg, "--mode", mode]
                 subprocess.run(cmd, check=True)
                 Messenger.success(f"✅ Curiosity Reel ({mode.upper()}) completed!")
-                self.log_post("video", f"Curiosity Reel ({mode})")
+                try:
+                    import pandas as pd
+                    video_csv = Path("flows/image_content_generator/out_short/ideas_tracking.csv")
+                    df = pd.read_csv(video_csv)
+                    last_title = df.iloc[-1]["title"]
+                except Exception:
+                    last_title = f"Curiosity Reel ({mode})"
+                self.log_post("video", last_title)
                 self.sync_to_github()
             except Exception as e:
                 Messenger.error(f"Error during video task: {e}")

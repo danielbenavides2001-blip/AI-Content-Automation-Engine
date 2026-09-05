@@ -12,7 +12,9 @@ from tools.text_generation.gemini import GeminiTextGenerator
 from tools.image_generation.vertex_ai import VertexAIImageGenerator
 from tools.social_media.facebook import FacebookTool
 from tools.image_generation.story_card_engine import StoryCardEngine
+from typing import Optional
 from flows.curiosity_image_generator.models import CuriosityPost
+from tools.common.topic_validator import TopicValidator
 
 
 class CuriosityPipeline:
@@ -273,14 +275,15 @@ class CuriosityPipeline:
         and automated_posts_history.csv to ensure global zero repetition.
         Preserves chronological order and filters unsafe keywords.
         """
-        raw_topics = []
+        curiosity_topics = []
+        other_topics = []
         
-        # 1. Read curiosity_history.csv
+        # 1. Read curiosity_history.csv (PRIORITY 1: 100% preserved)
         if self.history_csv.exists():
             try:
                 df = pd.read_csv(self.history_csv)
                 if not df.empty and "title" in df.columns:
-                    raw_topics.extend(df["title"].dropna().tolist())
+                    curiosity_topics.extend(df["title"].dropna().tolist())
             except Exception as e:
                 Messenger.warning(f"⚠️ Could not read curiosity_history.csv: {e}")
 
@@ -290,7 +293,7 @@ class CuriosityPipeline:
             try:
                 df_ideas = pd.read_csv(ideas_csv)
                 if not df_ideas.empty and "title" in df_ideas.columns:
-                    raw_topics.extend(df_ideas["title"].dropna().tolist())
+                    other_topics.extend(df_ideas["title"].dropna().tolist())
             except Exception as e:
                 Messenger.warning(f"⚠️ Could not read ideas_tracking.csv: {e}")
 
@@ -300,52 +303,135 @@ class CuriosityPipeline:
             try:
                 df_auto = pd.read_csv(auto_csv)
                 if not df_auto.empty and "topic" in df_auto.columns:
-                    raw_topics.extend(df_auto["topic"].dropna().tolist())
+                    other_topics.extend(df_auto["topic"].dropna().tolist())
             except Exception as e:
                 Messenger.warning(f"⚠️ Could not read automated_posts_history.csv: {e}")
 
-        # Deduplicate while preserving chronological order (most recent at the end)
-        deduped = list(dict.fromkeys([str(t).strip() for t in raw_topics if str(t).strip() and str(t).strip().lower() != "curiosity image"]))
+        # Clean and deduplicate both sets
+        clean_curio = TopicValidator.clean_past_titles(curiosity_topics)
+        clean_others = TopicValidator.clean_past_titles(other_topics)
         
-        # Filter out violent/unsafe words for Facebook brand safety
-        unsafe_words = ["muerte", "mortal", "masacre", "asesin", "mata", "letal", "tragedia", "destru", "sangre", "gore", "cadáver", "herido", "suicidi", "manson", "infierno", "terror", "violaci"]
-        safe_topics = [t for t in deduped if not any(w in str(t).lower() for w in unsafe_words)]
-        
-        # Keep up to the last 300 topics
-        return safe_topics[-300:]
+        # Merge: All curiosity history + unique video topics
+        return list(dict.fromkeys(clean_curio + clean_others))
 
     def run(self, publish: bool = False) -> None:
         Messenger.info("✨ Starting Curiosity Photo Post Pipeline...")
         
-        # 1. Diverse Focus Areas for Global Curiosities (ALL TOPICS INCLUDED: Animals, Prehistory, Space, Archaeology, Science, Oceans)
+        # 1. Ultra-diverse Focus Areas for Global Curiosities (60+ Distinct Domains)
         focus_areas = [
-            "REINO ANIMAL INSÓLITO Y ADAPTACIONES EXTREMAS: Animales con habilidades asombrosas, criaturas de las profundidades abisales, camuflajes imposibles, animales bioluminiscentes y récords del reino animal (fuerza, velocidad, longevidad, sentidos).",
-            "PREHISTORIA, PALEONTOLOGÍA Y FÓSILES: Criaturas prehistóricas colosales (megalodón, titanoboa, dinosaurios, mamuts lanudos), fósiles asombrosos y misterios de la evolución en la Tierra.",
-            "ARQUEOLOGÍA Y CIVILIZACIONES ANTIGUAS: Misterios de civilizaciones perdidas (Egipto, Mayas, Mesopotamia, Sumeria, Grecia antigua), templos ocultos, construcciones megalíticas y tumbas ancestrales.",
-            "ENIGMAS HISTÓRICOS Y RELIQUIAS: Artefactos fuera de su tiempo (ooparts), manuscritos indescifrables, mapas antiguos imposibles y tesoros históricos perdidos.",
-            "MISTERIOS DEL COSMOS Y ASTRONOMÍA: Descubrimientos espaciales alucinantes, exoplanetas con climas extremos, agujeros negros, señales cósmicas y anomalías del universo.",
-            "FENÓMENOS TERRESTRES Y GEOLOGÍA INSÓLITA: Lugares en la Tierra que parecen de otro planeta (el Ojo del Sahara, cuevas de cristales gigantes de Naica, volcanes de lava azul, lagos rosados).",
-            "CIENCIA FASCINANTE Y FÍSICA ASOMBROSA: Paradojas cuánticas, experimentos científicos históricos revolucionarios, propiedades extrañas de la materia y descubrimientos que desafían la intuición humana.",
-            "INVENTOS Y TECNOLOGÍA ANCESTRAL: Mecanismos de hace miles de años (Mecanismo de Anticitera), arquitectura antisísmica milenaria, el fuego griego, y tecnologías olvidadas de la antigüedad.",
-            "OCÉANOS Y ABISMOS MARINOS: Fosas oceánicas inexploradas (Fosa de las Marianas), criaturas de la zona abisal, ciudades sumergidas y anomalías submarinas.",
-            "DATOS CURIOSOS GLOBALES Y LUGARES ENIGMÁTICOS: Hechos 100% reales sobre monumentos, lugares prohibidos (Bóveda Global de Semillas de Svalbard, Zona del Silencio), ciudades subterráneas y secretos de nuestro planeta."
+            # REINO ANIMAL Y BIOLOGÍA EXTRAÑA
+            "ADAPTACIONES DEPREDADORAS INSÓLITAS: Estrategias de caza asombrosas y poco conocidas (hormigas mandíbula trampa, peces arquero disparando agua, avispa joya zombificadora).",
+            "CRIATURAS EXTREMÓFILAS Y RESISTENCIA IMPOSIBLE: Organismos que viven en condiciones extremas de radiación, frío polar, acidez o presión en fuentes termales (Deinococcus radiodurans, gusanos pompeya).",
+            "BIOLUMINISCENCIA Y COMUNICACIÓN ÓPTICA: Especies que generan su propia luz en bosques o profundidades para cazar o comunicarse (hongos fantasma, calamar luciérnaga, escarabajos de fuego).",
+            "CAMUFLAJES ACTIVOS Y MIMETISMO IMPOSIBLE: Animales que transforman su textura, color y forma en segundos (pulpo mimo, mantis orquídea, insectos corteza de la selva).",
+            "REGENERACIÓN CELULAR Y LONGEVIDAD EXTREMA: Animales que desafían el envejecimiento o regeneran órganos completos (tiburón de Groenlandia, medusa inmortal Turritopsis dohrnii, salamandras de cueva olm).",
+            "COMUNICACIÓN ANIMAL Y BIOACÚSTICA ALUCINANTE: Especies con sistemas acústicos complejos (pájaros lira imitando sonidos humanos y mecánicos, cantos infrasónicos de ballenas azules, chasquidos de cachalotes).",
+            "VENENOS Y BIOQUÍMICA NATURAL: Toxinas y compuestos bioquímicos fascinantes (pez piedra, caracol cono con neurotoxinas ultraprecisas, rana dardo dorada).",
+            "SIMBIOSIS ASOMBROSAS DEL REINO ANIMAL: Mutualismos extraños donde especies completamente distintas cooperan para sobrevivir (peces limpiadores, camarones ciegos y gobios vigilantes, tejones mieleros y pájaros guía).",
+            "SENTIDOS SOBRENATURALES DE ANIMALES: Animales con magnetorrecepción, electrodetección o visión ultravioleta/infrarroja (ornitorrincos, víboras de foseta, tiburones martillo con ampollas de Lorenzini).",
+            "INGENIERÍA ANIMAL Y ARQUITECTURA BIOLÓGICA: Nidos, colmenas y estructuras colosales creadas por animales (termitas con climatización pasiva, pájaros tejedores republicanos, diques de castores visibles desde el espacio).",
+
+            # OCÉANOS Y ABISMOS MARINOS
+            "ZONA HADAL Y FOSAS OCEÁNICAS: Criaturas y secretos del abismo bajo 8000 metros de profundidad (Fosa de las Marianas, pez baboso de las Marianas, anfípodos gigantes).",
+            "GIGANTISMO ABISAL: El fenómeno de por qué las criaturas de las profundidades marinas crecen a tamaños colosales (isópodos gigantes, cangrejo araña japonés, anfípodos monstruosos).",
+            "ECOSISTEMAS DE FUMAROLAS HIDROTERMALES: Vida que no depende de la luz solar sino de azufre y quimiosíntesis a 400°C en grietas volcánicas submarinas.",
+            "ANOMALÍAS SUBMARINAS Y RUIDOS INEXPLICABLES: Sonidos de muy baja frecuencia detectados en los océanos del mundo (el 'Bloop', 'Julia', 'Train') y corrientes oceánicas invisibles.",
+            "LAGOS Y RÍOS BAJO EL AGUA: Fenómenos de salmuera densa en el lecho marino del Golfo de México donde se forman auténticos lagos y costas submarinas.",
+
+            # PREHISTORIA, PALEONTOLOGÍA Y EVOLUCIÓN
+            "ARTRÓPODOS GIGANTES DEL CARBONÍFERO: La época en que el oxígeno abundante creó insectos y miriápodos gigantescos (Meganeura del tamaño de águilas, Arthropleura milpiés de 2 metros).",
+            "FAUNA FANTÁSTICA DEL CÁMBRICO: Los primeros animales complejos con anatomías alienígenas en los esquistos de Burgess (Opabinia con 5 ojos, Anomalocaris, Hallucigenia).",
+            "MAMÍFEROS GIGANTES DEL PLEISTOCENO: Megafauna colosal olvidada (Glyptodon del tamaño de un automóvil, Megatherium perezoso terrestre gigante de 6 metros, Smilodon populator).",
+            "DEPREDADORES MARINOS DEL MESOZOICO: Reptiles marinos prehistóricos aterradores (Mosasaurio de 15 metros, Liopleurodon, Kronosaurus, Shonisaurus).",
+            "DINOSAURIOS CON PLUMAS Y COLORACIÓN REAL: Descubrimientos fósiles recientes que revelan el verdadero plumaje, patrones de color y sonidos de los terópodos.",
+            "PLANTAS Y BOSQUES PREHISTÓRICOS PERDIDOS: Fósiles de Prototaxites (hongos gigantes de 8 metros que dominaban la tierra antes de los árboles) y selvas fósiles de la Antártida.",
+            "AVES COLOSALES PREHISTÓRICAS: Aves gigantes que surcaban los cielos prehistóricos (Argentavis magnificens con 7 metros de envergadura, Pelagornis sandersi).",
+
+            # ARQUEOLOGÍA, MONUMENTOS Y CIUDADES PERDIDAS
+            "ARQUITECTURA SUBTERRÁNEA MILENARIA: Ciudades excavadas en roca volcánica de múltiples niveles bajo tierra (Derinkuyu, Kaymakli, iglesias monolíticas de Lalibela).",
+            "TEMPLOS MONOLÍTICOS ESCULPIDOS DE UNA SOLA PIEZA: Hazañas de cantería ancestral imposible (el Templo Kailasa en Ellora esculpido de arriba hacia abajo en una sola roca de basalto).",
+            "ESTRUCTURAS MEGALÍTICAS DEL NEOLÍTICO: Sitios anteriores a las pirámides con relieves de animales (Karahan Tepe, alineaciones megalíticas de Carnac).",
+            "CIUDADES FLOTANTES Y VENECIAS ANCESTRALES: Ciudades antiguas construidas sobre arrecifes de coral en el océano (Nan Madol en Micronesia, canales olvidados de América).",
+            "TECNOLOGÍA HIDRÁULICA Y ACUEDUCTOS ANCESTRALES: Sistemas de irrigación y distribución de agua milenarios (qanats persas en el desierto, cisternas romanas de Yerebatan en Estambul).",
+            "MISTERIOS DE MESOPOTAMIA Y SUMERIA: Tablillas cuneiformes que relatan listas de reyes antediluvianos, la biblioteca de Asurbanipal y zigurats de ladrillo cocido.",
+            "FORTALEZAS Y MUROS CICLÓPEOS: Construcciones con bloques de cientos de toneladas encajados milimétricamente sin mortero (Sacsayhuamán, Ollantaytambo, Baalbek).",
+            "GEOGLIFOS Y ARTE RUPESTRE GIGANTESCO: Líneas y figuras en el suelo visibles solo desde el cielo en desiertos del mundo (geoglifos de Nazca, el Gigante de Atacama, hombres de Marree).",
+
+            # RELIQUIAS, OOPARTS Y ARTEFACTOS HISTÓRICOS
+            "MANUSCRITOS INDESCIFRABLES Y CÓDICES SECRETOS: Libros antiguos escritos en alfabetos desconocidos con ilustraciones de plantas inexistentes (Manuscrito Voynich, Códice Rohonc).",
+            "ALEACIONES Y METALURGIA ANCESTRAL DESCONOCIDA: Materiales con propiedades nanotecnológicas antiguas (el Acero de Damasco con nanotubos de carbono, el Pilar de Hierro de Delhi que no se oxida).",
+            "VIDRIO DICROICO Y NANOQUÍMICA ROMANA: Artefactos con partículas de oro y plata que cambian de color con la luz (la Copa de Licurgo del siglo IV).",
+            "DISPOSITIVOS ASTRONÓMICOS Y COMPUTADORAS ANTIGUAS: Mecanismos de engranajes y calculadoras celestes de la antigüedad (el Disco Celeste de Nebra de la Edad del Bronce).",
+            "CONCRETO ROMANO AUTORREPARABLE: La fórmula milenaria de ceniza volcánica y cal viva que endurece y sella grietas al contacto con el agua marina.",
+            "MAPAS HISTÓRICOS CON ENIGMAS GEOGRÁFICOS: Cartografía antigua que representaba costas detalladas antes de su exploración oficial (el Mapa de Piri Reis, mapa de Waldseemüller).",
+
+            # COSMOS, EXOPLANETAS Y ASTRONOMÍA
+            "EXOPLANETAS CON CLIMAS Y COMPOSICIÓN EXTREMA: Mundos alienígenas con lluvias de vidrio fundido (HD 189733b), mantos de diamante puro (55 Cancri e), o donde llueve hierro hirviente (WASP-76b).",
+            "PLANETAS NÓMADAS INTERESTELARES: Planetas solitarios expulsados de sus sistemas solares que vagan en la oscuridad absoluta de la Vía Láctea sin estrella madre.",
+            "CAMPOS MAGNÉTICOS EXTREMOS Y MAGNETARES: Estrellas de neutrones con campos magnéticos tan potentes que disolverían los átomos de un cuerpo a miles de kilómetros.",
+            "EL VACÍO DE BOÖTES Y ANOMALÍAS CÓSMICAS: Regiones gigantescas del universo donde casi no existen galaxias ni materia en cientos de millones de años luz.",
+            "LUNAS DE HIELO Y OCÉANOS SUBTERRÁNEOS: Océanos de agua líquida bajo cortezas de hielo en el sistema solar (Europa y Ganímedes de Júpiter, Encélado de Saturno con géiseres hidrotermales).",
+            "KILONOVAS Y EL ORIGEN DE LOS METALES PRECIOSOS: Colisiones de estrellas de neutrones que forjan y dispersan oro, platino y uranio a través del cosmos.",
+            "LA NUBE DE OORT Y LOS CONFINES DEL SISTEMA SOLAR: La gigantesca esfera de billones de cometas de hielo que rodea nuestro sistema solar a un año luz del Sol.",
+
+            # FENÓMENOS TERRESTRES, GEOLOGÍA Y ATMÓSFERA
+            "FENÓMENOS ATMOSFÉRICOS ELÉCTRICOS RAROS: Rayos que duran horas continuas o ascienden hacia el espacio (el Relámpago del Catatumbo en Venezuela, espectros rojos 'sprites' y chorros azules en la estratosfera).",
+            "PIEDRAS VIAJERAS Y GEOLOGÍA CINÉTICA: Rocas pesadas que se deslizan solas sobre desiertos llanos impulsadas por finas capas de hielo y viento (Racetrack Playa en el Valle de la Muerte).",
+            "DUNAS DE ARENA CANTORAS: Desiertos donde el movimiento de las arenas produce un zumbido sonoro de baja frecuencia similar a un órgano musical.",
+            "PENITENTES DE HIELO DE GRAN ALTITUD: Agujas afiladas de hielo de varios metros formadas por sublimación solar en los picos más altos de los Andes.",
+            "LAGOS QUE CALCIFICAN O CAMBIAN DE COLOR: Lagos hipersalinos con pH extremo que preservan animales como estatuas o tiñen sus aguas de rojo sangre (Lago Natrón en Tanzania).",
+            "VOLCANES DE LAVA AZUL Y MINAS DE AZUFRE: Volcanes donde los gases sulfúricos en combustión crean ríos de fuego azul brillante en la noche (Kawah Ijen en Indonesia).",
+            "POZOS Y AGUJEROS AZULES PROFUNDOS: Sumideros kársticos verticales en medio de lagunas o arrecifes oceánicos con aguas anóxicas y fósiles intactos (Gran Agujero Azul de Belice, Agujero de Dean).",
+            "DESIERTO DE DANAKIL Y LA TIERRA HIRVIENTE: Uno de los lugares más inhóspitos del planeta con piscinas hidrotermales de ácido amarillo fosforescente y volcanes de sal (Depresión de Danakil en Etiopía).",
+
+            # FÍSICA ASOMBROSA, QUÍMICA Y CIENCIA FASCINANTE
+            "MATERIALES ULTRA-LIGEROS Y SÓLIDOS IMPOSIBLES: Sustancias creadas por la ciencia con densidades casi nulas y aislamiento térmico brutal (Aerogeles conocidos como 'humo helado').",
+            "FLUIDOS NO NEWTONIANOS Y POLÍMEROS VISCOELÁSTICOS: Líquidos que se comportan como sólidos indestructibles ante un impacto rápido y vuelven a líquido en reposo.",
+            "SUPERCONDUCTIVIDAD Y LEVITACIÓN CUÁNTICA: Materiales enfriados a temperaturas criogénicas que expulsan líneas de campo magnético y flotan suspendidos en el aire (Efecto Meissner).",
+            "FERROFLUIDOS Y MATERIALES MAGNÉTICOS ACTIVOS: Líquidos infundidos con nanopartículas magnéticas que forman agujas y esculturas vivientes ante campos magnéticos.",
+            "EXPERIMENTOS CIENTÍFICOS QUE CAMBIARON LA REALIDAD: Descubrimientos de la física sobre cómo la observación altera el comportamiento de las partículas subatómicas.",
+            "FÓRMULA Y SECRETOS DEL FUEGO GRIEGO: El arma incendiaria impenetrable del Imperio Bizantino que continuaba ardiendo sobre el agua del mar.",
+
+            # BOTÁNICA INSÓLITA Y HONGOS ASOMBROSOS
+            "PLANTAS CARNÍVORAS GIGANTES DE LA SELVA: Plantas con trampas de jarra capaces de capturar y digerir pequeños vertebrados en las selvas de Borneo (Nepenthes rajah).",
+            "FLORES MONSTRUOSAS Y CADAVÉRICAS: Especies parásitas sin raíces ni hojas que emiten olores penetrantes y alcanzan tamaños récord (Rafflesia arnoldii, Amorphophallus titanum).",
+            "PLANTAS QUE SOBREVIVEN MIL AÑOS CON DOS HOJAS: Especies desérticas fósiles vivientes que absorben agua únicamente de la niebla costera (Welwitschia mirabilis del desierto de Namib).",
+            "REDES MICELIALES Y COMUNICACIÓN VEGETAL: El 'Wood Wide Web', redes subterráneas de hongos que conectan árboles de un bosque para compartir nutrientes y alertas químicas.",
+            "HONGOS PARÁSITOS Y CONTROL NEUROLÓGICO EN INSECTOS: El mecanismo preciso del hongo Ophiocordyceps que altera el sistema nervioso de hormigas para manipular su comportamiento.",
+
+            # ENIGMAS HUMANOS Y ANOMALÍAS GENÉTICAS
+            "ANOMALÍAS GENÉTICAS EXTRAORDINARIAS: Mutaciones reales en el gen LRP5 que otorgan huesos de densidad irrompible, o mutaciones en ACTN3 para fibras musculares de hiper-velocidad.",
+            "TETRACROMATISMO Y VISIÓN SOBREHUMANA: La mutación ocular genética presente en algunas personas que les permite percibir 100 millones de tonalidades de color invisibles para la mayoría.",
+            "HIPERMNESIA Y MEMORIA AUTOBIOGRÁFICA TOTAL: Personas capaces de recordar con exactitud fotográfica cada segundo, clima y emoción de cualquier día de su vida.",
+            "CASOS DE SUPERVIVENCIA EXTREMA CONTRA TODO PRONÓSTICO: Historias médicas reales de reanimaciones tras hipotermia profunda donde el cerebro se preservó sin oxígeno por horas."
         ]
-        selected_focus = random.choice(focus_areas)
-        Messenger.info(f"🎯 Selected Focus Area: {selected_focus}")
 
         # Load unified history
-        past_topics = self.get_past_topics()
-        avoid_instruction = ""
-        if past_topics:
-            avoid_list_str = "\n- ".join(past_topics)
-            avoid_instruction = (
-                "\n\n🚨 **REGLA DE ORO DE NO REPETICIÓN ABSOLUTA:** 🚨\n"
-                "Está ESTRICTAMENTE PROHIBIDO repetir, reutilizar o inspirarte en CUALQUIERA de estos temas ya publicados:\n"
-                f"- {avoid_list_str}\n\n"
-                "Debes elegir un tema, animal, especie, artefacto, lugar o suceso COMPLETAMENTE NUEVO y diferente a la lista anterior."
-            )
+        raw_past = self.get_past_topics()
+        past_topics = TopicValidator.clean_past_titles(raw_past)
+        Messenger.info(f"📚 Loaded {len(past_topics)} unique past topics for anti-repetition protection.")
 
-        prompt = f"""
+        # Rejection loop with TopicValidator (up to 5 attempts)
+        max_attempts = 5
+        post_data: Optional[CuriosityPost] = None
+        current_rejection_note = ""
+
+        for attempt in range(1, max_attempts + 1):
+            selected_focus = random.choice(focus_areas)
+            Messenger.info(f"🎯 [Intento {attempt}/{max_attempts}] Selected Focus Area: {selected_focus[:80]}...")
+
+            avoid_instruction = ""
+            if past_topics:
+                # Include up to the last 400 topics in the prompt
+                avoid_list_str = "\n- ".join(past_topics[-400:])
+                avoid_instruction = (
+                    "\n\n🚨 **REGLA DE ORO DE NO REPETICIÓN ABSOLUTA:** 🚨\n"
+                    "Está ESTRICTAMENTE PROHIBIDO repetir, reutilizar o inspirarte en CUALQUIERA de estos temas ya publicados:\n"
+                    f"- {avoid_list_str}\n\n"
+                    "Debes elegir un tema, animal, especie, artefacto, lugar o suceso COMPLETAMENTE NUEVO y diferente a la lista anterior."
+                )
+
+            prompt = f"""
 Eres un redactor e investigador experto para la página "EnigmaIQ" en Facebook.
 Tu misión es generar una publicación gráfica y viral de altísimo impacto sobre una curiosidad o descubrimiento fascinante del mundo (animales insólitos, prehistoria, arqueología, espacio, ciencia o misterios del planeta).
 
@@ -361,11 +447,43 @@ Tu misión es generar una publicación gráfica y viral de altísimo impacto sob
    - `card_fact`: Una sola frase breve de 12 a 18 palabras explicando el dato asombroso para mostrar en la imagen.
 5. 🎨 **IMAGEN HIPERREALISTA:** El `image_prompt` debe describir el sujeto (animal, fósil, estructura, fenómeno o lugar) con estética cinematográfica de National Geographic / 8k, ubicando el elemento principal en el 60% superior de la imagen (aspect ratio 4:5 vertical) para dejar el 40% inferior libre para el texto.
 {avoid_instruction}
+{current_rejection_note}
 """
-        
-        Messenger.info("🧠 Generating curiosity story via Gemini...")
-        post_data: CuriosityPost = self.text_gen.generate_text(prompt, CuriosityPost)
-        
+            Messenger.info(f"🧠 Generating curiosity story via Gemini (Attempt {attempt}/{max_attempts})...")
+            candidate_post: CuriosityPost = self.text_gen.generate_text(prompt, CuriosityPost)
+
+            # Validate against past topics with TopicValidator
+            is_dup, matched_past, reason = TopicValidator.is_duplicate(
+                candidate=candidate_post.title,
+                past_titles=past_topics,
+                headline=candidate_post.headline
+            )
+
+            if is_dup:
+                Messenger.warning(
+                    f"⚠️ [RECHAZO POR DUPLICIDAD - Intento {attempt}/{max_attempts}]:\n"
+                    f"   Propuesta descartada: '{candidate_post.title}'\n"
+                    f"   Colisiona con tema previo: '{matched_past}'\n"
+                    f"   Motivo de rechazo: {reason}\n"
+                    f"   Generando nuevo tema distinto..."
+                )
+                current_rejection_note = (
+                    f"\n\n🚨 ERROR CRÍTICO: Tu propuesta anterior '{candidate_post.title}' fue RECHAZADA "
+                    f"porque coincide con el tema ya publicado: '{matched_past}' ({reason}). "
+                    f"Está TOTALMENTE PROHIBIDO volver a proponer esta entidad, animal, lugar o concepto. "
+                    f"Genera OBLIGATORIAMENTE un tema COMPLETAMENTE DISTINTO en otra categoría."
+                )
+                continue
+
+            # Validated unique topic!
+            post_data = candidate_post
+            Messenger.success(f"🎉 Tema 100% único y original validado: '{post_data.title}'")
+            break
+
+        if post_data is None:
+            post_data = candidate_post
+            Messenger.warning("⚠️ Se agotaron los intentos de validación; usando última propuesta generada.")
+
         Messenger.info(f"📌 Topic: {post_data.title}")
         Messenger.info(f"📰 Headline: {post_data.headline}")
         Messenger.info(f"📝 Caption preview:\n{post_data.caption[:150]}...")

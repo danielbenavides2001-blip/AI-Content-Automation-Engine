@@ -13,6 +13,7 @@ from tools.image_generation.vertex_ai import VertexAIImageGenerator
 from tools.social_media.facebook import FacebookTool
 from tools.image_generation.story_card_engine import StoryCardEngine
 from flows.facebook_stories_generator.models import FacebookStoryPost
+from tools.common.topic_validator import TopicValidator
 
 
 class FacebookStoryPipeline:
@@ -334,14 +335,9 @@ class FacebookStoryPipeline:
             except Exception:
                 pass
 
-        # Deduplicate preserving order
-        deduped = list(dict.fromkeys([str(t).strip() for t in raw_topics if str(t).strip() and str(t).strip().lower() != "curiosity image"]))
-        
-        # Filter violent keywords
-        unsafe_words = ["muerte", "mortal", "masacre", "asesin", "mata", "letal", "tragedia", "destru", "sangre", "gore", "cadáver", "herido", "suicidi", "manson", "infierno", "terror", "violaci"]
-        safe_topics = [t for t in deduped if not any(w in str(t).lower() for w in unsafe_words)]
-        
-        return safe_topics[-300:]
+        # Deduplicate and clean past titles using TopicValidator
+        clean_topics = TopicValidator.clean_past_titles(raw_topics)
+        return clean_topics[-450:]
 
     def generate_single_story(self, publish: bool = False) -> Path:
         """
@@ -350,7 +346,7 @@ class FacebookStoryPipeline:
         focus_areas = [
             ("ARQUEOLOGÍA Y CIVILIZACIONES", "Misterios de civilizaciones perdidas (Egipto, Mayas, Sumeria, Grecia antigua), templos ocultos, construcciones megalíticas imposibles y tumbas ancestrales."),
             ("MISTERIOS DEL ESPACIO", "Descubrimientos espaciales alucinantes, exoplanetas con climas extremos, estructuras cósmicas gigantescas, señales de radio espaciales y anomalías del universo."),
-            ("GEOLOGÍA INSÓLITA", "Lugares en la Tierra que parecen de otro planeta (el Ojo del Sahara, la Puerta al Infierno en Turkmenistán, cuevas de cristales gigantes de Naica, lagos rosados)."),
+            ("GEOLOGÍA INSÓLITA", "Lugares en la Tierra que parecen de otro planeta (cuevas de cristales gigantes de Naica, volcanes de lava azul, lagos rosados)."),
             ("ENIGMAS HISTÓRICOS", "Artefactos fuera de su tiempo (ooparts), manuscritos indescifrables (como el Manuscrito Voynich), mapas antiguos imposibles y tesoros históricos perdidos."),
             ("CIENCIA ASOMBROSA", "Paradojas de la física cuántica, experimentos científicos revolucionarios, propiedades extrañas de la materia y descubrimientos que desafían la intuición humana."),
             ("TECNOLOGÍA ANCESTRAL", "Mecanismos y computadoras de hace miles de años (Mecanismo de Anticitera), arquitectura antisísmica milenaria, el fuego griego y secretos constructivos perdidos."),
