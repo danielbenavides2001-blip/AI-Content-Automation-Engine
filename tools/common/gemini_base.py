@@ -35,6 +35,19 @@ def _is_daily_quota_exhausted(exc: Exception) -> bool:
     return any(k.lower() in msg.lower() for k in keywords)
 
 
+def _extract_retry_delay(exc: Exception) -> float:
+    """Extracts retryDelay in seconds from Google API error response if present."""
+    import re
+    msg = str(exc)
+    match = re.search(r'(?:retry[\s_-]*(?:in|after|delay)?[:\s]+)(\d+(?:\.\d+)?)', msg, re.IGNORECASE)
+    if match:
+        try:
+            return float(match.group(1))
+        except (ValueError, TypeError):
+            pass
+    return 0.0
+
+
 class GeminiBase(BaseModelTool):
     _clients_info: List[dict] = PrivateAttr(default_factory=list)
     _client_index: int = PrivateAttr(default=0)
@@ -92,8 +105,8 @@ class GeminiBase(BaseModelTool):
         Messenger.info(f"✅ Sistema de claves listo: {len(self._clients_info)} cliente(s) disponibles con rotación automática.")
 
     def _rotate_to_next_client(self) -> bool:
-        """Rotates to the next available client. Returns True if rotation succeeded, False if all exhausted."""
-        if not self._clients_info:
+        """Rotates to the next available client. Returns True if rotation succeeded, False if all exhausted in this round."""
+        if not self._clients_info or len(self._clients_info) <= 1:
             return False
         if self._client_index + 1 < len(self._clients_info):
             self._client_index += 1
@@ -104,14 +117,14 @@ class GeminiBase(BaseModelTool):
             self._client_index = 0
             label = "Vertex AI" if self.is_vertex_client else "clave #1"
             Messenger.info(f"🔄 Reiniciando ciclo de clientes (volviendo a {label} #1/{len(self._clients_info)})...")
-            return True
+            return False
 
     @retry(
         wait=wait_exponential(multiplier=2, min=5, max=60),
-        stop=stop_after_attempt(7),
+        stop=stop_after_attempt(10),
         retry=retry_if_exception_type((errors.APIError, httpx.RequestError, httpx.RemoteProtocolError, httpx.HTTPError)),
         before_sleep=lambda retry_state: Messenger.warning(
-            f"⏳ [Intento {retry_state.attempt_number}/7] Gemini saturado: "
+            f"⏳ [Intento {retry_state.attempt_number}/10] Gemini saturado: "
             f"{type(retry_state.outcome.exception()).__name__} - {str(retry_state.outcome.exception())}. "
             f"Reintentando en {retry_state.next_action.sleep:.0f}s..."
         ),
@@ -150,12 +163,15 @@ class GeminiBase(BaseModelTool):
             return func(*args, **kwargs)
         except (errors.ClientError, errors.APIError) as e:
             # Si la cuota o disponibilidad de la clave gratuita falla, rotar a la siguiente inmediatamente
-            if not self.is_vertex_client and _is_daily_quota_exhausted(e):
+            if _is_daily_quota_exhausted(e):
                 if self._rotate_to_next_client():
                     # Retry immediately (re-raise to trigger tenacity retry, which will resolve new client method)
                     raise errors.APIError(str(e), None)  # type: ignore[arg-type]
                 else:
-                    Messenger.error("🚫 Todas las claves API han alcanzado su cuota diaria. Reintentando en backoff...")
+                    delay = _extract_retry_delay(e)
+                    wait_time = max(delay + 2.0, 35.0) if delay > 0 else 30.0
+                    Messenger.error(f"🚫 Todas las claves API saturadas/exhaustas. Esperando {wait_time:.1f}s para enfriar cuota...")
+                    time.sleep(wait_time)
             raise
 
     def _extract_usage(self, response: Any, model_name: str) -> GeminiUsage:

@@ -21,13 +21,7 @@ class GeminiAudioGenerator(GeminiBase):
         self._clients_info = [c for c in self._clients_info if not c["is_vertex"]]
         if not self._clients_info:
             raise RuntimeError("❌ Se requiere al menos una GEMINI_API_KEY para Gemini Audio TTS")
-
-    def _rotate_to_next_client(self) -> bool:
-        if not self._clients_info:
-            return False
-        self._client_index = (self._client_index + 1) % len(self._clients_info)
-        Messenger.info(f"🔄 Rotando clave de audio a cliente #{self._client_index + 1}/{len(self._clients_info)}")
-        return True
+        Messenger.info(f"🎙️ Gemini Audio TTS configurado con {len(self._clients_info)} clave(s) API Developer.")
 
     def text_to_speech(
         self,
