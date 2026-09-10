@@ -66,25 +66,25 @@ Vas a escribir un guion para un video de tipo "Los 7 niveles de [TEMÁTICA]".
 
 **REGLAS ESTRICTAS DE NARRACIÓN (NO NEGOCIABLE - CADA NARRACIÓN DEBE EMPEZAR EXACTAMENTE ASÍ):**
 
-- INTRO (nivel=0): La narración DEBE ser el hook del video. Una frase corta que enganche. SIN empezar con "Nivel". Ej: "Hay lugares en el mundo a los que está prohibido entrar." o "Existen sitios que los gobiernos no quieren que veas."
-- Nivel 1: La narración DEBE empezar TEXTUALMENTE con "Nivel 1: " o "Empezamos en el nivel 1: ". NADA de preguntas retóricas ni hooks. El espectador debe ESCUCHAR "Nivel 1" en los primeros 2 segundos. La narración del nivel 1 DEBE describir el lugar REAL del titulo_nivel (ej. si el título es "La base más secreta", la narración debe describir esa base, no hacer una pregunta genérica).
+- INTRO (nivel=0): La narración DEBE ser el hook del video. Una frase corta de máxima intriga con BUCLE ABIERTO (Open Loop) que obligue a ver hasta el final. SIN empezar con "Nivel". 
+- Nivel 1: La narración DEBE empezar TEXTUALMENTE con "Nivel 1: " o "Empezamos en el nivel 1: ". NADA de preguntas retóricas ni hooks. El espectador debe ESCUCHAR "Nivel 1" en los primeros 2 segundos. La narración del nivel 1 DEBE describir el lugar REAL del titulo_nivel.
 - Nivel 2: "Subimos al nivel 2: "
 - Nivel 3: "Llegamos al nivel 3: "
 - Nivel 4: "El nivel 4 es aún más impactante: "
-- Nivel 5: "El nivel 5 es donde las cosas se ponen realmente [adjetivo]: "
-- Nivel 6: "El nivel 6 nos lleva al límite: "
+- Nivel 5: "El nivel 5 es donde las cosas se ponen realmente inexplicables: "
+- Nivel 6: "El nivel 6 nos lleva al límite de lo conocido: "
 - Nivel 7: "Y llegamos al nivel final, el nivel 7: "
 
-**EJEMPLO CORRECTO DE INTRO:**
-✅ BIEN: "Hay lugares en la Tierra cuyo acceso está terminantemente prohibido. Hoy vamos a conocer los 7 más impactantes."
-✅ BIEN: "Olvídate de los mapas turísticos. Estos son los 7 lugares más prohibidos del planeta."
+**EJEMPLO CORRECTO DE INTRO (GANCHO CON BUCLE ABIERTO):**
+✅ BIEN: "Existen 7 niveles de lugares prohibidos en la Tierra, y el último es tan extremo que casi nadie conoce su existencia."
+✅ BIEN: "El nivel 1 te va a impresionar, pero lo que la ciencia descubrió en el nivel 7 desafía todo lo que creías posible."
 
 **EJEMPLO CORRECTO DE NARRACIÓN PARA NIVEL 1:**
-❌ MAL: "Nivel 1: ¿Qué horrores o maravillas guardan los rincones más inaccesibles del mundo?" (es pregunta retórica, no describe el nivel)
-✅ BIEN: "Empezamos en el nivel 1: hay una base militar en el desierto de Nevada cuyo nombre oficial ni siquiera existe."
+❌ MAL: "Nivel 1: ¿Qué misterios guardan estos lugares?" (pregunta retórica lenta)
+✅ BIEN: "Empezamos en el nivel 1: una isla en el Atlántico donde está estrictamente prohibido poner un pie."
 
-**EJEMPLO CORRECTO DE NARRACIÓN PARA NIVEL 7:**
-✅ BIEN: "Y llegamos al nivel final, el nivel 7: el secreto más guardado de la humanidad. Si te gustó, comparte este video con alguien que ame los misterios."
+**EJEMPLO CORRECTO DE NARRACIÓN PARA NIVEL 7 (DISPARADOR DE COMENTARIOS):**
+✅ BIEN: "Y llegamos al nivel final, el nivel 7: [descripción del caso más alucinante]. ¿Cuál de los 7 niveles te pareció más impactante? Déjamelo saber en los comentarios 👇"
 
 **IMPORTANTE:** La escena 1 debe tener nivel=0 (INTRO). Las escenas 2-8 deben tener nivel=1 al 7. Cada escena DEBE tener scene_number secuencial del 1 al 8. En la intro, titulo_nivel debe ser "" (vacío). No uses preguntas retóricas en ninguna narración.
 

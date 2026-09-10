@@ -69,10 +69,10 @@ const LevelProgressBar: React.FC<{
     <div
       style={{
         position: 'absolute',
-        bottom: 30,
+        bottom: 390,
         left: '50%',
         transform: 'translateX(-50%)',
-        width: '85%',
+        width: '82%',
         display: 'flex',
         alignItems: 'center',
         gap: 12,
@@ -304,9 +304,9 @@ export const Subtitles: React.FC<{
           bottom: 0,
           left: 0,
           right: 0,
-          height: 500,
+          height: 680,
           background:
-            'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.25) 40%, transparent 100%)',
+            'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.45) 50%, transparent 100%)',
           zIndex: 2,
           pointerEvents: 'none',
         }}
@@ -542,7 +542,7 @@ export const Subtitles: React.FC<{
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'flex-end',
-          paddingBottom: 130,
+          paddingBottom: 480,
           zIndex: 50,
           pointerEvents: 'none',
         }}
@@ -552,8 +552,8 @@ export const Subtitles: React.FC<{
             display: 'flex',
             flexWrap: 'wrap',
             justifyContent: 'center',
-            gap: '6px 16px',
-            maxWidth: '92%',
+            gap: '6px 14px',
+            maxWidth: '82%',
           }}
         >
           {visibleWords.map((item, i) => {
@@ -587,17 +587,17 @@ export const Subtitles: React.FC<{
               <span
                 key={i}
                 style={{
-                  fontSize: 56,
+                  fontSize: 58,
                   fontFamily: "'Arial Black', Impact, sans-serif",
                   fontWeight: 'bold',
                   color: isCurrent ? BRAND.gold : BRAND.textPrimary,
                   textTransform: 'uppercase',
                   display: 'inline-block',
-                  lineHeight: 1.5,
+                  lineHeight: 1.35,
                   letterSpacing: '1px',
                   textShadow: isCurrent
-                    ? `0 0 20px ${BRAND.gold}66, 2px 2px 8px rgba(0,0,0,0.9)`
-                    : '2px 2px 8px rgba(0,0,0,0.9)',
+                    ? '0 0 25px rgba(255,215,0,0.9), 3px 3px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 0 4px 14px rgba(0,0,0,0.95)'
+                    : '3px 3px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 0 4px 14px rgba(0,0,0,0.95)',
                   opacity,
                   transform: `scale(${scale})`,
                 }}

@@ -352,7 +352,7 @@ class FFmpegTool(BaseModelTool):
         """
         width = self.get_video_width(video_in)
         height = self.get_video_height(video_in)
-        margin_v = int(height * 0.15)
+        margin_v = int(height * 0.25)
         safe_srt = str(srt_path).replace("\\", "/").replace(":", "\\:")
         style = (
             f"PlayResX={width},PlayResY={height},"

@@ -517,10 +517,16 @@ class Pipeline(BaseModelTool):
             if img_path.exists() and img_path.stat().st_size > 1024:
                 Messenger.info(f"   🎬 Generando animación Ken Burns para Escena {scene.scene_number}...")
                 try:
+                    # Ken Burns alternado: zoom-in en escenas impares, zoom-out en escenas pares para máximo dinamismo visual
+                    if scene.scene_number % 2 == 1:
+                        zp = "zoompan=z='min(zoom+0.0010,1.18)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=210:s=1080x1920:fps=30"
+                    else:
+                        zp = "zoompan=z='if(lte(zoom,1.0),1.18,max(1.0,zoom-0.0010))':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=210:s=1080x1920:fps=30"
+
                     subprocess.run(
                         [
                             "ffmpeg", "-y", "-loop", "1", "-i", str(img_path),
-                            "-vf", "scale='max(1080,iw*1920/ih)':'max(1920,ih*1080/iw)',crop=1080:1920,zoompan=z='min(zoom+0.0008,1.15)':d=180:s=1080x1920",
+                            "-vf", f"scale='max(1080,iw*1920/ih)':'max(1920,ih*1080/iw)',crop=1080:1920,{zp}",
                             "-c:v", "libx264", "-t", "7", "-pix_fmt", "yuv420p", str(clip_path)
                         ],
                         check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
@@ -1158,10 +1164,13 @@ class Pipeline(BaseModelTool):
                     # --- FASE 4: AUTO-COMENTARIO (Engagement hook) ---
                     Messenger.info("   Generating engagement auto-comment...")
                     prompt_comment = f"""
-                    Eres el creador de "EnigmaIQ". Acabas de subir un video: "{video_title}".
-                    Escribe un comentario corto (1 línea) como pregunta para invitar a los seguidores a compartir su opinión.
-                    El tono debe ser curioso y amigable, no controversial. Ej: "¿Cuál de estas ya la sabías? Cuéntame abajo 👇"
-                    No uses hashtags.
+                    Eres el creador de "EnigmaIQ". Acabas de subir este video viral a Facebook Reels: "{video_title}".
+                    Escribe un comentario fijado (1 línea corta) con una pregunta intrigante que provoque que los espectadores quieran opinar o debatir su teoría de inmediato.
+                    Ejemplos de alta respuesta:
+                    - "¿Crees que tiene una explicación científica o hay algo más detrás? Los leo 👇"
+                    - "¿Qué harías tú si te encontraras frente a esto en la vida real? 👇"
+                    - "¿Cuál fue el detalle que más te sorprendió? Cuéntame tu teoría 👇"
+                    No uses hashtags ni introducciones. Devuelve únicamente la pregunta directa.
                     """
                     try:
                         polemic_comment = self.text_gen.generate(prompt_comment).strip()
