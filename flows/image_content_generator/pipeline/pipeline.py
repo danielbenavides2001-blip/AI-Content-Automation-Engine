@@ -517,11 +517,11 @@ class Pipeline(BaseModelTool):
             if img_path.exists() and img_path.stat().st_size > 1024:
                 Messenger.info(f"   🎬 Generando animación Ken Burns para Escena {scene.scene_number}...")
                 try:
-                    # Ken Burns alternado: zoom-in en escenas impares, zoom-out en escenas pares para máximo dinamismo visual
+                    # Ken Burns alternado más dinámico y cinematográfico: zoom-in en escenas impares, zoom-out en escenas pares
                     if scene.scene_number % 2 == 1:
-                        zp = "zoompan=z='min(zoom+0.0010,1.18)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=210:s=1080x1920:fps=30"
+                        zp = "zoompan=z='min(zoom+0.0018,1.25)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=210:s=1080x1920:fps=30"
                     else:
-                        zp = "zoompan=z='if(lte(zoom,1.0),1.18,max(1.0,zoom-0.0010))':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=210:s=1080x1920:fps=30"
+                        zp = "zoompan=z='if(lte(zoom,1.0),1.22,max(1.0,zoom-0.0018))':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=210:s=1080x1920:fps=30"
 
                     subprocess.run(
                         [
@@ -707,17 +707,17 @@ class Pipeline(BaseModelTool):
                 Messenger.error(traceback.format_exc())
                 raise e
 
-        # Slow down scene audio for Gemini TTS (no native speaking_rate support)
+        # Optimize scene audio tempo for Gemini TTS (energetic, dynamic viral pacing)
         if not isinstance(self.audio_gen, VertexAIAudioGenerator):
-            Messenger.info("Slowing down Gemini TTS audio (atempo=0.95)...")
+            Messenger.info("Optimizing Gemini TTS audio tempo (atempo=1.04)...")
             for i in range(len(script_data.scenes)):
                 scene_num = getattr(script_data.scenes[i], 'scene_number', i + 1)
                 seg = self.get_idea_asset_path(idea_obj.id, self.AUDIOS_DIR, self.SCENE_AUDIO_PATTERN.format(scene_num))
                 if seg.exists():
-                    slowed = seg.with_suffix(".slowed.wav")
-                    self.ffmpeg.adjust_tempo(seg, slowed, tempo=0.95)
-                    if slowed.exists():
-                        slowed.replace(seg)
+                    adjusted = seg.with_suffix(".tempo.wav")
+                    self.ffmpeg.adjust_tempo(seg, adjusted, tempo=1.04)
+                    if adjusted.exists():
+                        adjusted.replace(seg)
 
         # Final Update
         idea_obj.state = State.AUDIO_GENERATED

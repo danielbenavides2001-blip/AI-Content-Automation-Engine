@@ -35,8 +35,8 @@ Basándote en la IDEA proporcionada, escribe un guion de video para un Reel que 
 Divide la historia en **7 a 9 escenas cortas** (máxima densidad visual, cambios rápidos de plano cada 4-6 segundos).
 
 Para cada escena debes definir:
-1. `visual_type`: Escoge `"stock_video"` si es algo común de la vida real (ej: océano, cielo, arqueólogo excavando, ciudad, microscopio). Escoge `"ai_image"` si es algo fantástico, histórico, prehistórico, criatura insólita, artefacto milenario o fenómeno invisible a simple vista.
-2. `pexels_query`: Solo si elegiste "stock_video", escribe 1 a 3 palabras clave precisas EN INGLÉS.
+1. `visual_type`: **EN LA ESCENA 1 (GANCHO) ES OBLIGATORIO ELEGIR `"stock_video"`** para arrancar con movimiento real en alta definición (ej: dron sobre océano oscuro, tormenta eléctrica, excavación misteriosa, telescopio, microscopio). En las escenas 2 a 8, puedes alternar entre `"stock_video"` para escenarios y acciones reales, y `"ai_image"` para criaturas prehistóricas, artefactos imposibles o reconstrucciones científicas.
+2. `pexels_query`: Escribe 2 a 4 palabras clave precisas y cinematográficas EN INGLÉS (ej: 'deep ocean abyss 4k', 'ancient temple ruins drone', 'dark foggy forest cinematic', 'mysterious lab microscope').
 3. `image_prompt`: La descripción detallada EN INGLÉS. **CRÍTICO:** Debe describir con enorme fuerza visual la acción, criatura o artefacto de la escena. Usa iluminación cinematográfica, texturas hiperrealistas y encuadres dramáticos (ej: 'ancient colossal megalith discovered under deep ocean, glowing bioluminescent particles, national geographic photography, 8k resolution, cinematic lighting'). **PROHIBIDO** descripciones abstractas o aburridas.
 4. `narration`: Lo que dirá el locutor.
 

@@ -69,7 +69,7 @@ const LevelProgressBar: React.FC<{
     <div
       style={{
         position: 'absolute',
-        bottom: 390,
+        bottom: 530,
         left: '50%',
         transform: 'translateX(-50%)',
         width: '82%',
@@ -304,9 +304,9 @@ export const Subtitles: React.FC<{
           bottom: 0,
           left: 0,
           right: 0,
-          height: 680,
+          height: 820,
           background:
-            'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.45) 50%, transparent 100%)',
+            'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.45) 50%, transparent 100%)',
           zIndex: 2,
           pointerEvents: 'none',
         }}
@@ -542,7 +542,7 @@ export const Subtitles: React.FC<{
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'flex-end',
-          paddingBottom: 480,
+          paddingBottom: 620,
           zIndex: 50,
           pointerEvents: 'none',
         }}
