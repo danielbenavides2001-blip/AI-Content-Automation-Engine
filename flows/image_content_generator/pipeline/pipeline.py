@@ -21,6 +21,7 @@ from tools.common.base_model import BaseModelTool
 from tools.common.messenger import Messenger
 from tools.image_generation.gemini import GeminiImageGenerator
 from tools.image_generation.vertex_ai import VertexAIImageGenerator
+from tools.image_generation.free_hybrid import FreeHybridImageGenerator
 from tools.image_generation.midjourney import ImageTask
 from tools.text_generation.gemini import GeminiTextGenerator
 from tools.utils.text import slugify
@@ -115,7 +116,7 @@ class Pipeline(BaseModelTool):
         return self._text_gen
 
     @property
-    def image_gen(self) -> Union[GeminiImageGenerator, VertexAIImageGenerator]:
+    def image_gen(self) -> Union[GeminiImageGenerator, VertexAIImageGenerator, FreeHybridImageGenerator]:
         if self._image_gen is None:
             import os
             use_vertex = os.getenv("USE_VERTEX_AI_IMAGE", "false").lower() == "true"
@@ -124,18 +125,20 @@ class Pipeline(BaseModelTool):
             if use_vertex:
                 project_id = os.getenv("GCP_PROJECT_ID")
                 location = os.getenv("GCP_LOCATION", "us-central1")
-                if not project_id:
-                    raise ValueError("GCP_PROJECT_ID is required for Vertex AI.")
-                self._image_gen = VertexAIImageGenerator(
-                    project_id=project_id,
-                    location=location,
-                    aspect_ratio=ar_value
-                )
-            else:
-                self._image_gen = GeminiImageGenerator(
-                    aspect_ratio=ar_value,
-                    reference_dir=self.resource_base / self.REFERENCES_DIR,
-                )
+                if project_id:
+                    try:
+                        self._image_gen = VertexAIImageGenerator(
+                            project_id=project_id,
+                            location=location,
+                            aspect_ratio=ar_value
+                        )
+                        return self._image_gen
+                    except Exception as e:
+                        Messenger.warning(f"⚠️ Could not init Vertex AI ({e}). Using FreeHybridImageGenerator.")
+            
+            # Default 100% Free Hybrid Generator ($0.00 cost)
+            self._image_gen = FreeHybridImageGenerator(aspect_ratio=ar_value)
+            Messenger.info(f"✨ FreeHybridImageGenerator active (AR: {ar_value}, Pexels/Pixabay/Pollinations FLUX) - $0.00 cost.")
         return self._image_gen
 
     @property

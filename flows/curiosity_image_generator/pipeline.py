@@ -10,9 +10,10 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from tools.common.messenger import Messenger
 from tools.text_generation.gemini import GeminiTextGenerator
 from tools.image_generation.vertex_ai import VertexAIImageGenerator
+from tools.image_generation.free_hybrid import FreeHybridImageGenerator
 from tools.social_media.facebook import FacebookTool
 from tools.image_generation.story_card_engine import StoryCardEngine
-from typing import Optional
+from typing import Optional, Union
 from flows.curiosity_image_generator.models import CuriosityPost
 from tools.common.topic_validator import TopicValidator
 
@@ -44,18 +45,21 @@ class CuriosityPipeline:
         # Tools initialization
         self.text_gen = GeminiTextGenerator()
         
-        # Initialize Vertex Image Generator (using 3:4 aspect ratio, then we crop to 4:5)
-        # Only initialize if Vertex AI is enabled and a project is configured
+        # Initialize FreeHybrid Image Generator ($0.00 cost, Pexels/Pixabay/Pollinations FLUX)
         use_vertex = os.getenv("USE_VERTEX_AI_IMAGE", "false").lower() == "true"
         if use_vertex and self.project_id:
-            self.image_gen = VertexAIImageGenerator(
-                project_id=self.project_id,
-                location=self.location,
-                aspect_ratio="3:4"
-            )
+            try:
+                self.image_gen: Union[VertexAIImageGenerator, FreeHybridImageGenerator] = VertexAIImageGenerator(
+                    project_id=self.project_id,
+                    location=self.location,
+                    aspect_ratio="3:4"
+                )
+            except Exception as e:
+                Messenger.warning(f"⚠️ Could not init Vertex AI ({e}). Using FreeHybridImageGenerator.")
+                self.image_gen = FreeHybridImageGenerator(aspect_ratio="4:5")
         else:
-            self.image_gen = None
-            Messenger.warning("⚠️  Vertex AI Image generation is DISABLED (USE_VERTEX_AI_IMAGE=false or GCP_PROJECT_ID not set).")
+            self.image_gen = FreeHybridImageGenerator(aspect_ratio="4:5")
+            Messenger.info("✨ Using FreeHybridImageGenerator (Pexels / Pixabay / Pollinations FLUX) - $0.00 cost.")
         
         if self.page_id and self.access_token:
             self.fb_tool = FacebookTool(
@@ -446,6 +450,7 @@ Tu misión es generar una publicación gráfica y viral de altísimo impacto sob
    - `headline`: DEBE ser breve y potente, de ÚNICAMENTE 8 A 12 PALABRAS en mayúsculas, con 2-3 palabras clave envueltas en `[corchetes]`.
    - `card_fact`: Una sola frase breve de 12 a 18 palabras explicando el dato asombroso para mostrar en la imagen.
 5. 🎨 **IMAGEN HIPERREALISTA:** El `image_prompt` debe describir el sujeto (animal, fósil, estructura, fenómeno o lugar) con estética cinematográfica de National Geographic / 8k, ubicando el elemento principal en el 60% superior de la imagen (aspect ratio 4:5 vertical) para dejar el 40% inferior libre para el texto.
+6. 🔎 **KEYWORDS DE BÚSQUEDA:** En `search_keywords`, escribe 2 a 4 palabras clave concisas en INGLÉS para buscar fotos reales en Pexels/Pixabay (ej: 'immortal jellyfish', 'deep sea vent', 'gobekli tepe ruins', 'mayan pyramid').
 {avoid_instruction}
 {current_rejection_note}
 """
@@ -489,24 +494,36 @@ Tu misión es generar una publicación gráfica y viral de altísimo impacto sob
         Messenger.info(f"📝 Caption preview:\n{post_data.caption[:150]}...")
         Messenger.info(f"🎨 Image Prompt: {post_data.image_prompt}")
         
-        # 2. Generate Background Image via Vertex AI
+        # 2. Generate Background Image via FreeHybridImageGenerator ($0.00 cost)
         timestamp = int(time.time())
         raw_image_path = self.output_dir / f"raw_curiosity_{timestamp}.jpg"
         composed_image_path = self.output_dir / f"curiosity_card_{timestamp}.jpg"
         
         if self.image_gen is None:
-            Messenger.error("❌ Cannot generate image: Vertex AI is disabled. Set USE_VERTEX_AI_IMAGE=true and GCP_PROJECT_ID in your environment to enable image generation.")
-            raise RuntimeError("Vertex AI Image generation is disabled. Update USE_VERTEX_AI_IMAGE and GCP_PROJECT_ID.")
+            self.image_gen = FreeHybridImageGenerator(aspect_ratio="4:5")
         
-        Messenger.info("🎨 Sending request to Vertex AI (Imagen 3)...")
+        Messenger.info("🎨 Obtaining high-resolution image (Pexels / Pixabay / Pollinations FLUX)...")
+        search_kw = getattr(post_data, "search_keywords", "") or post_data.title
         try:
-            self.image_gen.generate_image(
-                prompt=post_data.image_prompt,
-                output_path=raw_image_path
-            )
+            if isinstance(self.image_gen, FreeHybridImageGenerator):
+                self.image_gen.generate_image(
+                    prompt=post_data.image_prompt,
+                    output_path=raw_image_path,
+                    search_query=search_kw
+                )
+            else:
+                self.image_gen.generate_image(
+                    prompt=post_data.image_prompt,
+                    output_path=raw_image_path
+                )
         except Exception as e:
-            Messenger.error(f"❌ Failed to generate image via Vertex AI: {str(e)}")
-            raise e
+            Messenger.warning(f"⚠️ Primary image generation failed: {e}. Falling back to FreeHybridImageGenerator...")
+            fallback_gen = FreeHybridImageGenerator(aspect_ratio="4:5")
+            fallback_gen.generate_image(
+                prompt=post_data.image_prompt,
+                output_path=raw_image_path,
+                search_query=search_kw
+            )
             
         # 3. Compose styled graphic card selecting randomly between the 5 viral templates
         card_engine = StoryCardEngine()

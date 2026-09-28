@@ -10,6 +10,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from tools.common.messenger import Messenger
 from tools.text_generation.gemini import GeminiTextGenerator
 from tools.image_generation.vertex_ai import VertexAIImageGenerator
+from tools.image_generation.free_hybrid import FreeHybridImageGenerator
 from tools.social_media.facebook import FacebookTool
 from tools.image_generation.story_card_engine import StoryCardEngine
 from flows.facebook_stories_generator.models import FacebookStoryPost
@@ -45,14 +46,18 @@ class FacebookStoryPipeline:
         
         use_vertex = os.getenv("USE_VERTEX_AI_IMAGE", "false").lower() == "true"
         if use_vertex and self.project_id:
-            self.image_gen = VertexAIImageGenerator(
-                project_id=self.project_id,
-                location=self.location,
-                aspect_ratio="9:16"
-            )
+            try:
+                self.image_gen = VertexAIImageGenerator(
+                    project_id=self.project_id,
+                    location=self.location,
+                    aspect_ratio="9:16"
+                )
+            except Exception as e:
+                Messenger.warning(f"⚠️ Could not init Vertex AI ({e}). Using FreeHybridImageGenerator.")
+                self.image_gen = FreeHybridImageGenerator(aspect_ratio="9:16")
         else:
-            self.image_gen = None
-            Messenger.warning("⚠️ Vertex AI Image generation disabled (USE_VERTEX_AI_IMAGE=false or GCP_PROJECT_ID missing).")
+            self.image_gen = FreeHybridImageGenerator(aspect_ratio="9:16")
+            Messenger.info("✨ Using FreeHybridImageGenerator for Stories ($0.00 cost).")
             
         if self.page_id and self.access_token:
             self.fb_tool = FacebookTool(
@@ -402,18 +407,23 @@ Tu objetivo es crear una HISTORIA VERTICAL (9:16) de altísimo impacto y curiosi
         composed_feed_path = self.output_dir / f"feed_card_{timestamp}.jpg"
         
         if self.image_gen is None:
-            Messenger.error("❌ Vertex AI Image generator is disabled.")
-            raise RuntimeError("Vertex AI is disabled. Update USE_VERTEX_AI_IMAGE and GCP_PROJECT_ID.")
+            self.image_gen = FreeHybridImageGenerator(aspect_ratio="9:16")
             
-        Messenger.info("🎨 Generating single image via Vertex AI (Imagen 3) for dual publishing...")
+        Messenger.info("🎨 Obtaining image for stories (Pexels / Pixabay / Pollinations FLUX)...")
         try:
             self.image_gen.generate_image(
                 prompt=post_data.image_prompt,
-                output_path=raw_img_path
+                output_path=raw_img_path,
+                search_query=post_data.title
             )
         except Exception as e:
-            Messenger.error(f"❌ Failed to generate story image: {e}")
-            raise e
+            Messenger.warning(f"⚠️ Primary image generation failed: {e}. Falling back to FreeHybridImageGenerator...")
+            fallback_gen = FreeHybridImageGenerator(aspect_ratio="9:16")
+            fallback_gen.generate_image(
+                prompt=post_data.image_prompt,
+                output_path=raw_img_path,
+                search_query=post_data.title
+            )
             
         # 3. Compose TWO visual formats from the single generated image (50% Vertex credit savings!)
         card_engine = StoryCardEngine()

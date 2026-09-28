@@ -91,8 +91,9 @@ class GeminiBase(BaseModelTool):
             label = "primaria" if idx == 0 else f"respaldo #{idx}"
             Messenger.info(f"🔑 Clave API {label} cargada (key #{idx + 1}/{len(api_keys)})")
 
-        # Vertex AI as final fallback if no API keys work
-        if project_id:
+        # Vertex AI as final fallback if no API keys work (only if explicitly enabled)
+        use_vertex = os.getenv("USE_VERTEX_AI", "false").lower() == "true"
+        if project_id and use_vertex:
             self._clients_info.append({
                 "client": Client(vertexai=True, project=project_id, location=location),
                 "is_vertex": True
@@ -100,7 +101,7 @@ class GeminiBase(BaseModelTool):
             Messenger.info(f"☁️  Vertex AI cargado como fallback final (proyecto: {project_id})")
 
         if not self._clients_info:
-            raise RuntimeError("❌ Se requiere GEMINI_API_KEY o GCP_PROJECT_ID")
+            raise RuntimeError("❌ Se requiere al menos una GEMINI_API_KEY válida para operar.")
 
         Messenger.info(f"✅ Sistema de claves listo: {len(self._clients_info)} cliente(s) disponibles con rotación automática.")
 

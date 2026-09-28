@@ -9,7 +9,7 @@ from flows.image_content_generator.pipeline.prompt_shorts.finances.models import
 from flows.image_content_generator.pipeline.prompt_shorts.finances import constants as finance_constants
 from tools.common.messenger import Messenger
 from tools.text_generation.gemini import GeminiTextGenerator
-from tools.image_generation.vertex_ai import VertexAIImageGenerator
+from tools.image_generation.free_hybrid import FreeHybridImageGenerator
 from tools.social_media.facebook import FacebookTool
 from tools.common.topic_validator import TopicValidator
 import time
@@ -19,10 +19,7 @@ load_dotenv()
 class DailyAutomator:
     def __init__(self):
         self.text_gen = GeminiTextGenerator()
-        self.image_gen = VertexAIImageGenerator(
-            project_id=os.getenv("GCP_PROJECT_ID"),
-            location=os.getenv("GCP_LOCATION")
-        )
+        self.image_gen = FreeHybridImageGenerator(aspect_ratio="9:16")
         self.facebook = FacebookTool(
             page_id=os.getenv("FACEBOOK_PAGE_ID"),
             access_token=os.getenv("FACEBOOK_PAGE_ACCESS_TOKEN")

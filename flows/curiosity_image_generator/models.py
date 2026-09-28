@@ -36,3 +36,10 @@ class CuriosityPost(BaseModel):
             "Do NOT include text or watermarks inside the image."
         )
     )
+    search_keywords: str = Field(
+        default="",
+        description=(
+            "2 to 4 concise English keywords to search for real high-definition photography on Pexels/Pixabay "
+            "(e.g., 'immortal jellyfish', 'deep sea vent', 'gobekli tepe ruins', 'antarctica ice canyon')."
+        )
+    )

@@ -31,7 +31,9 @@ jobs:
       - name: Install dependencies
         run: poetry install
 
-      - name: Create GCP Credentials
+      - name: Create GCP Credentials (Optional)
+        if: "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON != '' }}"
+        continue-on-error: true
         env:
           GCP_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
         run: |
@@ -46,7 +48,9 @@ jobs:
           GCP_LOCATION: ${{ secrets.GCP_LOCATION }}
           FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
           FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
-          USE_VERTEX_AI_IMAGE: "true"
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
+          USE_VERTEX_AI_IMAGE: "false"
         run: |
           COUNT="${{ github.event.inputs.count }}"
           if [ -z "$COUNT" ]; then
