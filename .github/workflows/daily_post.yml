@@ -56,13 +56,14 @@ jobs:
         run: poetry install
 
       - name: Create GCP Credentials (Optional)
-        if: "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON != '' }}"
         continue-on-error: true
         env:
           GCP_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
         run: |
-          python -c "import os, json; f=open('gcp_credentials.json', 'w'); json.dump(json.loads(os.environ.get('GCP_JSON', '{}'), strict=False), f, indent=2)"
-          echo "GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/gcp_credentials.json" >> $GITHUB_ENV
+          if [ -n "$GCP_JSON" ] && [ "$GCP_JSON" != "{}" ]; then
+            python -c "import os, json; f=open('gcp_credentials.json', 'w'); json.dump(json.loads(os.environ.get('GCP_JSON', '{}'), strict=False), f, indent=2)"
+            echo "GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/gcp_credentials.json" >> $GITHUB_ENV
+          fi
 
       - name: Run Automation
         env:
