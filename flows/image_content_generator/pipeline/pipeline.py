@@ -396,10 +396,15 @@ class Pipeline(BaseModelTool):
             action_prompt = scene.image_prompt
             out_name = f"scene_{scene.scene_number:02d}.png"
             out_path = self.get_idea_asset_path(idea_obj.id, self.IMAGES_DIR, out_name)
+            v_type = getattr(scene, "visual_type", "stock_video")
+            p_query = getattr(scene, "pexels_query", "").strip()
             tasks.append(
                 ImageTask(
                     prompt=action_prompt,
-                    output_path=out_path
+                    output_path=out_path,
+                    visual_type=v_type,
+                    search_query=p_query,
+                    narration=getattr(scene, "narration", "")
                 )
             )
 
@@ -448,10 +453,12 @@ class Pipeline(BaseModelTool):
 
             visual_type = getattr(scene, "visual_type", "stock_video")
             query = getattr(scene, "pexels_query", "").strip()
-            if not query:
+            if not query or query.lower() in ["keywords", "none", "video", "stock_video", "photo"]:
                 # Extraer consulta por defecto desde el prompt o título del nivel
-                level_title = getattr(scene, "titulo_nivel", "")
-                query = level_title if level_title else idea_obj.title
+                query = FreeHybridImageGenerator.extract_search_keywords(scene.image_prompt)
+                if not query:
+                    level_title = getattr(scene, "titulo_nivel", "")
+                    query = level_title if level_title else idea_obj.title
 
             # 1. Animación 3D de Mapa (si fue solicitada)
             if visual_type == "map_3d":
@@ -499,10 +506,16 @@ class Pipeline(BaseModelTool):
                 elif pixabay_tool.fetch_photo(query, img_path) and img_path.exists() and img_path.stat().st_size > 5120:
                     Messenger.success(f"   ✅ Foto de stock de Pixabay descargada para escena {scene.scene_number}")
                 
-                # C) Intentar generar con Vertex AI con prompt de la escena
+                # C) Intentar generar con FreeHybridImageGenerator con prompt de la escena
                 elif hasattr(scene, "image_prompt") and scene.image_prompt:
                     try:
-                        self.image_gen.generate_image(scene.image_prompt, img_path)
+                        self.image_gen.generate_image(
+                            prompt=scene.image_prompt,
+                            output_path=img_path,
+                            search_query=query,
+                            visual_type=visual_type,
+                            narration=getattr(scene, "narration", "")
+                        )
                     except Exception as gen_err:
                         Messenger.warning(f"   ⚠️ Generación de emergencia falló: {gen_err}")
 

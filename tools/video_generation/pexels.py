@@ -38,11 +38,11 @@ class PexelsTool(BaseModelTool):
             {"query": clean_query, "per_page": 15, "page": 1},
         ]
         
-        # Si la consulta tiene varias palabras, agregar fallback con las 2 primeras palabras
+        # Si la consulta tiene varias palabras, agregar fallback de las primeras 2 palabras
         words = clean_query.split()
         if len(words) > 2:
             search_attempts.append({"query": " ".join(words[:2]), "orientation": "portrait", "per_page": 15, "page": 1})
-            search_attempts.append({"query": words[0], "per_page": 15, "page": 1})
+            search_attempts.append({"query": " ".join(words[:2]), "per_page": 15, "page": 1})
 
         videos = []
         for attempt_params in search_attempts:

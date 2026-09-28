@@ -35,10 +35,20 @@ Basándote en la IDEA proporcionada, escribe un guion de video para un Reel que 
 Divide la historia en **7 a 9 escenas cortas** (máxima densidad visual, cambios rápidos de plano cada 4-6 segundos).
 
 Para cada escena debes definir:
-1. `visual_type`: **EN LA ESCENA 1 (GANCHO) ES OBLIGATORIO ELEGIR `"stock_video"`** para arrancar con movimiento real en alta definición (ej: dron sobre océano oscuro, tormenta eléctrica, excavación misteriosa, telescopio, microscopio). En las escenas 2 a 8, puedes alternar entre `"stock_video"` para escenarios y acciones reales, y `"ai_image"` para criaturas prehistóricas, artefactos imposibles o reconstrucciones científicas.
-2. `pexels_query`: Escribe 2 a 4 palabras clave precisas y cinematográficas EN INGLÉS (ej: 'deep ocean abyss 4k', 'ancient temple ruins drone', 'dark foggy forest cinematic', 'mysterious lab microscope').
-3. `image_prompt`: La descripción detallada EN INGLÉS. **CRÍTICO:** Debe describir con enorme fuerza visual la acción, criatura o artefacto de la escena. Usa iluminación cinematográfica, texturas hiperrealistas y encuadres dramáticos (ej: 'ancient colossal megalith discovered under deep ocean, glowing bioluminescent particles, national geographic photography, 8k resolution, cinematic lighting'). **PROHIBIDO** descripciones abstractas o aburridas.
-4. `narration`: Lo que dirá el locutor.
+1. 🎯 **COHERENCIA AUDIOVISUAL ABSOLUTA (REGLA DE ORO: LO QUE SE VE = LO QUE SE NARRA):**
+   - El visual de CADA escena DEBE mostrar en pantalla el sujeto físico EXACTO, animal, artefacto, lugar o acción que el locutor está pronunciando en esos mismos segundos.
+   - **ESTRICTAMENTE PROHIBIDO:** Metáforas abstractas ("conceptual energy", "abstract visualization", "symbolic representation"), fondos desconectados o planos genéricos que no tengan que ver con la frase dicha.
+   - Si la narración habla de un submarino -> El visual DEBE ser un submarino en el agua.
+   - Si la narración habla de un fósil -> El visual DEBE ser el fósil.
+   - Si la narración habla de un templo milenario -> El visual DEBE ser el templo milenario.
+2. `visual_type`: 
+   - **EN LA ESCENA 1 (GANCHO) ES OBLIGATORIO `"stock_video"`** para arrancar con movimiento real en alta definición.
+   - En las escenas 2 a 8:
+     * Usa `"stock_video"` para sujetos reales que existen hoy (océanos, buzos, tormentas, desiertos, animales vivos, telescopios, laboratorios).
+     * Usa `"ai_image"` OBLIGATORIAMENTE para criaturas extintas (dinosaurios, megalodón), civilizaciones antiguas (Egipto, Roma, Göbekli Tepe), artefactos anacrónicos, o anomalías imposibles de filmar en la realidad.
+3. `pexels_query`: Escribe 2 a 4 palabras clave concisas EN INGLÉS que nombren **el sujeto físico concreto de la escena** (ej: 'submarine underwater diving', 'ice core drilling antarctica', 'mayan pyramid drone shot', 'deep sea bioluminescent squid'). NUNCA uses palabras abstractas como 'abstract', 'close', 'conceptual', 'weathered', 'keywords', 'breathtaking'.
+4. `image_prompt`: La descripción detallada EN INGLÉS del sujeto exacto narrado. Comienza siempre con el sujeto: "National Geographic photograph of [sujeto concreto narrado] doing [acción concreta], [entorno específico], cinematic lighting, highly detailed textures, 8k resolution, vertical 9:16".
+5. `narration`: Lo que dirá el locutor en español (LATAM).
 
 REGLAS DE ORO DE VIRALIDAD Y RETENCIÓN (2026):
 1. ⚡ **GANCHO SCROLL-STOPPER (Escena 1):**

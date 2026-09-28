@@ -31,14 +31,11 @@ class PixabayTool(BaseModelTool):
         
         url = "https://pixabay.com/api/videos/"
         
-        # Intentos progresivos: 1) Consulta original, 2) Primeras 2 palabras, 3) Primera palabra clave
+        # Intentos progresivos: 1) Consulta original, 2) Primeras 2 palabras
         words = clean_query.split()
         attempts = [clean_query]
         if len(words) > 2:
             attempts.append(" ".join(words[:2]))
-            attempts.append(words[0])
-        elif len(words) == 2:
-            attempts.append(words[0])
 
         hits = []
         for q in attempts:

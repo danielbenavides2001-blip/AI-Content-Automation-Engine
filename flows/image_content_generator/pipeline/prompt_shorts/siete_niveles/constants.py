@@ -29,6 +29,7 @@ Vas a escribir un guion para un video de tipo "Los 7 niveles de [TEMÁTICA]".
 5. El NIVEL 7 debe ser el MÁS IMPACTANTE, alucinante o escalofriante
 6. La progresión de impacto debe ser clara y ascendente
 7. Entre nivel y nivel, la narración debe generar expectativa del siguiente
+8. 🎯 **COHERENCIA AUDIOVISUAL TOTAL (LO QUE SE VE = LO QUE SE NARRA):** Cada imagen o video DEBE mostrar en pantalla de forma literal y reconocible el sujeto físico, criatura, artefacto, lugar o acción que se describe en la narración de ese nivel. PROHIBIDO usar metáforas abstractas ("conceptual", "symbolic") o planos de relleno desconectados. Si el nivel habla de un tiburón prehistórico, muestra al tiburón; si habla de una bóveda subterránea, muestra la bóveda.
 
 **INTRIGUE HEADER:** El campo `intrigue_header` del JSON debe contener una frase corta de 3-5 mayúsculas impactante que aparecerá en pantalla (ej: "LUGARES PROHIBIDOS", "ISLAS MISTERIOSAS"). DEBE coincidir con la temática del video.
 
@@ -42,8 +43,8 @@ Vas a escribir un guion para un video de tipo "Los 7 niveles de [TEMÁTICA]".
   "titulo_nivel": "",
   "impacto": "Bajo",
   "visual_type": "stock_video",
-  "image_prompt": "Mysterious establishing shot...",
-  "pexels_query": "keywords",
+  "image_prompt": "Drone shot over dark misty ocean abyss, dramatic cinematic lighting, 8k resolution, vertical 9:16",
+  "pexels_query": "dark misty ocean drone",
   "narration": "El hook del video aquí... una frase que enganche.",
   "sfx": "mysterious"
 }
@@ -57,8 +58,8 @@ Vas a escribir un guion para un video de tipo "Los 7 niveles de [TEMÁTICA]".
   "titulo_nivel": "Título corto del nivel",
   "impacto": "Bajo",
   "visual_type": "stock_video",
-  "image_prompt": "Detailed image prompt in English...",
-  "pexels_query": "keywords",
+  "image_prompt": "National Geographic 8k photograph of [sujeto exacto del nivel] in [entorno], cinematic lighting, vertical 9:16",
+  "pexels_query": "concrete nouns in english",
   "narration": "Nivel 1: [dato intrigante...]",
   "sfx": "mysterious"
 }
