@@ -21,6 +21,11 @@ class GeminiUsage(BaseModelTool):
     total_tokens: Optional[int] = None
 
 
+class GeminiQuotaExhaustedError(Exception):
+    """Raised when all available API keys have exhausted the quota or are unavailable for a specific model."""
+    pass
+
+
 def _is_daily_quota_exhausted(exc: Exception) -> bool:
     """Returns True if the error indicates key quota exhaustion or server unavailability on free tier."""
     msg = str(exc)
@@ -163,16 +168,18 @@ class GeminiBase(BaseModelTool):
         try:
             return func(*args, **kwargs)
         except (errors.ClientError, errors.APIError) as e:
+            err_str = str(e).lower()
+            if "not found" in err_str or "404" in err_str:
+                Messenger.warning(f"⚠️ Modelo no encontrado o no soportado ({type(e).__name__}). Saltando a fallback...")
+                raise GeminiQuotaExhaustedError(str(e))
             # Si la cuota o disponibilidad de la clave gratuita falla, rotar a la siguiente inmediatamente
             if _is_daily_quota_exhausted(e):
                 if self._rotate_to_next_client():
                     # Retry immediately (re-raise to trigger tenacity retry, which will resolve new client method)
                     raise errors.APIError(str(e), None)  # type: ignore[arg-type]
                 else:
-                    delay = _extract_retry_delay(e)
-                    wait_time = max(delay + 2.0, 35.0) if delay > 0 else 30.0
-                    Messenger.error(f"🚫 Todas las claves API saturadas/exhaustas. Esperando {wait_time:.1f}s para enfriar cuota...")
-                    time.sleep(wait_time)
+                    Messenger.warning(f"🚫 Todas las claves API saturadas/agotadas para el modelo actual ({type(e).__name__}).")
+                    raise GeminiQuotaExhaustedError(str(e))
             raise
 
     def _extract_usage(self, response: Any, model_name: str) -> GeminiUsage:

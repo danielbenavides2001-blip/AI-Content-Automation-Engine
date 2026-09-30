@@ -5,6 +5,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 from typing import List, Optional, Tuple
+import json
 import requests
 from PIL import Image
 from pydantic import BaseModel
@@ -93,37 +94,78 @@ class FreeHybridImageGenerator:
             Messenger.warning(f"⚠️ Crop/resize warning for {img_path.name}: {e}")
             return False
 
+    def _fetch_wikimedia(self, query: str, output_path: Path) -> bool:
+        """Fetches high-definition public-domain scientific, astronomical, prehistoric, or historical images from Wikimedia Commons."""
+        if not query:
+            return False
+        clean_q = re.sub(r'[^a-zA-Z0-9\s]', ' ', query).strip()
+        words = clean_q.split()
+        search_terms = " ".join(words[:3]) if len(words) > 3 else clean_q
+        try:
+            url = (
+                f"https://commons.wikimedia.org/w/api.php?action=query&generator=search"
+                f"&gsrnamespace=6&gsrsearch={urllib.parse.quote(search_terms)}"
+                f"&gsrlimit=5&prop=imageinfo&iiprop=url|size|mime&format=json"
+            )
+            req = urllib.request.Request(
+                url,
+                headers={"User-Agent": "EnigmaIQ-Automation/2.0 (contact: info@enigmaiq.org)"}
+            )
+            with urllib.request.urlopen(req, timeout=12) as resp:
+                data = json.loads(resp.read().decode())
+            pages = data.get("query", {}).get("pages", {})
+            if not pages:
+                return False
+
+            for pid, page in sorted(pages.items(), key=lambda x: x[1].get("index", 99)):
+                info_list = page.get("imageinfo", [])
+                if not info_list:
+                    continue
+                info = info_list[0]
+                mime = info.get("mime", "")
+                img_url = info.get("url", "")
+                if mime in ("image/jpeg", "image/png", "image/webp") and img_url:
+                    img_req = urllib.request.Request(
+                        img_url,
+                        headers={"User-Agent": "EnigmaIQ-Automation/2.0 (contact: info@enigmaiq.org)"}
+                    )
+                    with urllib.request.urlopen(img_req, timeout=15) as img_resp:
+                        content = img_resp.read()
+                        if len(content) > 10240:
+                            output_path.write_bytes(content)
+                            self._fit_and_crop(output_path)
+                            Messenger.success(f"✅ Real educational/archival photo fetched from Wikimedia: {output_path.name}")
+                            return True
+            return False
+        except Exception as e:
+            Messenger.warning(f"⚠️ Wikimedia search failed for '{search_terms}': {e}")
+            return False
+
     def _generate_pollinations(self, prompt: str, output_path: Path) -> bool:
-        """Generates an image via Pollinations.ai using FLUX or Turbo."""
+        """Generates an image via Pollinations.ai without paid query parameters to avoid 402 errors."""
         clean_prompt = prompt.replace("\n", " ").strip()
         clean_prompt = re.sub(r'\s+', ' ', clean_prompt)
-        if len(clean_prompt) > 280:
-            clean_prompt = clean_prompt[:280]
+        if len(clean_prompt) > 200:
+            clean_prompt = clean_prompt[:200]
 
-        for model in ["flux", "turbo"]:
-            try:
-                encoded = urllib.parse.quote(clean_prompt)
-                seed = random.randint(1, 999999)
-                url = (
-                    f"https://image.pollinations.ai/prompt/{encoded}"
-                    f"?width={self.target_w}&height={self.target_h}"
-                    f"&model={model}&nologo=true&seed={seed}"
-                )
-                Messenger.info(f"   🎨 Generating custom scene with Pollinations ({model.upper()})...")
-                req = urllib.request.Request(
-                    url,
-                    headers={"User-Agent": "EnigmaIQ-Automation/2.0 (FreeContentEngine)"}
-                )
-                with urllib.request.urlopen(req, timeout=40) as response:
-                    if response.status == 200:
-                        data = response.read()
-                        if len(data) > 5120:
-                            with open(output_path, "wb") as f:
-                                f.write(data)
-                            Messenger.success(f"✅ Custom scene generated via Pollinations ({model.upper()}): {output_path.name}")
-                            return True
-            except Exception as e:
-                Messenger.warning(f"⚠️ Pollinations ({model}) attempt failed: {e}")
+        try:
+            encoded = urllib.parse.quote(clean_prompt)
+            url = f"https://image.pollinations.ai/prompt/{encoded}?nologo=true"
+            Messenger.info(f"   🎨 Attempting Pollinations AI generation: '{clean_prompt[:50]}...'")
+            req = urllib.request.Request(
+                url,
+                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+            )
+            with urllib.request.urlopen(req, timeout=25) as response:
+                if response.status == 200:
+                    data = response.read()
+                    if len(data) > 5120:
+                        output_path.write_bytes(data)
+                        self._fit_and_crop(output_path)
+                        Messenger.success(f"✅ Scene generated via Pollinations: {output_path.name}")
+                        return True
+        except Exception as e:
+            Messenger.warning(f"⚠️ Pollinations attempt failed: {e}")
         return False
 
     def generate_image(
@@ -136,11 +178,12 @@ class FreeHybridImageGenerator:
     ) -> bool:
         """
         Generates an image strictly corresponding to what is narrated in the scene.
-        - If visual_type == 'ai_image': Generates directly with Pollinations FLUX using the custom prompt
-          describing the exact scene (vital for prehistoric creatures, lost temples, ancient artifacts).
-        - If visual_type == 'stock_video' / real photography:
-          Searches high-definition real stock photos on Pexels / Pixabay with clean concrete queries.
-          If no photo matches, falls back to Pollinations FLUX.
+        Waterfall pipeline (100% free, $0.00 cost):
+        1. Pexels Stock Photos (HD real photography for animals, nature, places, tech)
+        2. Pixabay Stock Photos (HD real photography & illustrations)
+        3. Wikimedia Commons Open Media (Fossils, space discoveries, ancient artifacts, science)
+        4. Pollinations AI (Clean endpoint without paid parameters)
+        5. Emergency Fallback: Dark cinematic backdrop
         """
         output_path.parent.mkdir(parents=True, exist_ok=True)
         query = (search_query or "").strip()
@@ -151,16 +194,9 @@ class FreeHybridImageGenerator:
 
         Messenger.info(f"🖼️ [FreeHybridImageGenerator] Type: {visual_type} | Query: '{query}' | AR: {self.aspect_ratio}")
 
-        # ─── 1. If visual_type is 'ai_image': Directly generate custom scene via Pollinations FLUX ─
-        if visual_type == "ai_image":
-            Messenger.info("🎨 [AI Scene] Using Pollinations FLUX for exact visual fidelity to narration...")
-            if self._generate_pollinations(prompt, output_path):
-                return True
-            # Fallback below if Pollinations fails
-
-        # ─── 2. Attempt Real Stock Photo via Pexels ─────────────────────────
+        # ─── 1. Attempt Real Stock Photo via Pexels ─────────────────────────
         if query and self.pexels.api_key:
-            Messenger.info(f"🔎 1/3 Checking Pexels Photos for '{query}'...")
+            Messenger.info(f"🔎 1/4 Checking Pexels Photos for '{query}'...")
             try:
                 if self.pexels.fetch_photo(query, output_path) and output_path.exists() and output_path.stat().st_size > 5120:
                     self._fit_and_crop(output_path)
@@ -169,9 +205,9 @@ class FreeHybridImageGenerator:
             except Exception as e:
                 Messenger.warning(f"⚠️ Pexels photo search failed: {e}")
 
-        # ─── 3. Attempt Real Stock Photo via Pixabay ────────────────────────
+        # ─── 2. Attempt Real Stock Photo via Pixabay ────────────────────────
         if query and self.pixabay.api_key:
-            Messenger.info(f"🔎 2/3 Checking Pixabay Photos for '{query}'...")
+            Messenger.info(f"🔎 2/4 Checking Pixabay Photos for '{query}'...")
             try:
                 if self.pixabay.fetch_photo(query, output_path) and output_path.exists() and output_path.stat().st_size > 5120:
                     self._fit_and_crop(output_path)
@@ -180,12 +216,25 @@ class FreeHybridImageGenerator:
             except Exception as e:
                 Messenger.warning(f"⚠️ Pixabay photo search failed: {e}")
 
-        # ─── 4. Fallback to Pollinations FLUX ───────────────────────────────
-        Messenger.info("🎨 Falling back to Free AI generation via Pollinations (FLUX)...")
+        # ─── 3. Attempt Educational / Scientific Archive via Wikimedia Commons ─
+        if query:
+            Messenger.info(f"🏛️ 3/4 Checking Wikimedia Commons for '{query}'...")
+            if self._fetch_wikimedia(query, output_path):
+                return True
+
+        # ─── 4. Attempt Free Pollinations AI Generation ─────────────────────
+        Messenger.info("🎨 4/4 Attempting Pollinations AI generation...")
         if self._generate_pollinations(prompt, output_path):
             return True
 
-        # ─── 5. Emergency Fallback: Colored Canvas ──────────────────────────
+        # ─── 5. Fallback Search on Wikimedia with Substantive Keywords ───────
+        alt_query = self.extract_search_keywords(prompt)
+        if alt_query and alt_query != query:
+            Messenger.info(f"🏛️ Extra attempt on Wikimedia with '{alt_query}'...")
+            if self._fetch_wikimedia(alt_query, output_path):
+                return True
+
+        # ─── 6. Emergency Fallback: Colored Canvas ──────────────────────────
         Messenger.warning("⚠️ All image sources failed. Creating emergency dark cinematic canvas...")
         img = Image.new("RGB", (self.target_w, self.target_h), color=(15, 23, 42))
         img.save(output_path, format="JPEG", quality=90)
