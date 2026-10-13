@@ -240,6 +240,7 @@ class PromptManagerShorts(BasePromptManager):
                 f"\n\nIDEA A DESARROLLAR: {idea_data.title}\n"
                 f"INTRIGUE HEADER DE LA IDEA: {getattr(idea_data, 'intrigue_header', '')}\n"
                 f"**ESTILOS VISUALES RECOMENDADOS:** {selected_style}\n"
+                f"⚠️ **REGLA CRÍTICA DE COHERENCIA VISUAL:** En 'image_prompt' de CADA escena, describe PRIMERO el sujeto físico concreto y su acción. Añade el estilo visual al final. NUNCA pongas el estilo antes del sujeto.\n"
                 f"\n\n**DATOS COMPLETOS DE LA IDEA (CONTEXTO):**\n{idea_data.model_dump_json(indent=2)}\n"
             )
         else:
@@ -247,6 +248,7 @@ class PromptManagerShorts(BasePromptManager):
                 script_prompt + 
                 f"\n\nIDEA A DESARROLLAR: {idea_data.title}\n"
                 f"**ESTILOS VISUALES RECOMENDADOS PARA IMÁGENES/MAPAS:** {selected_style}\n"
+                f"⚠️ **REGLA CRÍTICA DE COHERENCIA VISUAL:** En 'image_prompt' de CADA escena, describe PRIMERO el sujeto físico concreto y su acción. Añade el estilo visual al final. NUNCA pongas el estilo antes del sujeto.\n"
             )
         if mode == "geography":
             script_schema = GeographyHandler

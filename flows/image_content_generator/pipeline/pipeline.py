@@ -392,19 +392,20 @@ class Pipeline(BaseModelTool):
         
         tasks: List[ImageTask] = []
         for scene in script.scenes:
-            # Revertido a 1 imagen pura y estática por escena
             action_prompt = scene.image_prompt
             out_name = f"scene_{scene.scene_number:02d}.png"
             out_path = self.get_idea_asset_path(idea_obj.id, self.IMAGES_DIR, out_name)
-            v_type = getattr(scene, "visual_type", "stock_video")
+            v_type = getattr(scene, "visual_type", "ai_image")
             p_query = getattr(scene, "pexels_query", "").strip()
+            t_nivel = getattr(scene, "titulo_nivel", "").strip()
             tasks.append(
                 ImageTask(
                     prompt=action_prompt,
                     output_path=out_path,
                     visual_type=v_type,
                     search_query=p_query,
-                    narration=getattr(scene, "narration", "")
+                    narration=getattr(scene, "narration", ""),
+                    titulo_nivel=t_nivel
                 )
             )
 
@@ -451,14 +452,11 @@ class Pipeline(BaseModelTool):
                 Messenger.info(f"   Scene {scene.scene_number} clip already exists. Skipping.")
                 return True
 
-            visual_type = getattr(scene, "visual_type", "stock_video")
+            visual_type = getattr(scene, "visual_type", "ai_image")
+            level_title = getattr(scene, "titulo_nivel", "")
             query = getattr(scene, "pexels_query", "").strip()
             if not query or query.lower() in ["keywords", "none", "video", "stock_video", "photo"]:
-                # Extraer consulta por defecto desde el prompt o título del nivel
-                query = FreeHybridImageGenerator.extract_search_keywords(scene.image_prompt)
-                if not query:
-                    level_title = getattr(scene, "titulo_nivel", "")
-                    query = level_title if level_title else idea_obj.title
+                query = level_title if level_title else FreeHybridImageGenerator.extract_search_keywords(scene.image_prompt)
 
             # 1. Animación 3D de Mapa (si fue solicitada)
             if visual_type == "map_3d":
@@ -485,39 +483,30 @@ class Pipeline(BaseModelTool):
                 except Exception as remotion_e:
                     Messenger.warning(f"   ⚠️ Remotion MapRender falló: {remotion_e}. Pasando a stock video.")
 
-            # 2. Búsqueda de Video de Stock (Pexels -> Pixabay)
-            if visual_type != "ai_image":
+            # 2. Búsqueda de Video de Stock (Pexels -> Pixabay) - ÚNICAMENTE para 'stock_video' filmable
+            if visual_type == "stock_video" and query:
+                Messenger.info(f"   🎥 Buscando video de stock para '{query}' (Escena {scene.scene_number})...")
                 if pexels_tool.fetch_video(query, clip_path) and clip_path.exists() and clip_path.stat().st_size > 10240:
                     return True
                 if pixabay_tool.fetch_video(query, clip_path) and clip_path.exists() and clip_path.stat().st_size > 10240:
                     return True
-                Messenger.warning(f"   ⚠️ No se encontró video de stock para '{query}'. Activando respaldo de imagen.")
+                Messenger.warning(f"   ⚠️ No se encontró video de stock para '{query}'. Usando animación Ken Burns con imagen.")
 
-            # 3. Respaldo Visual Basado en Imagen (Garantía de Cero Pantalla Negra)
-            # Aseguramos que img_path exista con contenido real
+            # 3. Respaldo Visual Basado en Imagen (Garantía de Fidelidad y Cero Pantalla Negra)
+            # Aseguramos que img_path exista con contenido real estrictamente congruente
             if not img_path.exists() or img_path.stat().st_size < 5120:
-                Messenger.info(f"   🔄 Obteniendo imagen de respaldo para Escena {scene.scene_number}...")
-                
-                # A) Intentar foto de alta definición desde Pexels Photos
-                if pexels_tool.fetch_photo(query, img_path) and img_path.exists() and img_path.stat().st_size > 5120:
-                    Messenger.success(f"   ✅ Foto de stock de Pexels descargada para escena {scene.scene_number}")
-                
-                # B) Intentar foto de alta definición desde Pixabay Photos
-                elif pixabay_tool.fetch_photo(query, img_path) and img_path.exists() and img_path.stat().st_size > 5120:
-                    Messenger.success(f"   ✅ Foto de stock de Pixabay descargada para escena {scene.scene_number}")
-                
-                # C) Intentar generar con FreeHybridImageGenerator con prompt de la escena
-                elif hasattr(scene, "image_prompt") and scene.image_prompt:
-                    try:
-                        self.image_gen.generate_image(
-                            prompt=scene.image_prompt,
-                            output_path=img_path,
-                            search_query=query,
-                            visual_type=visual_type,
-                            narration=getattr(scene, "narration", "")
-                        )
-                    except Exception as gen_err:
-                        Messenger.warning(f"   ⚠️ Generación de emergencia falló: {gen_err}")
+                Messenger.info(f"   🔄 Generando imagen dedicada para Escena {scene.scene_number} ({visual_type})...")
+                try:
+                    self.image_gen.generate_image(
+                        prompt=scene.image_prompt,
+                        output_path=img_path,
+                        search_query=query,
+                        visual_type=visual_type,
+                        narration=getattr(scene, "narration", ""),
+                        titulo_nivel=level_title
+                    )
+                except Exception as gen_err:
+                    Messenger.warning(f"   ⚠️ Generación de imagen dedicada falló: {gen_err}")
 
                 # D) Reutilizar cualquier imagen válida ya generada en el proyecto
                 if not img_path.exists() or img_path.stat().st_size < 5120:

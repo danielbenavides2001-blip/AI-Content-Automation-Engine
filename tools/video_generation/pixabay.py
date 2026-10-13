@@ -31,11 +31,8 @@ class PixabayTool(BaseModelTool):
         
         url = "https://pixabay.com/api/videos/"
         
-        # Intentos progresivos: 1) Consulta original, 2) Primeras 2 palabras
-        words = clean_query.split()
+        # Intentos: consulta limpia estricta
         attempts = [clean_query]
-        if len(words) > 2:
-            attempts.append(" ".join(words[:2]))
 
         hits = []
         for q in attempts:
@@ -44,7 +41,7 @@ class PixabayTool(BaseModelTool):
                 "key": self.api_key,
                 "q": formatted_q,
                 "video_type": "film",
-                "per_page": 15,
+                "per_page": 10,
                 "page": 1,
                 "safesearch": "true"
             }
@@ -64,8 +61,8 @@ class PixabayTool(BaseModelTool):
             return False
 
         try:
-            # Elegir uno al azar de la lista completa (hasta 15 opciones diferentes)
-            selected_video = random.choice(hits)
+            # Seleccionar el resultado más relevante (#1)
+            selected_video = hits[0]
             videos_data = selected_video.get("videos", {})
             if not videos_data:
                 return False
@@ -111,11 +108,7 @@ class PixabayTool(BaseModelTool):
         Messenger.info(f"🔎 Buscando foto de respaldo en Pixabay para: '{clean_query}'...")
         url = "https://pixabay.com/api/"
 
-        words = clean_query.split()
         attempts = [clean_query]
-        if len(words) > 2:
-            attempts.append(" ".join(words[:2]))
-            attempts.append(words[0])
 
         hits = []
         for q in attempts:
@@ -124,7 +117,7 @@ class PixabayTool(BaseModelTool):
                 "q": q.replace(" ", "+"),
                 "image_type": "photo",
                 "orientation": "vertical",
-                "per_page": 15,
+                "per_page": 10,
                 "page": 1,
                 "safesearch": "true"
             }
@@ -142,7 +135,8 @@ class PixabayTool(BaseModelTool):
             return False
 
         try:
-            chosen = random.choice(hits)
+            # Seleccionar la foto más relevante (#1)
+            chosen = hits[0]
             img_url = chosen.get("largeImageURL") or chosen.get("webformatURL")
             if not img_url:
                 return False

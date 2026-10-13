@@ -32,17 +32,11 @@ class PexelsTool(BaseModelTool):
         headers = {"Authorization": self.api_key}
         
         # Intentos progresivos: 1) Portrait específico, 2) Sin restricción estricta de size, 3) Orientación general
+        # Intentos de búsqueda: 1) Portrait específico, 2) Orientación general
         search_attempts = [
-            {"query": clean_query, "orientation": "portrait", "per_page": 15, "page": random.randint(1, 2), "size": "large"},
-            {"query": clean_query, "orientation": "portrait", "per_page": 15, "page": 1},
-            {"query": clean_query, "per_page": 15, "page": 1},
+            {"query": clean_query, "orientation": "portrait", "per_page": 10, "page": 1},
+            {"query": clean_query, "per_page": 10, "page": 1},
         ]
-        
-        # Si la consulta tiene varias palabras, agregar fallback de las primeras 2 palabras
-        words = clean_query.split()
-        if len(words) > 2:
-            search_attempts.append({"query": " ".join(words[:2]), "orientation": "portrait", "per_page": 15, "page": 1})
-            search_attempts.append({"query": " ".join(words[:2]), "per_page": 15, "page": 1})
 
         videos = []
         for attempt_params in search_attempts:
@@ -62,8 +56,8 @@ class PexelsTool(BaseModelTool):
             return False
 
         try:
-            # Elegir uno al azar de la lista
-            selected_video = random.choice(videos)
+            # Seleccionar el resultado más relevante (#1) para máxima congruencia visual
+            selected_video = videos[0]
             video_files = selected_video.get("video_files", [])
             if not video_files:
                 return False
@@ -122,12 +116,9 @@ class PexelsTool(BaseModelTool):
         headers = {"Authorization": self.api_key}
 
         attempts = [
-            {"query": clean_query, "orientation": "portrait", "per_page": 15, "page": 1},
-            {"query": clean_query, "per_page": 15, "page": 1},
+            {"query": clean_query, "orientation": "portrait", "per_page": 10, "page": 1},
+            {"query": clean_query, "per_page": 10, "page": 1},
         ]
-        words = clean_query.split()
-        if len(words) > 2:
-            attempts.append({"query": " ".join(words[:2]), "per_page": 15, "page": 1})
 
         photos = []
         for params in attempts:
@@ -146,7 +137,8 @@ class PexelsTool(BaseModelTool):
             return False
 
         try:
-            chosen = random.choice(photos)
+            # Seleccionar la foto más relevante (#1) para máxima coherencia con el texto narrado
+            chosen = photos[0]
             src = chosen.get("src", {})
             img_url = src.get("large2x") or src.get("large") or src.get("original")
             if not img_url:

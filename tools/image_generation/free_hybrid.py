@@ -19,9 +19,10 @@ class ImageTask(BaseModel):
     prompt: str
     output_path: Path
     is_video: bool = False
-    visual_type: str = "stock_video"
+    visual_type: str = "ai_image"
     search_query: Optional[str] = None
     narration: Optional[str] = None
+    titulo_nivel: Optional[str] = None
 
 
 class FreeHybridImageGenerator:
@@ -55,7 +56,7 @@ class FreeHybridImageGenerator:
 
     @staticmethod
     def extract_search_keywords(prompt: str) -> str:
-        """Extracts 2-4 key substantive concrete nouns from a prompt, filtering all photography filler."""
+        """Extracts 2-4 key substantive concrete nouns from a prompt, filtering all photography and style filler."""
         if not prompt:
             return ""
         stopwords = {
@@ -69,7 +70,12 @@ class FreeHybridImageGenerator:
             'immense', 'vast', 'breathtaking', 'stunning', 'weathered', 'tattered', 'ancient', 'mysterious',
             'unknown', 'dark', 'unexplored', 'picture', 'features', 'featuring', 'depicting', 'scene',
             'around', 'into', 'over', 'under', 'near', 'high', 'quality', 'level', 'looking', 'words', 'keywords',
-            'establishing', 'moody', 'foggy', 'soft', 'sharp', 'intricate'
+            'establishing', 'moody', 'foggy', 'soft', 'sharp', 'intricate', 'contrast', 'magazine', 'aesthetic',
+            'blueprint', 'documentary', 'retro', 'pastel', 'tones', 'scheme', 'palette', 'composition',
+            'sci-fi', 'scifi', 'neon', 'cyan', 'golden', 'accents', 'layout', 'vignette', 'futuristic',
+            'vintage', 'textures', 'volumetric', 'holographic', 'grid', 'lines', 'focus', 'angle', 'quadrant',
+            'asymmetric', 'sepia', 'terracotta', 'monochrome', 'slate', 'carbon', 'electric', 'selected',
+            'base', 'colors', 'color', 'warm', 'cool', 'rich', 'saturated', 'projections', 'overlay'
         }
         cleaned = re.sub(r'[^a-zA-Z0-9\s]', ' ', prompt.lower())
         words = [w for w in cleaned.split() if w not in stopwords and len(w) > 2]
@@ -143,20 +149,22 @@ class FreeHybridImageGenerator:
 
     def _generate_pollinations(self, prompt: str, output_path: Path) -> bool:
         """Generates an image via Pollinations.ai without paid query parameters to avoid 402 errors."""
+        # Strip redundant style preset headers if they precede the actual scene description
         clean_prompt = prompt.replace("\n", " ").strip()
-        clean_prompt = re.sub(r'\s+', ' ', clean_prompt)
-        if len(clean_prompt) > 200:
-            clean_prompt = clean_prompt[:200]
+        clean_prompt = re.sub(r'^(Selected Visual Style|Base Style):\s*[^|.]+[|.]\s*', '', clean_prompt, flags=re.IGNORECASE)
+        clean_prompt = re.sub(r'\s+', ' ', clean_prompt).strip()
+        if len(clean_prompt) > 450:
+            clean_prompt = clean_prompt[:450]
 
         try:
             encoded = urllib.parse.quote(clean_prompt)
             url = f"https://image.pollinations.ai/prompt/{encoded}?nologo=true"
-            Messenger.info(f"   🎨 Attempting Pollinations AI generation: '{clean_prompt[:50]}...'")
+            Messenger.info(f"   🎨 Attempting Pollinations AI generation: '{clean_prompt[:60]}...'")
             req = urllib.request.Request(
                 url,
                 headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
             )
-            with urllib.request.urlopen(req, timeout=25) as response:
+            with urllib.request.urlopen(req, timeout=30) as response:
                 if response.status == 200:
                     data = response.read()
                     if len(data) > 5120:
@@ -174,71 +182,101 @@ class FreeHybridImageGenerator:
         output_path: Path,
         search_query: Optional[str] = None,
         visual_type: str = "stock_video",
-        narration: Optional[str] = None
+        narration: Optional[str] = None,
+        titulo_nivel: Optional[str] = None
     ) -> bool:
         """
         Generates an image strictly corresponding to what is narrated in the scene.
         Waterfall pipeline (100% free, $0.00 cost):
-        1. Pexels Stock Photos (HD real photography for animals, nature, places, tech)
-        2. Pixabay Stock Photos (HD real photography & illustrations)
-        3. Wikimedia Commons Open Media (Fossils, space discoveries, ancient artifacts, science)
-        4. Pollinations AI (Clean endpoint without paid parameters)
-        5. Emergency Fallback: Dark cinematic backdrop
+        - AI_IMAGE MODE:
+          1. Wikimedia Commons Archival Check (museum artifacts, fossils, manuscripts, astronomy)
+          2. Pollinations AI (FLUX.1) bespoke generation strictly adhering to scene subject
+        - STOCK_VIDEO MODE:
+          1. Pexels Stock Photos (HD real photography for filmable modern nature/science)
+          2. Pixabay Stock Photos
+          3. Wikimedia Commons
+          4. Pollinations AI
         """
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        query = (search_query or "").strip()
-        if query.lower() in ["keywords", "none", "video", "stock_video", "photo"]:
-            query = ""
-        if not query:
-            query = self.extract_search_keywords(prompt)
+        Messenger.info(f"🖼️ [FreeHybridImageGenerator] Type: {visual_type} | Level: '{titulo_nivel or ''}' | Query: '{search_query or ''}' | AR: {self.aspect_ratio}")
 
-        Messenger.info(f"🖼️ [FreeHybridImageGenerator] Type: {visual_type} | Query: '{query}' | AR: {self.aspect_ratio}")
-
-        # ─── 1. Attempt Real Stock Photo via Pexels ─────────────────────────
-        if query and self.pexels.api_key:
-            Messenger.info(f"🔎 1/4 Checking Pexels Photos for '{query}'...")
-            try:
-                if self.pexels.fetch_photo(query, output_path) and output_path.exists() and output_path.stat().st_size > 5120:
-                    self._fit_and_crop(output_path)
-                    Messenger.success(f"✅ Real stock photo fetched from Pexels: {output_path.name}")
+        if visual_type == "ai_image":
+            # ─── A) AI IMAGE MODE (Extinct beasts, ancient relics, ooparts, non-filmable) ───
+            # Stock libraries (Pexels/Pixabay) DO NOT have prehistoric monsters or ancient relics.
+            # Querying Pexels/Pixabay produces false-positive random photos (dogs, modern people).
+            
+            # 1. Tier 1: Real archival museum artifact/fossil check on Wikimedia Commons
+            wiki_target = (titulo_nivel or search_query or "").strip()
+            if wiki_target and wiki_target.lower() not in ["keywords", "none", "video", "stock_video", "photo"]:
+                Messenger.info(f"🏛️ 1/3 Checking Wikimedia Commons for genuine archival photo: '{wiki_target}'...")
+                if self._fetch_wikimedia(wiki_target, output_path):
                     return True
-            except Exception as e:
-                Messenger.warning(f"⚠️ Pexels photo search failed: {e}")
 
-        # ─── 2. Attempt Real Stock Photo via Pixabay ────────────────────────
-        if query and self.pixabay.api_key:
-            Messenger.info(f"🔎 2/4 Checking Pixabay Photos for '{query}'...")
-            try:
-                if self.pixabay.fetch_photo(query, output_path) and output_path.exists() and output_path.stat().st_size > 5120:
-                    self._fit_and_crop(output_path)
-                    Messenger.success(f"✅ Real stock photo fetched from Pixabay: {output_path.name}")
-                    return True
-            except Exception as e:
-                Messenger.warning(f"⚠️ Pixabay photo search failed: {e}")
-
-        # ─── 3. Attempt Educational / Scientific Archive via Wikimedia Commons ─
-        if query:
-            Messenger.info(f"🏛️ 3/4 Checking Wikimedia Commons for '{query}'...")
-            if self._fetch_wikimedia(query, output_path):
+            # 2. Tier 2: Dedicated AI Generation via Pollinations (FLUX.1)
+            # FLUX generates a high-definition bespoke image depicting the EXACT scene described in prompt
+            Messenger.info("🎨 2/3 Generating bespoke AI image via Pollinations (FLUX)...")
+            if self._generate_pollinations(prompt, output_path):
                 return True
 
-        # ─── 4. Attempt Free Pollinations AI Generation ─────────────────────
-        Messenger.info("🎨 4/4 Attempting Pollinations AI generation...")
-        if self._generate_pollinations(prompt, output_path):
+            # 3. Tier 3: Secondary Wikimedia search using clean keywords
+            kw = self.extract_search_keywords(prompt)
+            if kw and kw != wiki_target:
+                Messenger.info(f"🏛️ 3/3 Secondary Wikimedia attempt for '{kw}'...")
+                if self._fetch_wikimedia(kw, output_path):
+                    return True
+
+            # Fallback canvas
+            Messenger.warning("⚠️ All AI/Wikimedia sources failed. Creating emergency dark cinematic canvas...")
+            img = Image.new("RGB", (self.target_w, self.target_h), color=(15, 23, 42))
+            img.save(output_path, format="JPEG", quality=90)
             return True
 
-        # ─── 5. Fallback Search on Wikimedia with Substantive Keywords ───────
-        alt_query = self.extract_search_keywords(prompt)
-        if alt_query and alt_query != query:
-            Messenger.info(f"🏛️ Extra attempt on Wikimedia with '{alt_query}'...")
-            if self._fetch_wikimedia(alt_query, output_path):
+        else:
+            # ─── B) STOCK VIDEO/PHOTO MODE (Real-world filmable modern scenes) ───
+            query = (search_query or "").strip()
+            if query.lower() in ["keywords", "none", "video", "stock_video", "photo"]:
+                query = ""
+            if not query:
+                query = self.extract_search_keywords(prompt)
+
+            # 1. Pexels Stock Photos
+            if query and self.pexels.api_key:
+                Messenger.info(f"🔎 1/4 Checking Pexels Photos for '{query}'...")
+                try:
+                    if self.pexels.fetch_photo(query, output_path) and output_path.exists() and output_path.stat().st_size > 5120:
+                        self._fit_and_crop(output_path)
+                        Messenger.success(f"✅ Real stock photo fetched from Pexels: {output_path.name}")
+                        return True
+                except Exception as e:
+                    Messenger.warning(f"⚠️ Pexels photo search failed: {e}")
+
+            # 2. Pixabay Stock Photos
+            if query and self.pixabay.api_key:
+                Messenger.info(f"🔎 2/4 Checking Pixabay Photos for '{query}'...")
+                try:
+                    if self.pixabay.fetch_photo(query, output_path) and output_path.exists() and output_path.stat().st_size > 5120:
+                        self._fit_and_crop(output_path)
+                        Messenger.success(f"✅ Real stock photo fetched from Pixabay: {output_path.name}")
+                        return True
+                except Exception as e:
+                    Messenger.warning(f"⚠️ Pixabay photo search failed: {e}")
+
+            # 3. Wikimedia Commons
+            if query:
+                Messenger.info(f"🏛️ 3/4 Checking Wikimedia Commons for '{query}'...")
+                if self._fetch_wikimedia(query, output_path):
+                    return True
+
+            # 4. Pollinations AI Fallback
+            Messenger.info("🎨 4/4 Attempting Pollinations AI generation...")
+            if self._generate_pollinations(prompt, output_path):
                 return True
 
-        # ─── 6. Emergency Fallback: Colored Canvas ──────────────────────────
-        Messenger.warning("⚠️ All image sources failed. Creating emergency dark cinematic canvas...")
-        img = Image.new("RGB", (self.target_w, self.target_h), color=(15, 23, 42))
-        img.save(output_path, format="JPEG", quality=90)
-        return True
+            # Emergency Fallback
+            Messenger.warning("⚠️ All image sources failed. Creating emergency dark cinematic canvas...")
+            img = Image.new("RGB", (self.target_w, self.target_h), color=(15, 23, 42))
+            img.save(output_path, format="JPEG", quality=90)
+            return True
 
     def generate_images(self, tasks: List[ImageTask]) -> None:
         """Batch generation for multiple ImageTasks (used by video pipeline)."""
@@ -251,6 +289,7 @@ class FreeHybridImageGenerator:
                 output_path=task.output_path,
                 search_query=getattr(task, "search_query", None),
                 visual_type=getattr(task, "visual_type", "stock_video"),
-                narration=getattr(task, "narration", None)
+                narration=getattr(task, "narration", None),
+                titulo_nivel=getattr(task, "titulo_nivel", None)
             )
         Messenger.step_success(f"Batch complete: {total} images generated at $0.00 cost.")

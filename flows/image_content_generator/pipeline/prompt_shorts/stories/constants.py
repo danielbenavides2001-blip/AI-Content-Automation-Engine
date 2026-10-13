@@ -42,12 +42,10 @@ Para cada escena debes definir:
    - Si la narración habla de un fósil -> El visual DEBE ser el fósil.
    - Si la narración habla de un templo milenario -> El visual DEBE ser el templo milenario.
 2. `visual_type`: 
-   - **EN LA ESCENA 1 (GANCHO) ES OBLIGATORIO `"stock_video"`** para arrancar con movimiento real en alta definición.
-   - En las escenas 2 a 8:
-     * Usa `"stock_video"` para sujetos reales que existen hoy (océanos, buzos, tormentas, desiertos, animales vivos, telescopios, laboratorios).
-     * Usa `"ai_image"` OBLIGATORIAMENTE para criaturas extintas (dinosaurios, megalodón), civilizaciones antiguas (Egipto, Roma, Göbekli Tepe), artefactos anacrónicos, o anomalías imposibles de filmar en la realidad.
-3. `pexels_query`: Escribe 2 a 4 palabras clave concisas EN INGLÉS que nombren **el sujeto físico concreto de la escena** (ej: 'submarine underwater diving', 'ice core drilling antarctica', 'mayan pyramid drone shot', 'deep sea bioluminescent squid'). NUNCA uses palabras abstractas como 'abstract', 'close', 'conceptual', 'weathered', 'keywords', 'breathtaking'.
-4. `image_prompt`: La descripción detallada EN INGLÉS del sujeto exacto narrado. Comienza siempre con el sujeto: "National Geographic photograph of [sujeto concreto narrado] doing [acción concreta], [entorno específico], cinematic lighting, highly detailed textures, 8k resolution, vertical 9:16".
+   - Usa `"ai_image"` OBLIGATORIAMENTE para criaturas extintas (dinosaurios, megalodón, bestias fósiles), civilizaciones antiguas (Egipto, Roma, Göbekli Tepe), artefactos anacrónicos (OOPARTS, manuscritos, mecanismos), o anomalías que no existan en video real hoy en día. Si la escena 1 trata de estos temas, usa `"ai_image"` para mostrar la criatura/artefacto exacto desde el segundo cero.
+   - Usa `"stock_video"` ÚNICAMENTE para sujetos ambientales comunes del mundo moderno filmables en la realidad (océanos, buzos, tormentas, desiertos, telescopios, laboratorios).
+3. `pexels_query`: Si `visual_type` es `"ai_image"`, deja este campo en `""` (vacío). Si es `"stock_video"`, escribe 2 a 3 palabras clave concisas EN INGLÉS que nombren el sujeto ambiental concreto (ej: 'ocean waves storm', 'antarctica ice desert', 'deep sea diving').
+4. `image_prompt`: La descripción detallada EN INGLÉS del sujeto exacto narrado. Comienza SIEMPRE con el sujeto físico concreto y su acción: "National Geographic photograph of [sujeto concreto narrado] doing [acción concreta], [entorno específico], cinematic lighting, highly detailed textures, 8k resolution, vertical 9:16". Agrega los detalles estilísticos al final, NUNCA al inicio.
 5. `narration`: Lo que dirá el locutor en español (LATAM).
 
 REGLAS DE ORO DE VIRALIDAD Y RETENCIÓN (2026):

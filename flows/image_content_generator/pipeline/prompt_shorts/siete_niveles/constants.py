@@ -29,7 +29,13 @@ Vas a escribir un guion para un video de tipo "Los 7 niveles de [TEMÁTICA]".
 5. El NIVEL 7 debe ser el MÁS IMPACTANTE, alucinante o escalofriante
 6. La progresión de impacto debe ser clara y ascendente
 7. Entre nivel y nivel, la narración debe generar expectativa del siguiente
-8. 🎯 **COHERENCIA AUDIOVISUAL TOTAL (LO QUE SE VE = LO QUE SE NARRA):** Cada imagen o video DEBE mostrar en pantalla de forma literal y reconocible el sujeto físico, criatura, artefacto, lugar o acción que se describe en la narración de ese nivel. PROHIBIDO usar metáforas abstractas ("conceptual", "symbolic") o planos de relleno desconectados. Si el nivel habla de un tiburón prehistórico, muestra al tiburón; si habla de una bóveda subterránea, muestra la bóveda.
+8. 🎯 **COHERENCIA AUDIOVISUAL TOTAL (LO QUE SE VE = LO QUE SE NARRA - REGLA SUPREMA):** Cada imagen o clip DEBE mostrar en pantalla de forma literal y reconocible el sujeto físico exacto, criatura, artefacto, lugar o acción que se describe en la narración de ese nivel. PROHIBIDO usar metáforas abstractas ("conceptual", "symbolic", "aesthetic energy") o planos de relleno genéricos desconectados. Si el nivel habla de un tiburón prehistórico, la imagen DEBE ser el tiburón; si habla de un manuscrito antiguo, DEBE ser el manuscrito; si habla de una bóveda subterránea, DEBE ser la bóveda.
+9. 📸 **TAXONOMÍA OBLIGATORIA DE `visual_type`:**
+   - Usa `"ai_image"` para prácticamente todos los niveles: criaturas prehistóricas o extintas (dinosaurios, Megalodón, Titanis, aves del terror, bestias del pasado), fósiles, civilizaciones y templos antiguos, artefactos misteriosos (OOPARTS, Manuscrito Voynich, Mecanismo de Anticitera), anomalías cósmicas/espaciales, o cualquier sujeto que NO se pueda filmar con una cámara en la vida real moderna.
+   - Usa `"stock_video"` ÚNICAMENTE para planos ambientales filmables en el mundo real moderno (ej: olas de mar tormentoso, dunas de arena en el desierto, cielo nocturno con estrellas, buzo en arrecife de coral). En caso de cualquier duda, usa SIEMPRE `"ai_image"`.
+10. 📝 **REGLA DE `image_prompt`:** Debe comenzar SIEMPRE con el SUJETO FÍSICO EXACTO y su ACCIÓN (ej: "Titanis terror bird running through dense prehistoric forest with open beak and sharp claws..."). Coloca cualquier detalle estilístico al final de la descripción, NUNCA al inicio.
+11. 🏷️ **REGLA DE `titulo_nivel`:** Nombre concreto, corto y exacto de la entidad, criatura o artefacto de ese nivel (ej: "Titanis", "Manuscrito Voynich", "Mecanismo Anticitera", "Mosasaurio").
+12. 🔎 **REGLA DE `pexels_query`:** Si visual_type es "ai_image", pon "" (vacío). Si visual_type es "stock_video", pon 2-3 sustantivos concretos en inglés (ej: "ocean waves", "desert dunes").
 
 **INTRIGUE HEADER:** El campo `intrigue_header` del JSON debe contener una frase corta de 3-5 mayúsculas impactante que aparecerá en pantalla (ej: "LUGARES PROHIBIDOS", "ISLAS MISTERIOSAS"). DEBE coincidir con la temática del video.
 
@@ -42,9 +48,9 @@ Vas a escribir un guion para un video de tipo "Los 7 niveles de [TEMÁTICA]".
   "nivel": 0,
   "titulo_nivel": "",
   "impacto": "Bajo",
-  "visual_type": "stock_video",
-  "image_prompt": "Drone shot over dark misty ocean abyss, dramatic cinematic lighting, 8k resolution, vertical 9:16",
-  "pexels_query": "dark misty ocean drone",
+  "visual_type": "ai_image",
+  "image_prompt": "Epic establishing shot of [sujeto o ambiente misterioso de la temática], cinematic lighting, 8k resolution, vertical 9:16",
+  "pexels_query": "",
   "narration": "El hook del video aquí... una frase que enganche.",
   "sfx": "mysterious"
 }
@@ -55,12 +61,12 @@ Vas a escribir un guion para un video de tipo "Los 7 niveles de [TEMÁTICA]".
 {
   "scene_number": 2,
   "nivel": 1,
-  "titulo_nivel": "Título corto del nivel",
+  "titulo_nivel": "Nombre exacto de la criatura o artefacto",
   "impacto": "Bajo",
-  "visual_type": "stock_video",
-  "image_prompt": "National Geographic 8k photograph of [sujeto exacto del nivel] in [entorno], cinematic lighting, vertical 9:16",
-  "pexels_query": "concrete nouns in english",
-  "narration": "Nivel 1: [dato intrigante...]",
+  "visual_type": "ai_image",
+  "image_prompt": "National Geographic photograph of [sujeto exacto del nivel] [acción concreta y pose] in [entorno específico], highly detailed, cinematic lighting, vertical 9:16",
+  "pexels_query": "",
+  "narration": "Nivel 1: [dato intrigante sobre el sujeto...]",
   "sfx": "mysterious"
 }
 ```
