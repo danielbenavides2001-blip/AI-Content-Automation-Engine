@@ -38,13 +38,35 @@ def _ensure_nivel_prefix(narration: str, nivel: int) -> str:
 
 class SieteNivelesScene(Scene):
     nivel: int = Field(description="0=intro, o del 1 al 7 para los niveles")
-    titulo_nivel: str = Field(default="", description="Título corto para este nivel (vacío para intro)")
+    titulo_nivel: str = Field(default="", description="Nombre exacto del sujeto, criatura, artefacto o lugar de este nivel (ej: 'Titanis', 'Bóveda de Svalbard', 'Manuscrito Voynich')")
+    visual_type: str = Field(default="ai_image", description="Usa 'ai_image' para criaturas, fósiles, reliquias, misterios, bóvedas o escenas específicas. 'stock_video' SOLO para naturaleza ambiental genérica moderna (olas, cielo).")
     impacto: str = Field(default="Bajo", description="Factor de impacto: Bajo, Medio, Alto, Extremo")
     sfx: str = Field(default="none", description="Efecto de sonido para la escena")
 
     @model_validator(mode="after")
-    def _ensure_narration_prefix(self):
+    def _validate_scene_coherence(self):
+        import re
         self.narration = _ensure_nivel_prefix(self.narration, self.nivel)
+        
+        # Si titulo_nivel está vacío y nivel > 0, extraer sujeto principal de la narración
+        if self.nivel > 0 and (not self.titulo_nivel or not self.titulo_nivel.strip()):
+            clean_narr = self.narration
+            for p in NIVEL_PREFIXES.get(self.nivel, ()):
+                clean_narr = clean_narr.replace(p, "")
+            parts = re.split(r'[:.,;]', clean_narr.strip())
+            candidate = parts[0].strip() if parts else ""
+            candidate = re.sub(r'^(el|la|los|las|un|una)\s+', '', candidate, flags=re.IGNORECASE).strip()
+            if candidate and len(candidate) < 60:
+                self.titulo_nivel = candidate
+
+        # En los 7 niveles (nivel 1 al 7), forzar 'ai_image' para garantizar fidelidad absoluta
+        if self.nivel > 0 and self.visual_type == "stock_video":
+            q_lower = (self.pexels_query or "").lower()
+            generic_keywords = ["ocean", "waves", "desert", "stars", "clouds", "storm", "sky"]
+            if not any(w in q_lower for w in generic_keywords):
+                self.visual_type = "ai_image"
+                self.pexels_query = ""
+
         return self
 
 

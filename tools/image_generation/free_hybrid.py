@@ -207,6 +207,17 @@ class FreeHybridImageGenerator:
             
             # 1. Tier 1: Real archival museum artifact/fossil check on Wikimedia Commons
             wiki_target = (titulo_nivel or search_query or "").strip()
+            if not wiki_target and narration:
+                clean_n = narration
+                for p in ["Nivel 1:", "Nivel 2:", "Nivel 3:", "Nivel 4:", "Nivel 5:", "Nivel 6:", "Nivel 7:", "Empezamos en el nivel 1:", "Subimos al nivel 2:", "Llegamos al nivel 3:"]:
+                    clean_n = clean_n.replace(p, "")
+                import re
+                parts = re.split(r'[:.,;]', clean_n.strip())
+                cand = parts[0].strip() if parts else ""
+                cand = re.sub(r'^(el|la|los|las|un|una)\s+', '', cand, flags=re.IGNORECASE).strip()
+                if cand and len(cand) < 60:
+                    wiki_target = cand
+
             if wiki_target and wiki_target.lower() not in ["keywords", "none", "video", "stock_video", "photo"]:
                 Messenger.info(f"🏛️ 1/3 Checking Wikimedia Commons for genuine archival photo: '{wiki_target}'...")
                 if self._fetch_wikimedia(wiki_target, output_path):
