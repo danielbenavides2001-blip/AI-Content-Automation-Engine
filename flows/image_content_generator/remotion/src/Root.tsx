@@ -1,6 +1,25 @@
+import React from 'react';
 import { Composition } from 'remotion';
 import { Subtitles } from './Subtitles';
 import { MapRender } from './MapRender';
+
+import { ElPorqueDeTodoAmazonas } from './ElPorqueDeTodoAmazonas';
+import { AMAZONAS_TOTAL_FRAMES, AMAZONAS_FPS } from './amazonas_timeline';
+
+import { ElPorqueDeTodoSierraNevada } from './ElPorqueDeTodoSierraNevada';
+import { SIERRA_TOTAL_FRAMES, SIERRA_FPS } from './sierra_timeline';
+
+import { ElPorqueDeTodoOrquideas } from './ElPorqueDeTodoOrquideas';
+import { ORQUIDEAS_TOTAL_FRAMES, ORQUIDEAS_FPS } from './orquideas_timeline';
+
+import { MundoInsolitoCatatumbo } from './MundoInsolitoCatatumbo';
+import { CATATUMBO_TOTAL_FRAMES, CATATUMBO_FPS } from './catatumbo_timeline';
+
+import { ElPorqueDeTodoAjolote } from './ElPorqueDeTodoAjolote';
+import { AJOLOTE_TOTAL_FRAMES, AJOLOTE_FPS } from './ajolote_timeline';
+
+import { ElPorqueDeTodoMedusa } from './ElPorqueDeTodoMedusa';
+import { MEDUSA_TOTAL_FRAMES, MEDUSA_FPS } from './medusa_timeline';
 
 const FPS = 30;
 
@@ -50,6 +69,60 @@ export const RemotionRoot: React.FC = () => {
           arrowDirection: 'none',
           floatingLabel: 'COLOMBIA'
         }}
+      />
+
+      <Composition
+        id="ElPorqueDeTodoAmazonas"
+        component={ElPorqueDeTodoAmazonas}
+        durationInFrames={AMAZONAS_TOTAL_FRAMES}
+        fps={AMAZONAS_FPS}
+        width={1080}
+        height={1920}
+      />
+
+      <Composition
+        id="ElPorqueDeTodoSierraNevada"
+        component={ElPorqueDeTodoSierraNevada}
+        durationInFrames={SIERRA_TOTAL_FRAMES}
+        fps={SIERRA_FPS}
+        width={1080}
+        height={1920}
+      />
+
+      <Composition
+        id="ElPorqueDeTodoOrquideas"
+        component={ElPorqueDeTodoOrquideas}
+        durationInFrames={ORQUIDEAS_TOTAL_FRAMES}
+        fps={ORQUIDEAS_FPS}
+        width={1080}
+        height={1920}
+      />
+
+      <Composition
+        id="ElPorqueDeTodoCatatumbo"
+        component={MundoInsolitoCatatumbo}
+        durationInFrames={CATATUMBO_TOTAL_FRAMES}
+        fps={CATATUMBO_FPS}
+        width={1080}
+        height={1920}
+      />
+
+      <Composition
+        id="ElPorqueDeTodoAjolote"
+        component={ElPorqueDeTodoAjolote}
+        durationInFrames={AJOLOTE_TOTAL_FRAMES}
+        fps={AJOLOTE_FPS}
+        width={1080}
+        height={1920}
+      />
+
+      <Composition
+        id="ElPorqueDeTodoMedusa"
+        component={ElPorqueDeTodoMedusa}
+        durationInFrames={MEDUSA_TOTAL_FRAMES}
+        fps={MEDUSA_FPS}
+        width={1080}
+        height={1920}
       />
     </>
   );

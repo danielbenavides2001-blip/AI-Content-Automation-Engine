@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       force_topic:
-        description: 'Tema específico (ej: Curiosidad geográfica de Colombia, o dejar vacío)'
+        description: 'Composición maestra o tema (ej: ElPorqueDeTodoSierraNevada, ElPorqueDeTodoAmazonas, ElPorqueDeTodoCatatumbo, ElPorqueDeTodoOrquideas, o dejar vacío)'
         required: false
         type: string
       force_type:
@@ -16,15 +16,15 @@ on:
         required: false
         type: string
       force_mode:
-        description: 'Forzar modo (por defecto: como_funciona)'
+        description: 'Forzar modo (por defecto: mecanica)'
         required: false
         type: choice
-        default: 'como_funciona'
+        default: 'mecanica'
         options:
+          - mecanica
           - como_funciona
           - siete_niveles
           - standard
-          - mecanica
 
 jobs:
   post-content:
@@ -43,7 +43,6 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'poetry'
-
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -86,7 +85,7 @@ jobs:
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
           USE_VERTEX_AI_IMAGE: "false"
-          USE_VERTEX_AI_AUDIO: "false"  # Usa Gemini TTS con voz Fenrir y tono cinematografico (la voz aprobada)
+          USE_VERTEX_AI_AUDIO: "false"
         run: |
           # Solo videos por defecto, imágenes desactivadas
           RUN_VIDEO=true
@@ -101,13 +100,13 @@ jobs:
           fi
           
           if [ "$RUN_VIDEO" = true ]; then
-            echo "🎬 GENERATING VIRAL CURIOSITY REEL..."
+            echo "🎬 GENERATING VIRAL ENIGMAIQ MASTER REEL..."
             export POST_TYPE="video"
             MODE_INPUT="${{ github.event.inputs.force_mode }}"
             if [ -n "$MODE_INPUT" ]; then
               export MODE="$MODE_INPUT"
             else
-              export MODE="como_funciona"
+              export MODE="mecanica"
             fi
             TOPIC_INPUT="${{ github.event.inputs.force_topic }}"
             if [ -n "$TOPIC_INPUT" ]; then
