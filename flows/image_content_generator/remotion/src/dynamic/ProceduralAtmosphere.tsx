@@ -13,19 +13,20 @@ export const ProceduralAtmosphere: React.FC<{
   const frame = useCurrentFrame();
   const { width, height } = useVideoConfig();
 
-  // Gentle floating particle field
+  // Floating bioluminescent dust specks
   const particles = React.useMemo(() => {
-    return Array.from({ length: 28 }).map((_, i) => ({
+    return Array.from({ length: 36 }).map((_, i) => ({
       x: ((i * 137.5) % width),
       baseY: ((i * 223.7) % height),
-      size: 2 + (i % 3) * 1.5,
-      speed: 0.4 + (i % 4) * 0.25,
-      alpha: 0.15 + (i % 5) * 0.12,
+      size: 2 + (i % 3) * 1.6,
+      speed: 0.35 + (i % 4) * 0.22,
+      alpha: 0.2 + (i % 5) * 0.15,
+      blur: (i % 3) === 0 ? 3 : 0,
     }));
   }, [width, height]);
 
-  // Subtle grid pulse
-  const gridAlpha = 0.08 + Math.sin(frame * 0.04) * 0.02;
+  // Subtle ambient wave drift
+  const waveShift = Math.sin(frame * 0.03) * 12;
 
   return (
     <div
@@ -37,56 +38,94 @@ export const ProceduralAtmosphere: React.FC<{
         pointerEvents: 'none',
       }}
     >
-      {/* Background Radial Glow */}
+      {/* 1. Deep Oceanic / Atmospheric Radial Gradient (Top Center) */}
       <div
         style={{
           position: 'absolute',
-          top: '25%',
+          top: '20%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 1200,
+          height: 1200,
+          borderRadius: '50%',
+          background: `radial-gradient(circle at 50% 50%, #08213b 0%, #031020 50%, transparent 80%)`,
+          opacity: 0.85,
+        }}
+      />
+
+      {/* 2. Secondary Primary Color Bloom (Center) */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '45%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
           width: 900,
           height: 900,
           borderRadius: '50%',
-          background: `radial-gradient(circle, ${primaryColor}14 0%, transparent 70%)`,
+          background: `radial-gradient(circle, ${primaryColor}20 0%, ${secondaryColor}0a 45%, transparent 70%)`,
         }}
       />
-      
-      {/* Secondary Bottom Glow */}
+
+      {/* 3. Bottom Horizon Ambient Light */}
       <div
         style={{
           position: 'absolute',
-          bottom: '15%',
+          bottom: '10%',
           left: '50%',
           transform: 'translate(-50%, 50%)',
-          width: 800,
-          height: 600,
+          width: 1100,
+          height: 700,
           borderRadius: '50%',
-          background: `radial-gradient(ellipse, ${secondaryColor}10 0%, transparent 65%)`,
+          background: `radial-gradient(ellipse, ${secondaryColor}15 0%, transparent 65%)`,
         }}
       />
 
-      {/* Cybernetic Tech Grid */}
+      {/* 4. Elegant Topographic Organic Background Contours */}
       <svg
         width={width}
         height={height}
-        style={{ position: 'absolute', inset: 0, opacity: gridAlpha }}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          opacity: 0.14,
+        }}
       >
-        <defs>
-          <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
-            <path
-              d="M 60 0 L 0 0 0 60"
-              fill="none"
-              stroke={primaryColor}
-              strokeWidth="0.8"
-            />
-            <circle cx="0" cy="0" r="1.5" fill={primaryColor} />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#grid)" />
+        <path
+          d={`M -50 450 Q 300 ${410 + waveShift} 650 470 T 1150 430`}
+          fill="none"
+          stroke={primaryColor}
+          strokeWidth="1.5"
+          strokeDasharray="6 6"
+        />
+        <path
+          d={`M -50 780 Q 400 ${750 - waveShift} 750 810 T 1150 770`}
+          fill="none"
+          stroke={secondaryColor}
+          strokeWidth="1.2"
+        />
+        <path
+          d={`M -50 1150 Q 320 ${1180 + waveShift} 700 1130 T 1150 1160`}
+          fill="none"
+          stroke={primaryColor}
+          strokeWidth="1.5"
+          strokeDasharray="8 6"
+        />
+        <path
+          d={`M -50 1480 Q 450 ${1450 - waveShift} 800 1510 T 1150 1470`}
+          fill="none"
+          stroke={secondaryColor}
+          strokeWidth="1.2"
+        />
       </svg>
 
-      {/* Floating Ambient Particles */}
+      {/* 5. Floating Bioluminescent Ambient Specks */}
       <svg width={width} height={height} style={{ position: 'absolute', inset: 0 }}>
+        <defs>
+          <filter id="speckGlow">
+            <feGaussianBlur stdDeviation="2.5" />
+          </filter>
+        </defs>
         {particles.map((p, i) => {
           const currentY = (p.baseY - frame * p.speed + height) % height;
           return (
@@ -95,19 +134,20 @@ export const ProceduralAtmosphere: React.FC<{
               cx={p.x}
               cy={currentY}
               r={p.size}
-              fill={primaryColor}
+              fill={i % 2 === 0 ? primaryColor : secondaryColor}
               opacity={p.alpha}
+              filter={p.blur > 0 ? 'url(#speckGlow)' : undefined}
             />
           );
         })}
       </svg>
 
-      {/* Deep Vignette */}
+      {/* 6. Cinematic Corner Vignette */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
-          boxShadow: 'inset 0 0 160px rgba(0, 0, 0, 0.85)',
+          boxShadow: 'inset 0 0 180px rgba(0, 3, 10, 0.92)',
         }}
       />
     </div>
