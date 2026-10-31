@@ -102,6 +102,8 @@ jobs:
             MODE_INPUT="${{ github.event.inputs.force_mode }}"
             if [ -n "$MODE_INPUT" ]; then
               export MODE="$MODE_INPUT"
+            else
+              export MODE="como_funciona"
             fi
             poetry run python flows/image_content_generator/pipeline/daily_automated_content.py
             sleep 5
