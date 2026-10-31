@@ -9,10 +9,11 @@ El video debe explicar el mecanismo interno, la física o el secreto anatómico 
 Debe provocar el efecto mental de: *"¡Guau, no tenía idea de que eso funcionaba así!"*.
 
 **CATEGORÍAS DE MÁXIMO IMPACTO:**
-1. MECANISMOS E INVENTOS COTIDIANOS: El interior de un candado al girar la llave, cómo un airbag se infla en milisegundos, cómo un reloj automático se da cuerda con tu pulso, el mecanismo interno de un silenciador de pistola, cómo frena un avión al tocar tierra.
-2. ANATOMÍA Y CUERPO HUMANO: Cómo un mosquito corta y succiona sangre sin dolor, cómo viaja el veneno de serpiente por las venas, por qué duelen tanto los cortes de papel, cómo se forma una ampolla para protegerte, qué pasa en el cerebro al aguantar un estornudo.
-3. NATURALEZA Y FENÓMENOS EXTREMOS: La pinza del camarón pistola que crea calor como el sol, cómo el lagarto cornudo dispara sangre por los ojos, cómo un escarabajo bombardero mezcla químicos a 100°C, por qué el hielo flota en el agua y salva la vida marina.
-4. CIENCIA Y FÍSICA SORPRENDENTE: Por qué la Tierra está más cerca del Sol en invierno, cómo se sostiene un puente colgante con cables, cómo viaja la luz por la fibra óptica en el fondo del mar.
+1. CURIOSIDADES GEOGRÁFICAS DE COLOMBIA (SILUETA PERFECTA): Las 3 cordilleras aisladas que dividieron un país en mundos ecológicos distintos, el misterio del Chocó y el muro andino por qué es el lugar más lluvioso del planeta, Caño Cristales (el río de los 5 colores) y la planta Macarenia clavigera, la Sierra Nevada de Santa Marta (del mar al glaciar en 42 km), el Tapón del Darién.
+2. CURIOSIDADES GEOGRÁFICAS DE ESTADOS UNIDOS Y LATINOAMÉRICA: La línea invisible de las 100°W que parte a EE.UU. en dos mitades (verde vs árida), la Falla de San Andrés vista desde el espacio, el Desierto de Atacama en Chile sin lluvia por 400 años, el Salar de Uyuni en Bolivia (espejo gigante visible desde la Luna), los Ríos Voladores del Amazonas.
+3. MECANISMOS E INVENTOS COTIDIANOS: El interior de un candado al girar la llave, cómo un airbag se infla en milisegundos, cómo un reloj automático se da cuerda con tu pulso, el mecanismo interno de un silenciador de pistola, cómo frena un avión al tocar tierra.
+4. ANATOMÍA Y CUERPO HUMANO: Cómo un mosquito corta y succiona sangre sin dolor, cómo viaja el veneno de serpiente por las venas, por qué duelen tanto los cortes de papel, cómo se forma una ampolla para protegerte, qué pasa en el cerebro al aguantar un estornudo.
+5. NATURALEZA, FÍSICA Y ARMAS BIOLÓGICAS: La pinza del camarón pistola que crea calor como el sol, el escarabajo bombardero a 100°C, por qué la Tierra está más cerca del Sol en enero pero hace frío en el norte.
 
 **ESTRUCTURA DE LA IDEA:**
 - **title**: Título directo, intrigante y en minúsculas limpias con mayúscula inicial (ej: "¿Cómo funciona un candado por dentro?", "Así es como un mosquito te pica sin dolor"). PROHIBIDO agregar corchetes como [Hook B].
@@ -48,6 +49,10 @@ Cada escena debe ser un paso lógico en la revelación del mecanismo:
 4. 📏 **LONGITUD DE NARRACIÓN (RITMO RÁPIDO):**
    - Cada escena debe tener entre **14 y 20 palabras en español (LATAM)**.
    - Duración total de narración: **90 a 115 palabras en total** (garantiza entre 35 y 45 segundos de video, la duración óptima para retención del 85%+).
+5. 🗺️ **REGLA DE MAPAS Y SILUETAS GEOGRÁFICAS (SILUETA PERFECTA):**
+   - Cuando el tema sea de Colombia, Estados Unidos o Latinoamérica, la escena que muestra el mapa DEBE tener en `image_prompt`:
+     "Ultra-precise satellite topographic map showing the exact national border and geographical silhouette of [País/Región] highlighted with high-contrast glowing neon cyan laser outline, 3D mountain elevation relief, dark slate blueprint ocean background, ultra-detailed vector contours, sharp studio lighting, 8k resolution, vertical 9:16 aspect ratio".
+   - PROHIBIDO mapas con manchas borrosas o fronteras imprecisas. La silueta nacional debe ser 100% nítida, reconocible y geográficamente perfecta.
 
 **FORMATO JSON ESTRICTO POR ESCENA:**
 {
@@ -62,6 +67,9 @@ Cada escena debe ser un paso lógico en la revelación del mecanismo:
 """
 
 FOCUS_AREAS_COMO_FUNCIONA = [
+    "CURIOSIDADES GEOGRÁFICAS DE COLOMBIA (SILUETA PERFECTA): La anomalía única de las tres cordilleras de los Andes que aíslan a Colombia en mundos distintos, el misterio del Chocó (la zona más lluviosa del planeta donde los vientos del Pacífico chocan contra el muro andino), Caño Cristales (el río líquido de 5 colores y el secreto de la planta Macarenia clavigera), la Sierra Nevada de Santa Marta (del mar Caribe al pico nevado a 5,700m en solo 42 km), el Tapón del Darién y por qué la selva detuvo la carretera más larga del mundo.",
+    "CURIOSIDADES GEOGRÁFICAS DE ESTADOS UNIDOS Y NORTEAMÉRICA: La línea invisible de las 100° Oeste que divide a EE.UU. en dos mitades (verde y húmeda vs árida desértica), la Falla de San Andrés vista desde el espacio y su deslizamiento continuo, el Gran Cañón del Colorado revelando 2,000 millones de años de capas de la Tierra, el río Misisipi y el mecanismo que evitó que inundara Nueva Orleans.",
+    "MISTERIOS Y GEOGRAFÍA DE LATINOAMÉRICA: El Desierto de Atacama en Chile (el lugar más seco del planeta donde la Corriente de Humboldt congela la evaporación), el Salar de Uyuni en Bolivia (el espejo de sal gigante visible desde la Luna), los Ríos Voladores del Amazonas que transportan billones de litros de agua por el cielo hacia el sur del continente.",
     "MECANISMOS COTIDIANOS POR DENTRO: El corte transversal de un candado y llave, cómo se infla un airbag, cómo funciona el disparador de un bolígrafo, el mecanismo de un reloj mecánico automático, cómo frena un ascensor si se rompe el cable.",
     "ANATOMÍA Y RESPUESTA DEL CUERPO: La aguja microscópica del mosquito que adormece la piel, cómo los colmillos de serpiente rotan 90 grados como bisagras, por qué una espina de pescado puede pasar o atorarse, cómo la piel crea una ampolla de agua protectora.",
     "ARMAS BIOLÓGICAS DE LA NATURALEZA: La burbuja hirviente del camarón pistola, cómo el escarabajo bombardero mezcla reactivos a 100°C, cómo la medusa dispara dardos microscópicos de veneno en microsegundos.",

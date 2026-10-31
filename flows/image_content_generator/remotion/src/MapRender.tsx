@@ -27,24 +27,90 @@ function getTileY(lat: number, zoom: number) {
   return (0.5 - latRad(lat) / Math.PI) * Math.pow(2, zoom);
 }
 
-// Simplified regional coordinates for glowing outlines
+// High-Precision Geographical Border Coordinates for Perfect Silhouettes
 const REGIONS: Record<string, { lat: number; lon: number }[]> = {
   colombia: [
-    { lat: 12.4, lon: -71.7 },
-    { lat: 11.2, lon: -74.2 },
-    { lat: 10.4, lon: -75.3 },
-    { lat: 8.4, lon: -76.8 },
-    { lat: 7.2, lon: -77.9 },
-    { lat: 1.4, lon: -78.8 },
-    { lat: 0.8, lon: -77.5 },
-    { lat: -0.1, lon: -75.2 },
-    { lat: -4.2, lon: -69.9 },
-    { lat: 1.2, lon: -66.9 },
-    { lat: 6.2, lon: -67.4 },
-    { lat: 6.2, lon: -72.0 },
-    { lat: 9.1, lon: -72.9 },
-    { lat: 12.2, lon: -72.2 },
-    { lat: 12.4, lon: -71.7 } // Close polygon
+    { lat: 12.45, lon: -71.66 }, // Punta Gallinas (Guajira)
+    { lat: 11.85, lon: -71.33 }, // Castilletes
+    { lat: 11.50, lon: -72.90 }, // Riohacha
+    { lat: 11.24, lon: -74.21 }, // Santa Marta
+    { lat: 10.96, lon: -74.80 }, // Barranquilla
+    { lat: 10.40, lon: -75.51 }, // Cartagena
+    { lat: 9.40, lon: -75.80 },  // Golfo de Morrosquillo
+    { lat: 8.65, lon: -76.90 },  // Golfo de Urabá este
+    { lat: 8.10, lon: -76.75 },  // Urabá sur
+    { lat: 8.40, lon: -77.35 },  // Urabá oeste
+    { lat: 7.20, lon: -77.88 },  // Cabo Tiburón / Panamá
+    { lat: 7.10, lon: -77.77 },  // Juradó (Pacífico norte)
+    { lat: 6.20, lon: -77.40 },  // Bahía Solano
+    { lat: 5.50, lon: -77.53 },  // Cabo Corrientes
+    { lat: 3.88, lon: -77.03 },  // Buenaventura
+    { lat: 2.60, lon: -77.90 },  // Guapi
+    { lat: 1.80, lon: -78.76 },  // Tumaco
+    { lat: 1.45, lon: -78.85 },  // Frontera Ecuador (costa)
+    { lat: 0.83, lon: -77.65 },  // Ipiales / Rumichaca
+    { lat: 0.35, lon: -76.85 },  // Sucumbíos / San Miguel
+    { lat: -0.11, lon: -75.87 }, // Río Putumayo
+    { lat: -0.40, lon: -75.15 }, // Puerto Leguízamo
+    { lat: -2.00, lon: -72.00 }, // Trapecio norte
+    { lat: -4.21, lon: -69.94 }, // Leticia (Amazonas sur)
+    { lat: -3.80, lon: -70.05 }, // Puerto Nariño
+    { lat: -2.88, lon: -69.75 }, // Tarapacá
+    { lat: -1.20, lon: -69.50 }, // La Pedrera
+    { lat: 0.00, lon: -69.20 },  // Río Apaporis
+    { lat: 1.18, lon: -66.86 },  // La Guadalupe (Río Negro)
+    { lat: 2.50, lon: -67.15 },  // San Felipe
+    { lat: 3.85, lon: -67.90 },  // Puerto Inírida
+    { lat: 5.00, lon: -67.80 },  // Ventuari / Orinoco
+    { lat: 6.18, lon: -67.48 },  // Puerto Carreño
+    { lat: 6.30, lon: -69.50 },  // Río Meta
+    { lat: 7.08, lon: -70.75 },  // Arauca
+    { lat: 7.05, lon: -71.85 },  // Saravena
+    { lat: 8.00, lon: -72.45 },  // Cúcuta
+    { lat: 8.60, lon: -73.30 },  // Ocaña / Catatumbo
+    { lat: 9.30, lon: -73.00 },  // Serranía del Perijá sur
+    { lat: 10.30, lon: -72.85 }, // Perijá norte (Valledupar este)
+    { lat: 11.10, lon: -72.60 }, // Villanueva / Maicao
+    { lat: 11.85, lon: -71.80 }, // Guajira alta
+    { lat: 12.45, lon: -71.66 }  // Cierre en Punta Gallinas
+  ],
+  usa: [
+    { lat: 48.99, lon: -122.75 }, // Washington NW
+    { lat: 45.50, lon: -123.95 }, // Oregon coast
+    { lat: 40.40, lon: -124.40 }, // Cape Mendocino
+    { lat: 37.75, lon: -122.50 }, // San Francisco
+    { lat: 34.00, lon: -118.50 }, // Los Angeles
+    { lat: 32.55, lon: -117.15 }, // San Diego
+    { lat: 32.50, lon: -114.70 }, // Yuma
+    { lat: 31.33, lon: -111.00 }, // Nogales
+    { lat: 31.75, lon: -106.50 }, // El Paso
+    { lat: 29.80, lon: -104.50 }, // Big Bend
+    { lat: 26.00, lon: -97.15 },  // Brownsville
+    { lat: 28.30, lon: -96.50 },  // Corpus Christi
+    { lat: 29.50, lon: -94.80 },  // Houston
+    { lat: 29.20, lon: -89.30 },  // Mississippi Delta
+    { lat: 30.30, lon: -87.10 },  // Pensacola
+    { lat: 27.80, lon: -82.60 },  // Tampa
+    { lat: 25.10, lon: -80.60 },  // Florida Keys
+    { lat: 25.80, lon: -80.10 },  // Miami
+    { lat: 30.50, lon: -81.40 },  // Jacksonville
+    { lat: 32.80, lon: -79.80 },  // Charleston
+    { lat: 35.20, lon: -75.50 },  // Cape Hatteras
+    { lat: 38.80, lon: -75.00 },  // Delaware Bay
+    { lat: 40.60, lon: -74.00 },  // New York Harbor
+    { lat: 42.30, lon: -70.90 },  // Boston / Cape Cod
+    { lat: 44.90, lon: -67.00 },  // Maine East
+    { lat: 47.45, lon: -69.20 },  // Maine North
+    { lat: 45.00, lon: -74.80 },  // St. Lawrence / NY
+    { lat: 43.60, lon: -76.50 },  // Lake Ontario
+    { lat: 42.10, lon: -80.10 },  // Lake Erie
+    { lat: 43.00, lon: -82.40 },  // Detroit / Huron
+    { lat: 46.50, lon: -84.30 },  // Sault Ste Marie
+    { lat: 47.90, lon: -89.50 },  // Lake Superior North
+    { lat: 49.00, lon: -95.15 },  // Northwest Angle
+    { lat: 49.00, lon: -104.05 }, // North Dakota border
+    { lat: 49.00, lon: -116.05 }, // Idaho / Montana 49th parallel
+    { lat: 48.99, lon: -122.75 }  // Back to Washington NW
   ],
   andes: [
     { lat: -15.0, lon: -69.0 },

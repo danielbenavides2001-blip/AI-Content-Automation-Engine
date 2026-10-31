@@ -1,5 +1,6 @@
 import { Composition } from 'remotion';
 import { Subtitles } from './Subtitles';
+import { MapRender } from './MapRender';
 
 const FPS = 30;
 
@@ -29,6 +30,25 @@ export const RemotionRoot: React.FC = () => {
             return { durationInFrames: Math.max(durationFrames, 150) };
           }
           return { durationInFrames: 30000 };
+        }}
+      />
+
+      <Composition
+        id="MapRender"
+        component={MapRender}
+        durationInFrames={240}
+        fps={FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{
+          latitude: 4.570868,
+          longitude: -74.297333,
+          zoom: 5.2,
+          pitch: 45,
+          bearing: -10,
+          highlightRegion: 'colombia',
+          arrowDirection: 'none',
+          floatingLabel: 'COLOMBIA'
         }}
       />
     </>

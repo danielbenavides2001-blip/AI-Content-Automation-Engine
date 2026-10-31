@@ -46,7 +46,7 @@ class PromptManagerShorts(BasePromptManager):
     )
 
     def generate_full_story(
-        self, content_gen: GeminiTextGenerator, titles_to_avoid: list[str] = [], extra_avoid: str = "", mode: str = "standard"
+        self, content_gen: GeminiTextGenerator, titles_to_avoid: list[str] = [], extra_avoid: str = "", mode: str = "standard", forced_topic: str = ""
     ) -> Tuple[BaseIdea, VideoScript, str]:
         """
         Executes the viral generation loop for Story/Geography/Trivias Reels.
@@ -117,8 +117,12 @@ class PromptManagerShorts(BasePromptManager):
                 "SECRETOS OCULTOS DEL CUERPO HUMANO: Anomalías genéticas reales, personas inmunes al dolor, memoria fotográfica absoluta y curiosidades biológicas extraordinarias.",
                 "DATOS RANDOM ALUCINANTES: Curiosidades 100% reales, verificables y fascinantes de la historia, la naturaleza, la ciencia o la tecnología que suenan a ciencia ficción."
             ]
-        selected_area = random.choice(focus_areas)
-        Messenger.info(f"🎯 Random Focus Area: {selected_area}")
+        if forced_topic:
+            selected_area = forced_topic
+            Messenger.info(f"🎯 Forced Focus Topic: {selected_area}")
+        else:
+            selected_area = random.choice(focus_areas)
+            Messenger.info(f"🎯 Random Focus Area: {selected_area}")
 
         avoid_msg = ""
         # Palabras de spam/clickbait barato a evitar
@@ -233,7 +237,8 @@ class PromptManagerShorts(BasePromptManager):
                     f"   Motivo: {reason}\n"
                     f"   Generando tema alternativo..."
                 )
-                selected_area = random.choice(focus_areas)
+                if not forced_topic:
+                    selected_area = random.choice(focus_areas)
                 current_rejection_note = (
                     f"\n\n🚨 ERROR CRÍTICO DE REPETICIÓN: Tu propuesta anterior '{candidate_idea.title}' fue RECHAZADA "
                     f"porque coincide con el tema ya publicado: '{matched_past}' ({reason}). "

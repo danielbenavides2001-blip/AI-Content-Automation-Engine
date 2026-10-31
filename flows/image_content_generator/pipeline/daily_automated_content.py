@@ -171,10 +171,15 @@ class DailyAutomator:
             else:
                 # 100% estilo explicativo / cómo funcionan las cosas (Mecánica Terrestre / EnigmaIQ)
                 mode = "como_funciona"
+            forced_topic = os.getenv("TOPIC", "").strip()
+            if forced_topic:
+                Messenger.info(f"🎯 Forced Topic override: '{forced_topic}'")
             Messenger.info(f"🎬 GENERATING NEW CURIOSITY REEL (Full Pipeline | Mode: {mode.upper()})...")
             avoid_msg = self.get_recent_topics()
             try:
                 cmd = [sys.executable, "-m", "flows.image_content_generator.pipeline.main", "short", "all", "--avoid", avoid_msg, "--mode", mode]
+                if forced_topic:
+                    cmd.extend(["--topic", forced_topic])
                 subprocess.run(cmd, check=True)
                 Messenger.success(f"✅ Curiosity Reel ({mode.upper()}) completed!")
                 try:

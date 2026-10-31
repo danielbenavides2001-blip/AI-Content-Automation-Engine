@@ -32,6 +32,7 @@ def main():
     parser.add_argument("orientation", type=VideoOrientation, choices=list(VideoOrientation))
     parser.add_argument("step", type=PipelineStep, choices=list(PipelineStep))
     parser.add_argument("--avoid", type=str, default="", help="List of topics to avoid")
+    parser.add_argument("--topic", type=str, default="", help="Forced specific topic for script generation")
     parser.add_argument("--mode", type=str, default="standard", choices=["standard", "stickman", "geography", "siete_niveles", "como_funciona", "mecanica"], help="Content generation mode")
     args = parser.parse_args()
 
@@ -60,12 +61,12 @@ def main():
         PipelineStep.STEP8_IMAGE: pipeline.step8_upload_image_to_facebook,
     }
 
-    # Note: Step 1 can take an extra_avoid string
+    # Note: Step 1 can take an extra_avoid string and optional forced topic
     if args.step == PipelineStep.STEP1:
-        pipeline.step1_generate_story(extra_avoid=args.avoid)
+        pipeline.step1_generate_story(extra_avoid=args.avoid, forced_topic=args.topic)
     elif args.step == PipelineStep.ALL:
         Messenger.info("--- Starting Full Pipeline Run (Steps 1-8) ---")
-        pipeline.step1_generate_story(extra_avoid=args.avoid)
+        pipeline.step1_generate_story(extra_avoid=args.avoid, forced_topic=args.topic)
         steps_to_run = [
             PipelineStep.STEP2, PipelineStep.STEP2B, PipelineStep.STEP3, PipelineStep.STEP4,
             PipelineStep.STEP5_PRO, PipelineStep.STEP6, PipelineStep.STEP7, PipelineStep.STEP8

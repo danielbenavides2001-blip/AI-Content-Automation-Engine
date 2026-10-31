@@ -302,7 +302,7 @@ class Pipeline(BaseModelTool):
         return self.get_idea_path(idea_id) / f"{title_slug}.mp4"
 
     @retry(max_attempts=3)
-    def step1_generate_story(self, extra_avoid: str = ""):
+    def step1_generate_story(self, extra_avoid: str = "", forced_topic: str = ""):
         """
         Generate Concept & Script: Creates a cinematic idea and expands it into a storyboard.
         A/B TESTING (Fase 3): Generates two versions (A and B) with different hooks.
@@ -320,7 +320,7 @@ class Pipeline(BaseModelTool):
             category = "stickman_noir"
         else:
             idea_data, script, category = self.prompt_manager.generate_full_story(
-                self.text_gen, titles_to_avoid=titles, extra_avoid=extra_avoid, mode=self.mode
+                self.text_gen, titles_to_avoid=titles, extra_avoid=extra_avoid, mode=self.mode, forced_topic=forced_topic
             )
 
         # Cost tracking (approx 2000 tokens)
