@@ -27,3 +27,5 @@ gcp_credentials.json
 !package-lock.json
 **/build/
 flows/curiosity_image_generator/output/
+flows/image_content_generator/remotion/public/dynamic_audio/*.wav
+flows/image_content_generator/remotion/public/dynamic_audio/*.mp3

@@ -8,9 +8,21 @@ on:
   workflow_dispatch:
     inputs:
       force_topic:
-        description: 'Composición maestra o tema (ej: ElPorqueDeTodoSierraNevada, ElPorqueDeTodoAmazonas, ElPorqueDeTodoCatatumbo, ElPorqueDeTodoOrquideas, o dejar vacío)'
+        description: 'Tema específico (ej: Curiosidad extrema de Colombia, Colombia vs Ecuador, o dejar vacío para selección 100% autónoma por Gemini)'
         required: false
         type: string
+      force_pillar:
+        description: 'Pilar temático: comparativa_paises, curiosidades_pais, como_funciona, curiosidades, sabias_que o auto'
+        required: false
+        type: choice
+        default: 'auto'
+        options:
+          - auto
+          - comparativa_paises
+          - curiosidades_pais
+          - como_funciona
+          - curiosidades
+          - sabias_que
       force_type:
         description: '0=Image, 1=Video'
         required: false
@@ -100,7 +112,7 @@ jobs:
           fi
           
           if [ "$RUN_VIDEO" = true ]; then
-            echo "🎬 GENERATING VIRAL ENIGMAIQ MASTER REEL..."
+            echo "🎬 GENERATING VIRAL ENIGMAIQ MASTER REEL (> 60s)..."
             export POST_TYPE="video"
             MODE_INPUT="${{ github.event.inputs.force_mode }}"
             if [ -n "$MODE_INPUT" ]; then
@@ -111,6 +123,10 @@ jobs:
             TOPIC_INPUT="${{ github.event.inputs.force_topic }}"
             if [ -n "$TOPIC_INPUT" ]; then
               export TOPIC="$TOPIC_INPUT"
+            fi
+            PILLAR_INPUT="${{ github.event.inputs.force_pillar }}"
+            if [ -n "$PILLAR_INPUT" ] && [ "$PILLAR_INPUT" != "auto" ]; then
+              export PILLAR="$PILLAR_INPUT"
             fi
             poetry run python flows/image_content_generator/pipeline/daily_automated_content.py
             sleep 5

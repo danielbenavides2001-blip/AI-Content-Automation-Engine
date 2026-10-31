@@ -21,11 +21,35 @@ import { AJOLOTE_TOTAL_FRAMES, AJOLOTE_FPS } from './ajolote_timeline';
 import { ElPorqueDeTodoMedusa } from './ElPorqueDeTodoMedusa';
 import { MEDUSA_TOTAL_FRAMES, MEDUSA_FPS } from './medusa_timeline';
 
+import { EnigmaIQDynamicMaster, DEFAULT_BLUEPRINT } from './dynamic/EnigmaIQDynamicMaster';
+import { DynamicVideoBlueprint } from './dynamic/types';
+
 const FPS = 30;
 
 export const RemotionRoot: React.FC = () => {
   return (
     <>
+      <Composition
+        id="EnigmaIQDynamicMaster"
+        component={EnigmaIQDynamicMaster}
+        durationInFrames={DEFAULT_BLUEPRINT.totalFrames}
+        fps={FPS}
+        width={1080}
+        height={1920}
+        defaultProps={DEFAULT_BLUEPRINT}
+        calculateMetadata={({ props }) => {
+          const blueprint = props as DynamicVideoBlueprint;
+          if (blueprint?.totalFrames && blueprint.totalFrames > 0) {
+            return { durationInFrames: blueprint.totalFrames };
+          }
+          if (blueprint?.scenes && blueprint.scenes.length > 0) {
+            const last = blueprint.scenes[blueprint.scenes.length - 1];
+            return { durationInFrames: last.startFrame + last.durationFrames };
+          }
+          return { durationInFrames: DEFAULT_BLUEPRINT.totalFrames };
+        }}
+      />
+
       <Composition
         id="Subtitles"
         component={Subtitles}

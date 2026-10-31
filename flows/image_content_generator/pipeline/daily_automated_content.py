@@ -33,19 +33,17 @@ class DailyAutomator:
     def get_recent_topics(self) -> str:
         """Returns a string of recent topics to avoid repetition."""
         topics = []
-        # 1. Automated history
         if self.history_file.exists():
             try:
                 with open(self.history_file, "r", encoding="utf-8") as f:
                     lines = f.readlines()[1:]
-                    for line in lines[-10:]:
+                    for line in lines[-15:]:
                         parts = line.strip().split(",")
                         if len(parts) >= 3:
                             topics.append(parts[2])
             except Exception:
                 pass
         
-        # 2. Video titles history
         video_csv = Path("flows/image_content_generator/out_short/ideas_tracking.csv")
         if video_csv.exists():
             try:
@@ -74,7 +72,6 @@ class DailyAutomator:
         Messenger.info("Generating Daily ¿SABÍAS QUE...? Image Post...")
         recent_topics = self.get_recent_topics()
 
-        # Step 1: Generate Riddle Idea using the dedicated system
         prompt = finance_constants.IDEA_PROMPT_FINANCE.format(
             avoid_list=recent_topics,
             selected_concept="CURIOSIDAD FINANCIERA / PSICOLOGÍA DEL DINERO"
@@ -87,94 +84,90 @@ class DailyAutomator:
             )
             Messenger.info(f"Generated Idea: {riddle_idea.question}")
 
-            # Topic Validation
             validator = TopicValidator()
             is_valid, reason = validator.validate(riddle_idea.question, recent_topics)
             if not is_valid:
                 Messenger.warning(f"⚠️ Topic rejected: {reason}. Trying with a fallback angle...")
                 riddle_idea.question = f"¿Sabías que el 90% de las decisiones de compra no las toma tu lógica?"
 
-            # Step 2: Generate Composite Image
             img_filename = f"daily_curiosity_{riddle_idea.question[:15].strip().replace(' ', '_')}.png"
-            # Sanitize filename
             img_filename = "".join(c for c in img_filename if c.isalnum() or c in ('_', '.')).rstrip()
             img_path = self.out_dir / img_filename
 
-            caption_full = riddle_idea.to_facebook_caption()
-            
-            # Use visual prompt with fallbacks
-            visual_prompt = getattr(riddle_idea, 'visual_prompt', '') or riddle_idea.to_image_prompt()
-            
-            # FreeHybrid handles Pexels search query or Pollinations FLUX automatically
-            search_query = getattr(riddle_idea, 'pexels_query', '') or FreeHybridImageGenerator.extract_search_keywords(visual_prompt)
+            full_prompt = (
+                f"{riddle_idea.image_prompt}, cinematic 8k, photorealistic hyper-detailed, "
+                f"cyberpunk neon accents, editorial magazine quality, dramatic volumetric lighting, "
+                f"dark sophisticated background, high contrast, clean visual storytelling"
+            )
+            self.image_gen.generate(full_prompt, img_path)
 
-            self.image_gen.generate_composite_image(
-                prompt=visual_prompt,
-                output_path=img_path,
-                top_text="¿SABÍAS QUE...?",
-                bottom_text=riddle_idea.question,
-                search_query=search_query
+            caption = (
+                f"💡 ¿SABÍAS ESTO? 🤔\n\n"
+                f"{riddle_idea.question}\n\n"
+                f"{riddle_idea.caption_explanation}\n\n"
+                f"👇 Cuéntanos en los comentarios si ya conocías este dato.\n\n"
+                f"👉 Síguenos en @EnigmaIQ para descubrir la verdad detrás de lo cotidiano.\n\n"
+                f"#enigmaiq #curiosidades #sabiasque #datoscuriosos #conocimiento #mente #psicologia #aprender"
             )
 
-            # Step 3: Publish to Facebook Page
-            Messenger.info("Publishing Composite Image to Facebook Page...")
-            result = self.facebook.publish_photo(
-                image_path=str(img_path),
-                caption=caption_full
-            )
-            
-            last_title = riddle_idea.question
-            Messenger.success("✅ Curiosity Image post completed!")
-            self.log_post("image", f"Curiosity Image: {last_title}")
+            res = self.facebook.upload_photo(image_path=img_path, caption=caption)
+            Messenger.success(f"Successfully posted standard image to Facebook! ID: {res}")
+            self.log_post("image", riddle_idea.question)
             self.sync_to_github()
+
         except Exception as e:
-            Messenger.error(f"❌ Failed to generate/upload Curiosity Image: {e}")
+            Messenger.error(f"Failed to generate/post daily standard image: {e}")
             sys.exit(1)
 
     def run_daily_mix(self):
         """
-        Main entry point for GitHub Actions.
-        Determines type based on POST_TYPE env var.
+        Main execution orchestrator:
+        Autonomous EnigmaIQ Video Generation (> 60 seconds) with procedural Remotion graphics,
+        vector country silhouettes, geological cuts, and Gemini TTS ("Fenrir").
         """
         post_type = os.getenv("POST_TYPE", "video").lower()
-        Messenger.info(f"🚀 Starting Automated Post (Type: {post_type.upper()})...")
-        
-        self.cleanup_stuck_ideas()
 
         if post_type == "video":
             env_mode = os.getenv("MODE", "").lower()
             if env_mode:
                 mode = env_mode
             else:
-                # 100% Remotion Master (mapas vectoriales, cortes transversales, EnigmaIQ)
                 mode = "mecanica"
+
             forced_topic = os.getenv("TOPIC", "").strip()
+            forced_pillar = os.getenv("PILLAR", "").strip()
+
             if forced_topic:
                 Messenger.info(f"🎯 Forced Topic override: '{forced_topic}'")
-            Messenger.info(f"🎬 GENERATING NEW CURIOSITY REEL (Full Pipeline | Mode: {mode.upper()})...")
-            avoid_msg = self.get_recent_topics()
+            if forced_pillar:
+                Messenger.info(f"🏛️ Forced Pillar override: '{forced_pillar}'")
+
+            Messenger.info(f"🎬 GENERATING NEW ENIGMAIQ MASTER REEL (> 60s) [Mode: {mode.upper()}]...")
+
+            # Check if user specifically requested an older static composition
+            static_compositions = [
+                "ElPorqueDeTodoAmazonas", "ElPorqueDeTodoSierraNevada", "ElPorqueDeTodoOrquideas",
+                "ElPorqueDeTodoCatatumbo", "ElPorqueDeTodoAjolote", "ElPorqueDeTodoMedusa"
+            ]
+
             try:
-                if mode in ["mecanica", "master"]:
-                    Messenger.info("✨ Executing EnigmaIQ Master Remotion Publisher...")
-                    cmd = [sys.executable, "-m", "flows.image_content_generator.pipeline.master_remotion_publisher"]
-                    if forced_topic:
-                        cmd.extend(["--composition", forced_topic])
+                if forced_topic in static_compositions:
+                    Messenger.info(f"✨ Executing Legacy Static Composition: '{forced_topic}'...")
+                    cmd = [sys.executable, "-m", "flows.image_content_generator.pipeline.master_remotion_publisher", "--composition", forced_topic]
                     subprocess.run(cmd, check=True)
-                    last_title = f"EnigmaIQ Master Remotion Reel ({forced_topic or 'Auto'})"
+                    last_title = f"Legacy Remotion Reel ({forced_topic})"
                 else:
-                    cmd = [sys.executable, "-m", "flows.image_content_generator.pipeline.main", "short", "all", "--avoid", avoid_msg, "--mode", mode]
+                    # 100% Autonomous AI Remotion Engine (> 60 seconds)
+                    Messenger.info("🚀 Launching Autonomous AI Remotion Engine (> 60s procedural render)...")
+                    cmd = [sys.executable, "-m", "flows.image_content_generator.pipeline.autonomous_ai_remotion_engine"]
                     if forced_topic:
                         cmd.extend(["--topic", forced_topic])
+                    if forced_pillar and forced_pillar != "auto":
+                        cmd.extend(["--pillar", forced_pillar])
                     subprocess.run(cmd, check=True)
-                    try:
-                        import pandas as pd
-                        video_csv = Path("flows/image_content_generator/out_short/ideas_tracking.csv")
-                        df = pd.read_csv(video_csv)
-                        last_title = df.iloc[-1]["title"]
-                    except Exception:
-                        last_title = f"Curiosity Reel ({mode})"
-                Messenger.success(f"✅ Curiosity Reel ({mode.upper()}) completed!")
-                self.log_post("video", last_title)
+                    last_title = f"Autonomous AI Remotion Reel ({forced_topic or 'Gemini Autonomous'})"
+
+                Messenger.success(f"✅ EnigmaIQ Reel completed successfully!")
                 self.sync_to_github()
             except Exception as e:
                 Messenger.error(f"Error during video task: {e}")
@@ -182,67 +175,10 @@ class DailyAutomator:
         else:
             self.generate_daily_standard_image()
 
-
-    def cleanup_stuck_ideas(self):
-        """
-        Cleans up incomplete ideas to prevent redundancy.
-        Removes both physical folders AND orphan CSV entries (folders already deleted).
-        """
-        Messenger.info("🧹 Cleaning up stuck or incomplete ideas...")
-        ideas_dir = Path("flows/image_content_generator/out_short/ideas")
-        video_csv = Path("flows/image_content_generator/out_short/ideas_tracking.csv")
-
-        if not video_csv.exists():
-            return
-
-        import shutil
-        import pandas as pd
-
-        try:
-            df = pd.read_csv(video_csv)
-            safe_states = ["UPLOADED", "COMPLETED"]
-
-            # Phase 1: Delete physical folders of non-safe ideas
-            if ideas_dir.exists():
-                valid_ids = df[df["state"].isin(safe_states)]["id"].tolist()
-                for idea_path in ideas_dir.iterdir():
-                    if idea_path.is_dir():
-                        try:
-                            idea_id = int(idea_path.name.split("_")[-1])
-                            if idea_id not in valid_ids:
-                                Messenger.warning(f"🗑️ Deleting stuck idea folder: {idea_path.name}")
-                                shutil.rmtree(idea_path)
-                        except (ValueError, IndexError):
-                            pass
-
-            # Phase 2: Remove orphan CSV rows whose folders no longer exist
-            rows_to_keep = []
-            removed_ids = []
-            for _, row in df.iterrows():
-                idea_id = int(row["id"])
-                state = str(row["state"])
-                if state in safe_states:
-                    rows_to_keep.append(row)
-                    continue
-                folder_name = f"idea_{idea_id:06d}"
-                idea_path = ideas_dir / folder_name
-                if idea_path.exists():
-                    rows_to_keep.append(row)
-                else:
-                    removed_ids.append(idea_id)
-
-            if removed_ids:
-                Messenger.warning(f"🧹 Removed {len(removed_ids)} orphan rows from ideas_tracking.csv: {removed_ids}")
-                df_clean = pd.DataFrame(rows_to_keep)
-                df_clean.to_csv(video_csv, index=False)
-
-        except Exception as e:
-            Messenger.warning(f"Cleanup non-fatal error: {e}")
-
     def sync_to_github(self):
         """Commits and pushes the history update to prevent repeated topics."""
         try:
-            cmd_add = ["git", "add", "flows/image_content_generator/out_short/automated_posts_history.csv", "flows/image_content_generator/out_short/ideas_tracking.csv"]
+            cmd_add = ["git", "add", "flows/image_content_generator/out_short/automated_posts_history.csv"]
             subprocess.run(cmd_add, check=True)
             cmd_commit = ["git", "commit", "-m", "chore: update tracking history [skip ci]"]
             subprocess.run(cmd_commit, check=False)
