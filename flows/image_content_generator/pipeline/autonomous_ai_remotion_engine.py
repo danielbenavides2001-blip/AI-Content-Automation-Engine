@@ -124,7 +124,7 @@ REGLAS DE ARQUETIPOS VISUALES ('visualArchetype'):
   * 'geological_cross_section': Cuando se expliquen capas subterráneas, fallas tectónicas, magma, sedimentos o fenómenos bajo tierra.
   * 'technical_blueprint': Cuando se expliquen mecanismos, ingeniería de estructuras, fuerzas físicas o tolerancias mecánicas.
   * 'telemetry_gauge': Cuando se expongan métricas extremas, voltajes, temperaturas, presiones o récords numéricos.
-  * 'community_poll': La ÚLTIMA escena (Escena 5 o 6) DEBE ser SIEMPRE 'community_poll', donde se invita a la comunidad a votar en comentarios entre pollOptionA y pollOptionB.
+  * 'community_poll': La ÚLTIMA escena (Escena 5) DEBE ser SIEMPRE 'community_poll', donde se invita a la comunidad a votar en comentarios entre pollOptionA y pollOptionB.
 
 PALETA DE COLORES:
 Elige colores cyberpunk elegantes (cian '#00f5ff', azul cielo '#38bdf8', ámbar '#f59e0b', esmeralda '#10b981', púrpura neón '#a855f7') sobre fondo ultra oscuro '#030814'.
@@ -136,12 +136,72 @@ Genera la respuesta estrictamente en el formato de esquema JSON solicitado.
         Messenger.success(f"🎬 Blueprint concebido con éxito: '{blueprint.title}' ({len(blueprint.scenes)} escenas)")
         return blueprint
 
+    def _get_audio_duration_seconds(self, file_path: Path) -> float:
+        """Measures audio duration via ffprobe or wave fallback."""
+        try:
+            cmd = [
+                "ffprobe", "-v", "error",
+                "-show_entries", "format=duration",
+                "-of", "default=noprint_wrappers=1:nokey=1",
+                str(file_path)
+            ]
+            res = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            return float(res.stdout.strip())
+        except Exception:
+            if str(file_path).endswith(".wav"):
+                try:
+                    with wave.open(str(file_path), "rb") as wf:
+                        return wf.getnframes() / float(wf.getframerate())
+                except Exception:
+                    pass
+            return 14.0
+
+    def _synthesize_scene_audio(self, text: str, wav_path: Path, mp3_path: Path) -> tuple[str, float]:
+        """
+        Synthesizes speech with cascading resilience:
+        1. Primary: Gemini TTS (official 'Fenrir' voice).
+        2. Fallback: Edge-TTS ('es-CO-GonzaloNeural' - deep, natural documentary narrator).
+        Returns relative audio path for Remotion and measured duration in seconds.
+        """
+        # Try 1: Gemini TTS
+        try:
+            self.audio_gen.text_to_speech(text, wav_path)
+            subprocess.run(
+                ["ffmpeg", "-y", "-i", str(wav_path), "-b:a", "192k", str(mp3_path)],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                check=True
+            )
+            final_audio_rel = f"dynamic_audio/{mp3_path.name}"
+            with wave.open(str(wav_path), "rb") as wf:
+                duration_sec = wf.getnframes() / float(wf.getframerate())
+            return final_audio_rel, duration_sec
+        except Exception as e:
+            Messenger.warning(f"⚠️ Gemini TTS no disponible o cuota agotada ({e}). Activando Neural Fallback...")
+
+        # Try 2: Edge-TTS (es-CO-GonzaloNeural - 100% free, unlimited, zero-quota)
+        try:
+            import asyncio
+            import edge_tts
+            async def _run_edge():
+                comm = edge_tts.Communicate(text, "es-CO-GonzaloNeural")
+                await comm.save(str(mp3_path))
+            asyncio.run(_run_edge())
+            
+            duration_sec = self._get_audio_duration_seconds(mp3_path)
+            final_audio_rel = f"dynamic_audio/{mp3_path.name}"
+            Messenger.success(f"🔊 Audio generado con Neural Fallback (es-CO-GonzaloNeural): {duration_sec:.1f}s")
+            return final_audio_rel, duration_sec
+        except Exception as e2:
+            Messenger.error(f"❌ Fallback Neural TTS falló: {e2}")
+            raise e2
+
     def generate_scene_audio_and_timelines(self, blueprint: DynamicBlueprintSchema) -> dict:
         """
-        Generates TTS audio files for every scene, computes exact durations,
+        Generates audio files for every scene, computes exact durations,
         and constructs the complete frame-perfect Remotion blueprint.
         """
-        Messenger.info("🎙️ Generando locución oficial de EnigmaIQ (Fenrir) escena por escena...")
+        Messenger.info("🎙️ Generando locución oficial de EnigmaIQ escena por escena...")
         processed_scenes = []
         current_frame = 0
         total_audio_sec = 0.0
@@ -154,27 +214,7 @@ Genera la respuesta estrictamente en el formato de esquema JSON solicitado.
             
             Messenger.info(f"   ► Escena {scene_num}/{len(blueprint.scenes)}: {scene.visualArchetype} ({len(scene.narration.split())} palabras)")
             
-            # Generate WAV using GeminiAudioGenerator
-            self.audio_gen.text_to_speech(scene.narration, wav_path)
-            
-            # Convert to MP3 via ffmpeg for maximum web/Remotion performance
-            try:
-                subprocess.run(
-                    ["ffmpeg", "-y", "-i", str(wav_path), "-b:a", "192k", str(mp3_path)],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                    check=True
-                )
-                final_audio_rel = f"dynamic_audio/{audio_base_name}.mp3"
-            except Exception:
-                final_audio_rel = f"dynamic_audio/{audio_base_name}.wav"
-
-            # Compute audio duration in seconds
-            with wave.open(str(wav_path), "rb") as wf:
-                frames = wf.getnframes()
-                rate = wf.getframerate()
-                duration_sec = frames / float(rate)
-            
+            final_audio_rel, duration_sec = self._synthesize_scene_audio(scene.narration, wav_path, mp3_path)
             total_audio_sec += duration_sec
             
             # Frame allocation: duration in frames + 15 frames padding for smooth scene transitions
