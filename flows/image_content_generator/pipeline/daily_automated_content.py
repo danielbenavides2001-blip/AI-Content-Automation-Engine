@@ -170,7 +170,7 @@ class DailyAutomator:
                 mode = env_mode
             else:
                 import random
-                mode = random.choices(["standard", "siete_niveles"], weights=[40, 60])[0]
+                mode = random.choices(["como_funciona", "siete_niveles", "standard"], weights=[70, 20, 10])[0]
             Messenger.info(f"🎬 GENERATING NEW CURIOSITY REEL (Full Pipeline | Mode: {mode.upper()})...")
             avoid_msg = self.get_recent_topics()
             try:

@@ -1,6 +1,10 @@
 name: Daily Content Automation (3 Reels + 3 Images)
 
 on:
+  schedule:
+    # 2 Reels diarios automáticos en horarios pico (Colombia/México GMT-5)
+    - cron: '0 18 * * *'  # 01:00 PM GMT-5 (18:00 UTC) - Reel Mediodía
+    - cron: '0 0 * * *'   # 07:00 PM GMT-5 (00:00 UTC) - Reel Noche Prime
   workflow_dispatch:
     inputs:
       force_type:
@@ -13,8 +17,10 @@ on:
         type: choice
         options:
           - ''
-          - standard
+          - como_funciona
           - siete_niveles
+          - standard
+          - mecanica
 
 jobs:
   post-content:

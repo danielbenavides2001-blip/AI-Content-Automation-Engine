@@ -244,6 +244,9 @@ class Pipeline(BaseModelTool):
         elif getattr(idea_obj, "category", "") == "siete_niveles":
             from flows.image_content_generator.pipeline.prompt_shorts.siete_niveles.models import SieteNivelesHandler
             return self.load_json(idea_obj.id, self.SCRIPT_JSON, SieteNivelesHandler)
+        elif getattr(idea_obj, "category", "") == "como_funciona":
+            from flows.image_content_generator.pipeline.prompt_shorts.como_funciona.models import ComoFuncionaScript
+            return self.load_json(idea_obj.id, self.SCRIPT_JSON, ComoFuncionaScript)
         return self.load_json(idea_obj.id, self.SCRIPT_JSON, VideoScript)
 
     def save_json(self, idea_id: int, filename: str, data: BaseModel):
@@ -324,8 +327,8 @@ class Pipeline(BaseModelTool):
         self.cost_tracker.add_text_cost(2000)
 
         # --- FASE 3: A/B TESTING (Generar Gancho B) ---
-        # Skip A/B testing for stickman for now to keep it simple and focused on quality
-        if self.mode != "stickman":
+        # Skip A/B testing for stickman and como_funciona to keep every video unique and focused
+        if self.mode not in ["stickman", "como_funciona", "mecanica"]:
             Messenger.info("   Generating alternative Hook B...")
             prompt_b = f"""
             Tienes el siguiente guion de video:
@@ -902,6 +905,15 @@ class Pipeline(BaseModelTool):
         
         # --- Obtener encabezado de intriga del script ---
         intrigue_text = getattr(script_data, "intrigue_header", None)
+        if not intrigue_text and hasattr(script_data, "header_title"):
+            intrigue_text = script_data.header_title
+        if not intrigue_text:
+            try:
+                from flows.image_content_generator.pipeline.prompt_shorts.como_funciona.models import ComoFuncionaIdea
+                idea_model = self.load_json(idea_obj.id, self.IDEA_JSON, ComoFuncionaIdea)
+                intrigue_text = getattr(idea_model, "header_title", None)
+            except Exception:
+                pass
 
         # --- Niveles markers para overlay en modo 7 niveles ---
         level_markers = None
@@ -1109,6 +1121,10 @@ class Pipeline(BaseModelTool):
             # 2. Finds the final named video.
             video_title = idea_obj.title if idea_obj.title else f"video_{idea_obj.id}"
             video_path = self.get_named_video_path(idea_obj.id, video_title)
+            
+            # Public title for Facebook post and AI prompts (removes internal tags like [Hook B])
+            import re
+            public_title = re.sub(r'\s*\[Hook\s+[A-Za-z0-9]+\]', '', video_title).strip()
 
             if not video_path.exists():
                 Messenger.error(f"Final video not found: {video_path}")
@@ -1118,7 +1134,7 @@ class Pipeline(BaseModelTool):
 
             # 3. Generates optimized description
             Messenger.info("   Generating AI-optimized description...")
-            description = self.generate_facebook_description(video_title)
+            description = self.generate_facebook_description(public_title)
 
             # --- TRANSPARENCIA (Meta 2026) ---
             transparency_footer = (
@@ -1145,7 +1161,7 @@ class Pipeline(BaseModelTool):
                 video_id = self.facebook.upload_video(
                     file_path=video_path,
                     description=final_description,
-                    title=video_title
+                    title=public_title
                 )
                 
                 if video_id:
@@ -1169,7 +1185,7 @@ class Pipeline(BaseModelTool):
                     # --- FASE 4: AUTO-COMENTARIO (Engagement hook) ---
                     Messenger.info("   Generating engagement auto-comment...")
                     prompt_comment = f"""
-                    Eres el creador de "EnigmaIQ". Acabas de subir este video viral a Facebook Reels: "{video_title}".
+                    Eres el creador de "EnigmaIQ". Acabas de subir este video viral a Facebook Reels: "{public_title}".
                     Escribe un comentario fijado (1 línea corta) con una pregunta intrigante que provoque que los espectadores quieran opinar o debatir su teoría de inmediato.
                     Ejemplos de alta respuesta:
                     - "¿Crees que tiene una explicación científica o hay algo más detrás? Los leo 👇"

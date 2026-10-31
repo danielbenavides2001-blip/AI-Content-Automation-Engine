@@ -28,6 +28,8 @@ from tools.common.messenger import Messenger
 from tools.text_generation.gemini import GeminiTextGenerator
 from flows.image_content_generator.pipeline.prompt_shorts.siete_niveles.models import SieteNivelesHandler, SieteNivelesIdea
 from flows.image_content_generator.pipeline.prompt_shorts.siete_niveles import constants as sn_constants
+from flows.image_content_generator.pipeline.prompt_shorts.como_funciona.models import ComoFuncionaHandler, ComoFuncionaIdea, ComoFuncionaScript
+from flows.image_content_generator.pipeline.prompt_shorts.como_funciona import constants as como_funciona_constants
 from tools.common.topic_validator import TopicValidator
 
 
@@ -40,6 +42,7 @@ class PromptManagerShorts(BasePromptManager):
         [StoryHandler]
         + ([GeographyHandler] if (HAS_GEOGRAPHY and GeographyHandler) else [])
         + [SieteNivelesHandler]
+        + [ComoFuncionaHandler]
     )
 
     def generate_full_story(
@@ -62,6 +65,12 @@ class PromptManagerShorts(BasePromptManager):
             idea_prompt = sn_constants.IDEA_PROMPT_SIETE_NIVELES
             script_prompt = sn_constants.SCRIPT_PROMPT_SIETE_NIVELES
             series_name = "EnigmaIQ 7 Niveles"
+        elif mode in ["como_funciona", "mecanica"]:
+            category = "como_funciona"
+            idea_model = ComoFuncionaIdea
+            idea_prompt = como_funciona_constants.IDEA_PROMPT_COMO_FUNCIONA
+            script_prompt = como_funciona_constants.SCRIPT_PROMPT_COMO_FUNCIONA
+            series_name = "EnigmaIQ Cómo Funciona"
         else:
             category = "stories"
             idea_model = StoryIdea
@@ -91,6 +100,8 @@ class PromptManagerShorts(BasePromptManager):
             ]
         elif mode == "siete_niveles":
             focus_areas = sn_constants.FOCUS_AREAS_SIETE_NIVELES
+        elif mode in ["como_funciona", "mecanica"]:
+            focus_areas = como_funciona_constants.FOCUS_AREAS_COMO_FUNCIONA
         else:
             focus_areas = [
                 "FAUNA ASOMBROSA Y CRIATURAS EXTREMAS: Animales con adaptaciones alienígenas en la Tierra, criaturas bioluminiscentes, ojos con visión imposible, camuflajes activos y récords de longevidad o resistencia en el reino animal.",
@@ -168,6 +179,13 @@ class PromptManagerShorts(BasePromptManager):
                 "Base Style: High-contrast mystery magazine aesthetic. Dark backgrounds with glowing golden accents, bold typography-inspired compositions, dramatic spot lighting.",
                 "Base Style: Moody National Geographic explorer style. Warm earthy tones, vintage map textures, compass and parchment overlays, explorer's journal aesthetic.",
                 "Base Style: Dark sci-fi documentary style. Neon cyan and deep blue palette, holographic grid overlays, sleek data visualization elements, futuristic yet grounded.",
+            ]
+        elif mode in ["como_funciona", "mecanica"]:
+            styles = [
+                "Base Style: Technical 3D cross-section schematic. Dark blueprint background, sharp glowing neon accents highlighting internal mechanical and biological parts, high precision.",
+                "Base Style: High-definition realistic scientific cutaway illustration. Photorealistic textures, focused studio lighting, clear visible internal layers and mechanisms.",
+                "Base Style: Futuristic holographic schematic visualization. Deep dark space background, glowing cyan and amber energy flows revealing internal components.",
+                "Base Style: Macro documentary photography style. Ultra-detailed close-up with shallow depth of field, sharp focus on mechanical movement and physical textures."
             ]
         else:
             styles = [
@@ -254,6 +272,8 @@ class PromptManagerShorts(BasePromptManager):
             script_schema = GeographyHandler
         elif mode == "siete_niveles":
             script_schema = SieteNivelesHandler
+        elif mode in ["como_funciona", "mecanica"]:
+            script_schema = ComoFuncionaScript
         else:
             script_schema = VideoScript
         script = content_gen.generate_text(full_script_prompt, script_schema)

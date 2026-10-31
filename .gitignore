@@ -25,3 +25,5 @@ gcp_credentials.json
 *.json
 !package.json
 !package-lock.json
+**/build/
+flows/curiosity_image_generator/output/
