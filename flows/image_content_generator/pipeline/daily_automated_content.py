@@ -178,7 +178,7 @@ class DailyAutomator:
     def sync_to_github(self):
         """Commits and pushes the history update to prevent repeated topics."""
         try:
-            cmd_add = ["git", "add", "flows/image_content_generator/out_short/automated_posts_history.csv"]
+            cmd_add = ["git", "add", "-f", "flows/image_content_generator/out_short/automated_posts_history.csv"]
             subprocess.run(cmd_add, check=True)
             cmd_commit = ["git", "commit", "-m", "chore: update tracking history [skip ci]"]
             subprocess.run(cmd_commit, check=False)
