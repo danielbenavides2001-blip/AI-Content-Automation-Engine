@@ -28,8 +28,8 @@ export const SceneStockFootage: React.FC<{
     config: { damping: 14, stiffness: 80, mass: 0.9 },
   });
 
-  const cardTranslateY = interpolate(entrance, [0, 1], [-40, 0]);
-  const cardOpacity = interpolate(entrance, [0, 1], [0, 1]);
+  const cardTranslateY = 0;
+  const cardOpacity = 1;
 
   return (
     <div
@@ -44,6 +44,8 @@ export const SceneStockFootage: React.FC<{
       {scene.stockVideoPath && (
         <OffthreadVideo
           src={staticFile(scene.stockVideoPath)}
+          muted={true}
+          volume={0}
           style={{
             position: 'absolute',
             width: '100%',

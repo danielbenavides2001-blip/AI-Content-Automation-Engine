@@ -185,7 +185,7 @@ def render_master_video(composition_id: str, out_path: Path):
         "src/index.ts",
         composition_id,
         str(out_path),
-        "--concurrency=4"
+        "--concurrency=2"
     ]
     is_win = sys.platform.startswith("win")
     subprocess.run(cmd, cwd=str(REMOTION_DIR), check=True, shell=is_win)

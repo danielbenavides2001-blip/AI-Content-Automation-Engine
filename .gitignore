@@ -29,3 +29,7 @@ gcp_credentials.json
 flows/curiosity_image_generator/output/
 flows/image_content_generator/remotion/public/dynamic_audio/*.wav
 flows/image_content_generator/remotion/public/dynamic_audio/*.mp3
+
+!flows/image_content_generator/out_short/next_queued_action.json
+!flows/image_content_generator/out_short/automated_posts_history.csv
+!flows/image_content_generator/out_short/ideas_tracking.csv

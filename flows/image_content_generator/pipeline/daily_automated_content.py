@@ -137,6 +137,25 @@ class DailyAutomator:
             forced_topic = os.getenv("TOPIC", "").strip()
             forced_pillar = os.getenv("PILLAR", "").strip()
 
+            # Check one-shot execution queue (e.g. for the 2:00 AM scheduled upload)
+            queue_file = Path("flows/image_content_generator/out_short/next_queued_action.json")
+            if not forced_topic and queue_file.exists():
+                try:
+                    import json, datetime
+                    with open(queue_file, "r", encoding="utf-8") as qf:
+                        q_data = json.load(qf)
+                        queued_topic = q_data.get("next_topic")
+                        if queued_topic:
+                            forced_topic = queued_topic
+                            Messenger.info(f"🎯 [QUEUE] Next scheduled action detected from queue: '{forced_topic}'")
+                            q_data["next_topic"] = None
+                            q_data["last_executed"] = forced_topic
+                            q_data["executed_at"] = datetime.datetime.now().isoformat()
+                            with open(queue_file, "w", encoding="utf-8") as qf_w:
+                                json.dump(q_data, qf_w, indent=2)
+                except Exception as e:
+                    Messenger.warning(f"Error reading next_queued_action.json: {e}")
+
             if forced_topic:
                 Messenger.info(f"🎯 Forced Topic override: '{forced_topic}'")
             if forced_pillar:
@@ -178,7 +197,7 @@ class DailyAutomator:
     def sync_to_github(self):
         """Commits and pushes the history update to prevent repeated topics."""
         try:
-            cmd_add = ["git", "add", "-f", "flows/image_content_generator/out_short/automated_posts_history.csv"]
+            cmd_add = ["git", "add", "-f", "flows/image_content_generator/out_short/automated_posts_history.csv", "flows/image_content_generator/out_short/next_queued_action.json"]
             subprocess.run(cmd_add, check=True)
             cmd_commit = ["git", "commit", "-m", "chore: update tracking history [skip ci]"]
             subprocess.run(cmd_commit, check=False)

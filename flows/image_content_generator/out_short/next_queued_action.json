@@ -1,0 +1,7 @@
+{
+  "next_topic": "ElPorqueDeTodoMarSalado",
+  "scheduled_for": "2026-11-02T02:00:00-05:00",
+  "note": "Proxima ejecucion a las 2 AM: sube el master video ElPorqueDeTodoMarSalado. Luego se consume para que las siguientes ejecuciones sean temas nuevos y autonomos.",
+  "last_executed": null,
+  "executed_at": null
+}

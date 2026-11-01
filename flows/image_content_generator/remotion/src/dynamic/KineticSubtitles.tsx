@@ -1,5 +1,5 @@
 import React from 'react';
-import { interpolate, useCurrentFrame } from 'remotion';
+import { useCurrentFrame } from 'remotion';
 import { DynamicScene } from './types';
 
 export const KineticSubtitles: React.FC<{
@@ -8,7 +8,7 @@ export const KineticSubtitles: React.FC<{
   secondaryColor?: string;
 }> = ({
   activeScene,
-  primaryColor = '#00f5ff',
+  primaryColor = '#f59e0b',
   secondaryColor = '#38bdf8'
 }) => {
   const frame = useCurrentFrame();
@@ -21,63 +21,66 @@ export const KineticSubtitles: React.FC<{
   const words = text.split(/\s+/);
 
   // Calculate current active word index based on time progress
-  const progress = Math.min(1, Math.max(0, localFrame / (totalFrames * 0.95)));
+  const progress = Math.min(1, Math.max(0, localFrame / (totalFrames * 0.96)));
   const activeWordIdx = Math.min(words.length - 1, Math.floor(progress * words.length));
 
-  // Display sliding window of 6-8 words around the active word
-  const windowSize = 7;
-  const startIdx = Math.max(0, Math.min(words.length - windowSize, activeWordIdx - 3));
+  // Chunking exacto al video de referencia: 2 a 3 palabras por pantalla (ritmo rápido y visual)
+  const windowSize = 3;
+  const chunkIdx = Math.floor(activeWordIdx / windowSize);
+  const startIdx = chunkIdx * windowSize;
   const visibleWords = words.slice(startIdx, startIdx + windowSize);
 
   return (
     <div
       style={{
         position: 'absolute',
-        bottom: 315, // Reels Bottom Safe Zone
-        left: 40,
-        right: 40,
-        zIndex: 80,
+        top: 1220,
+        left: 50,
+        right: 50,
+        zIndex: 85,
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
+        textAlign: 'center',
         pointerEvents: 'none',
       }}
     >
       <div
         style={{
-          padding: '16px 28px',
-          borderRadius: 20,
-          backgroundColor: 'rgba(2, 6, 16, 0.88)',
-          border: `1.5px solid ${primaryColor}50`,
-          backdropFilter: 'blur(12px)',
-          boxShadow: `0 0 30px ${primaryColor}30`,
-          maxWidth: 960,
-          textAlign: 'center',
-          fontFamily: "'Bahnschrift', 'Montserrat', Arial, sans-serif",
-          lineHeight: 1.35,
+          fontFamily: "'Montserrat', 'Montserrat Black', sans-serif",
+          fontSize: visibleWords.length > 3 ? 82 : 94,
+          fontWeight: 900,
+          lineHeight: 1.15,
+          letterSpacing: '-2px',
+          textTransform: 'uppercase',
+          display: 'flex',
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+          alignItems: 'center',
+          maxWidth: 980,
         }}
       >
-        <div style={{ fontSize: 30, fontWeight: 900, color: '#ffffff', letterSpacing: 0.5 }}>
-          {visibleWords.map((word, i) => {
-            const actualIdx = startIdx + i;
-            const isActive = actualIdx === activeWordIdx;
-            return (
-              <span
-                key={i}
-                style={{
-                  color: isActive ? primaryColor : '#ffffff',
-                  textShadow: isActive ? `0 0 16px ${primaryColor}` : '0 2px 4px rgba(0,0,0,0.8)',
-                  display: 'inline-block',
-                  marginRight: 8,
-                  transform: isActive ? 'scale(1.12)' : 'scale(1)',
-                  transition: 'transform 0.08s ease',
-                }}
-              >
-                {word}
-              </span>
-            );
-          })}
-        </div>
+        {visibleWords.map((word, i) => {
+          const actualIdx = startIdx + i;
+          const isActive = actualIdx === activeWordIdx;
+          return (
+            <span
+              key={i}
+              style={{
+                color: isActive ? '#f59e0b' : '#ffffff',
+                display: 'inline-block',
+                margin: '0 12px',
+                WebkitTextStroke: '10px #000000',
+                paintOrder: 'stroke fill',
+                textShadow: '0 4px 18px rgba(0,0,0,0.85)',
+                transform: isActive ? 'scale(1.10)' : 'scale(1)',
+                transition: 'transform 0.05s ease',
+              }}
+            >
+              {word}
+            </span>
+          );
+        })}
       </div>
     </div>
   );
