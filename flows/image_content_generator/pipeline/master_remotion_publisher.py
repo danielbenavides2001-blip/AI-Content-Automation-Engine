@@ -103,6 +103,22 @@ Realiza transdiferenciación celular: sus células especializadas vuelven a ser 
     },
 
     # PILAR 3: CURIOSIDADES DE PAÍSES (Silueta geográfica y relieve extremo de Colombia)
+        # PILAR 1: CURIOSIDADES OCEÁNICAS & QUÍMICAS (Master Reel > 60s Replicación Oficial)
+    "ElPorqueDeTodoMarSalado": {
+        "pillar": "curiosidades",
+        "title": "¿Por qué el mar es salado si los ríos que llegan a él son de agua dulce? 🌊🧂",
+        "description": """¿Te has preguntado por qué el océano es tan salado si todos los ríos del planeta vierten agua dulce en él? 
+
+Todo empieza con la lluvia ácida natural que disuelve minerales de las rocas y los lleva a través de los ríos al mar. Y aquí está el secreto: el sol evapora el agua pura, pero la sal jamás se evapora.
+
+Cada litro de mar tiene unos 35 gramos de sal acumulados durante millones de años. Si sacáramos toda la sal del océano, cubriría todos los continentes del planeta con una capa de más de 150 metros de altura.
+
+👉 Síguenos en @EnigmaIQ para desentrañar la verdad detrás de todo.
+
+#enigmaiq #oceano #mar #ciencia #quimica #curiosidades #sabiasque #datoscuriosos #geografia #naturaleza #agua #planeta #reels #shorts""",
+        "countries": [],
+        "has_silhouettes": False
+    },
     "ElPorqueDeTodoSierraNevada": {
         "pillar": "curiosidades_pais",
         "title": "De la playa tropical a la nieve en 42 km: La montaña más insólita del planeta 🏔️🌊",

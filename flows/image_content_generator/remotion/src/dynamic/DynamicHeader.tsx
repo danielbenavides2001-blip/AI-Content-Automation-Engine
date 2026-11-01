@@ -8,7 +8,7 @@ export const DynamicHeader: React.FC<{
 }> = ({
   category = 'CIENCIA & GEOGRAFÍA',
   primaryColor = '#00f5ff',
-  secondaryColor = '#38bdf8'
+  secondaryColor = '#38bdf8',
 }) => {
   const frame = useCurrentFrame();
   const pulse = Math.sin(frame * 0.08) * 0.2 + 0.8;
@@ -17,28 +17,53 @@ export const DynamicHeader: React.FC<{
     <div
       style={{
         position: 'absolute',
-        top: 60,
-        left: 45,
-        right: 45,
-        zIndex: 50,
+        top: 65,
+        left: 50,
+        right: 50,
+        zIndex: 60,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         fontFamily: "'Bahnschrift', 'Montserrat', Arial, sans-serif",
       }}
     >
-      {/* Category Pill */}
+      {/* Official EnigmaIQ Gold Header Pill (Exact Reference Style) */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 12,
-          padding: '8px 18px',
+          gap: 10,
+          padding: '8px 24px',
           borderRadius: 24,
-          backgroundColor: 'rgba(2, 9, 20, 0.75)',
-          border: `1px solid ${primaryColor}40`,
+          backgroundColor: '#f59e0b',
+          boxShadow: '0 0 25px rgba(245, 158, 11, 0.45)',
+        }}
+      >
+        <span
+          style={{
+            color: '#020914',
+            fontSize: 18,
+            fontWeight: 900,
+            letterSpacing: 2,
+            textTransform: 'uppercase',
+          }}
+        >
+          ENIGMAIQ
+        </span>
+      </div>
+
+      {/* Secondary Category HUD Badge */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          padding: '7px 18px',
+          borderRadius: 20,
+          backgroundColor: 'rgba(11, 23, 42, 0.85)',
+          border: '1.5px solid rgba(245, 158, 11, 0.4)',
           backdropFilter: 'blur(10px)',
-          boxShadow: `0 0 20px ${primaryColor}20`,
+          boxShadow: '0 0 15px rgba(0, 0, 0, 0.5)',
         }}
       >
         <div
@@ -46,47 +71,21 @@ export const DynamicHeader: React.FC<{
             width: 8,
             height: 8,
             borderRadius: '50%',
-            backgroundColor: primaryColor,
-            boxShadow: `0 0 10px ${primaryColor}`,
+            backgroundColor: '#f59e0b',
+            boxShadow: '0 0 10px #f59e0b',
             opacity: pulse,
           }}
         />
         <span
           style={{
-            color: '#ffffff',
-            fontSize: 16,
+            color: '#e2e8f0',
+            fontSize: 14,
             fontWeight: 800,
-            letterSpacing: 2,
+            letterSpacing: 1.5,
             textTransform: 'uppercase',
           }}
         >
-          ENIGMAIQ <span style={{ color: primaryColor, margin: '0 4px' }}>//</span> {category}
-        </span>
-      </div>
-
-      {/* Official IQ Circular Badge */}
-      <div
-        style={{
-          width: 48,
-          height: 48,
-          borderRadius: '50%',
-          border: `2px solid ${primaryColor}90`,
-          backgroundColor: '#020914',
-          boxShadow: `0 0 16px ${primaryColor}40`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <span
-          style={{
-            color: primaryColor,
-            fontSize: 16,
-            fontWeight: 900,
-            letterSpacing: 1,
-          }}
-        >
-          IQ
+          {category}
         </span>
       </div>
     </div>

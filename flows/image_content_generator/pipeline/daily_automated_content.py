@@ -147,7 +147,7 @@ class DailyAutomator:
             # Check if user specifically requested an older static composition
             static_compositions = [
                 "ElPorqueDeTodoAmazonas", "ElPorqueDeTodoSierraNevada", "ElPorqueDeTodoOrquideas",
-                "ElPorqueDeTodoCatatumbo", "ElPorqueDeTodoAjolote", "ElPorqueDeTodoMedusa"
+                "ElPorqueDeTodoCatatumbo", "ElPorqueDeTodoAjolote", "ElPorqueDeTodoMedusa", "ElPorqueDeTodoMarSalado"
             ]
 
             try:
