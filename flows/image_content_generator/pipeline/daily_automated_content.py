@@ -176,15 +176,13 @@ class DailyAutomator:
                     subprocess.run(cmd, check=True)
                     last_title = f"Legacy Remotion Reel ({forced_topic})"
                 else:
-                    # 100% Autonomous AI Remotion Engine (> 60 seconds)
-                    Messenger.info("🚀 Launching Autonomous AI Remotion Engine (> 60s procedural render)...")
-                    cmd = [sys.executable, "-m", "flows.image_content_generator.pipeline.autonomous_ai_remotion_engine"]
+                    # Pure Stock Video Engine (NO REMOTION, 100% Real Stock Footage from 'El porque de todo')
+                    Messenger.info("🚀 Launching Pure Stock Video Engine (100% Real Footage - Zero Remotion)...")
+                    cmd = [sys.executable, "-m", "flows.image_content_generator.pipeline.pure_stock_video_engine"]
                     if forced_topic:
                         cmd.extend(["--topic", forced_topic])
-                    if forced_pillar and forced_pillar != "auto":
-                        cmd.extend(["--pillar", forced_pillar])
                     subprocess.run(cmd, check=True)
-                    last_title = f"Autonomous AI Remotion Reel ({forced_topic or 'Gemini Autonomous'})"
+                    last_title = f"Pure Stock Reel ({forced_topic or 'Catalog Autonomous'})" 
 
                 Messenger.success(f"✅ EnigmaIQ Reel completed successfully!")
                 self.sync_to_github()
