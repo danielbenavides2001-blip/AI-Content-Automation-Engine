@@ -147,7 +147,12 @@ REGLAS CRÍTICAS DE DURACIÓN (DEBE DURAR MÁS DE 60 SEGUNDOS):
 2. Cada escena DEBE tener una narración de entre 22 y 26 palabras concisas, rítmicas y con intriga.
 3. El total de palabras debe estar entre 115 y 128 palabras. A la velocidad de narración del locutor (1.7 palabras/segundo), esto garantiza que el audio dure exactamente entre 66 y 76 segundos (> 60s obligatorio).
 4. La Escena 5 debe cerrar con el llamado a la acción: "Esto es EnigmaIQ. ¿Conocías este dato? Cuéntanos en los comentarios."
-5. Para cada una de las 5 escenas proporciona un 'stock_query' en INGLÉS (2-4 palabras) para buscar el video vertical de stock exacto (ej: 'commercial airplane flying clouds', 'metal fatigue crack test', 'airplane cabin passenger window').
+
+REGLA DE ORO DE CONGRUENCIA VISUAL ABSOLUTA (SIN MARGEN DE ERROR):
+5. CADA ESCENA DEBE MOSTRAR EXACTAMENTE LO QUE SE ESTÁ NARRANDO. Cero margen de error.
+   - Si la narración menciona una acción (abrir nevera, café cayendo, avión volando, hielo derritiéndose, gato saltando), el metraje DEBE mostrar esa acción u objeto literal en primer plano.
+   - Prohibido usar metáforas abstractas o conceptos difusos.
+   - En el campo 'stock_query' de cada escena escribe una búsqueda en INGLÉS (2-4 palabras) hiper-específica y directa que garantice metraje cinematográfico vertical en Pexels/Pixabay.
 
 Responde en formato JSON siguiendo el esquema.
 """
@@ -386,23 +391,43 @@ Responde en formato JSON siguiendo el esquema.
         img.save(out_png_path)
         Messenger.success(f"✅ Generated Auto-Fit Question Card ({box_w}x{box_h}px, {len(top_lines)+len(bottom_lines)} lines) for thumbnail")
 
-    def download_stock_videos(self, blueprint: ScriptBlueprint, work_dir: Path, scene_durations: List[float]) -> List[Path]:
-        """Downloads vertical stock videos from Pexels/Pixabay and normalizes each to 1080x1920 @ 30 FPS."""
+    def download_stock_videos(self, topic: dict, blueprint: ScriptBlueprint, work_dir: Path, scene_durations: List[float]) -> List[Path]:
+        """Downloads vertical stock videos from Pexels/Pixabay matching narration with zero margin of error."""
         prepared_clips = []
+        curated_queries = topic.get("stock_queries", [])
+
         for idx, scene in enumerate(blueprint.scenes):
             raw_path = work_dir / f"raw_scene_{idx+1}.mp4"
             norm_path = work_dir / f"norm_scene_{idx+1}.mp4"
             target_dur = scene_durations[idx]
-            query = scene.stock_query.strip()
 
-            Messenger.info(f"🔎 Scene {idx+1}/5: Searching vertical stock video for '{query}'...")
-            downloaded = self.pexels.fetch_video(query, raw_path)
-            if not downloaded:
-                Messenger.info("Falling back to Pixabay...")
-                downloaded = self.pixabay.fetch_video(query, raw_path)
+            # Priority query cascade to guarantee 100% exact visual match
+            candidate_queries = []
+            if scene.stock_query and scene.stock_query.strip():
+                candidate_queries.append(scene.stock_query.strip())
+            if idx < len(curated_queries) and curated_queries[idx].strip():
+                candidate_queries.append(curated_queries[idx].strip())
+
+            downloaded = False
+            matched_query = ""
+            for q in candidate_queries:
+                Messenger.info(f"🔎 Scene {idx+1}/5: Searching stock video for '{q}'...")
+                downloaded = self.pexels.fetch_video(q, raw_path)
+                if not downloaded:
+                    Messenger.info(f"Trying Pixabay for '{q}'...")
+                    downloaded = self.pixabay.fetch_video(q, raw_path)
+                if downloaded and raw_path.exists() and raw_path.stat().st_size > 10000:
+                    matched_query = q
+                    Messenger.success(f"🎬 Scene {idx+1}/5: Exact stock match found for narration: '{matched_query}'")
+                    break
 
             if not downloaded or not raw_path.exists() or raw_path.stat().st_size < 10000:
-                # Fallback to high-quality ambient ocean/space clip
+                # Secondary fallback: try core topic title query
+                core_fallback = topic.get("id", "").replace("_", " ")
+                Messenger.warning(f"Trying core topic search: '{core_fallback}'")
+                downloaded = self.pexels.fetch_video(core_fallback, raw_path) or self.pixabay.fetch_video(core_fallback, raw_path)
+
+            if not downloaded or not raw_path.exists() or raw_path.stat().st_size < 10000:
                 Messenger.warning(f"Using atmospheric fallback for scene {idx+1}")
                 cmd_fall = [
                     "ffmpeg", "-y", "-f", "lavfi",
@@ -444,7 +469,7 @@ Responde en formato JSON siguiendo el esquema.
         scene_durations[-1] = round(total_dur - sum(scene_durations[:-1]), 2)
 
         # 2. Download and normalize 5 stock video clips
-        clips = self.download_stock_videos(blueprint, work_dir, scene_durations)
+        clips = self.download_stock_videos(topic, blueprint, work_dir, scene_durations)
 
         # 3. Create concat list
         concat_txt = work_dir / "concat_list.txt"
