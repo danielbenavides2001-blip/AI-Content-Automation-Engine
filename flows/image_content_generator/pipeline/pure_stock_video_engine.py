@@ -42,6 +42,16 @@ class ScriptScene(BaseModel):
     narration: str = Field(description="22 to 25 words of high-impact narration in neutral Spanish")
     stock_query: str = Field(description="English search query (2-4 words) for vertical stock video")
 
+class CatalogItemSchema(BaseModel):
+    id: str = Field(description="Unique snake_case slug without spaces")
+    title: str = Field(description="Viral curiosity question title with emojis")
+    headline_top: str = Field(description="Top line of question card (e.g. '¿POR QUÉ EL AGUA CALIENTE')")
+    headline_bottom: str = Field(description="Bottom line in gold (e.g. 'SE CONGELA MÁS RÁPIDO?')")
+    category: str = Field(description="Category (e.g. 'FÍSICA & TERMODINÁMICA', 'BIOLOGÍA & CUERPO', etc.)")
+    core_premise: str = Field(description="2-3 sentences explaining the rigorous scientific mechanism in simple words")
+    facebook_copy: str = Field(description="Engaging caption for Facebook with hashtags")
+    stock_queries: List[str] = Field(description="5 English search queries for vertical stock video clips")
+
 class ScriptBlueprint(BaseModel):
     title: str = Field(description="Catchy title matching the catalog topic")
     headline_top: str = Field(description="Top line of question card (e.g. '¿POR QUÉ LAS VENTANAS')")
@@ -93,9 +103,33 @@ class PureStockVideoEngine:
                 Messenger.info(f"🎯 Selected next unposted topic: '{item['title']}' ({item['id']})")
                 return item
 
-        # If all posted, cycle to first
-        Messenger.info("🔄 All catalog topics have been posted. Cycling to first.")
-        return catalog[0]
+        # If all predefined catalog topics have been published, autonomously generate a brand-new topic with Gemini!
+        Messenger.info("🧠 All predefined catalog topics have been published! Autonomously conceiving a brand-new viral topic with Gemini...")
+        new_topic = self.generate_autonomous_topic(history_text)
+        catalog.append(new_topic)
+        try:
+            with open(CATALOG_FILE, "w", encoding="utf-8") as f:
+                json.dump(catalog, f, indent=2, ensure_ascii=False)
+            Messenger.success(f"💾 Persisted new autonomous topic to catalog: '{new_topic['title']}'")
+        except Exception as e:
+            Messenger.warning(f"Could not persist new topic to catalog: {e}")
+        return new_topic
+
+    def generate_autonomous_topic(self, history_text: str) -> dict:
+        """Autonomously researches and conceives a brand-new, non-repeated topic with Gemini."""
+        prompt = f"""Eres el Investigador y Director Científico de 'EnigmaIQ' (estilo 'El porqué de todo' en Facebook Reels).
+Diseña 1 tema fascinante y 100% original sobre una curiosidad científica cotidiana, física, medicina, ingeniería o fenómenos naturales que la gente da por sentados.
+
+Temas e historial reciente que NO debes repetir bajo ninguna circunstancia:
+{history_text[-2500:]}
+
+Reglas estrictas:
+1. Plantea una pregunta intrigante de la vida cotidiana o fenómeno científico.
+2. Formato exacto JSON según el esquema CatalogItemSchema.
+3. Proporciona 5 consultas precisas en inglés para clips de video vertical (stock) que muestren exactamente lo que se va a narrar.
+"""
+        item_schema = self.text_gen.generate_text(prompt=prompt, schema=CatalogItemSchema)
+        return item_schema.model_dump()
 
     def generate_script(self, topic: dict) -> ScriptBlueprint:
         Messenger.info(f"🧠 Generating high-retention 5-scene script with Gemini for: '{topic['title']}'...")
