@@ -26,12 +26,81 @@ class FacebookTool(BaseModelTool):
     def video_url(self) -> str:
         return f"https://graph-video.facebook.com/{self.api_version}"
 
-    def upload_video(
+    def upload_reel(
         self,
         file_path: Path,
-        description: str = "",
-        title: Optional[str] = None
+        title: str = "",
+        description: str = ""
     ) -> str:
+        """
+        Uploads a vertical Reel to Facebook Page using the official Meta Video Reels API:
+        POST /{page_id}/video_reels (start -> transfer -> finish).
+        """
+        if not file_path.exists():
+            raise FileNotFoundError(f"Reel video file not found: {file_path}")
+
+        file_size = file_path.stat().st_size
+        Messenger.info(f"📤 [Meta API] Starting Reel upload: {file_path.name} ({file_size / (1024*1024):.2f} MB)")
+
+        max_attempts = 4
+        base_delay = 5.0
+
+        for attempt in range(1, max_attempts + 1):
+            try:
+                # 1. Start Phase
+                start_res = requests.post(
+                    f"{self.base_url}/{self.page_id}/video_reels",
+                    json={"upload_phase": "start", "access_token": self.access_token}
+                )
+                start_res.raise_for_status()
+                start_data = start_res.json()
+                video_id = start_data["video_id"]
+                upload_url = start_data["upload_url"]
+
+                # 2. Transfer Phase
+                headers = {
+                    "Authorization": f"OAuth {self.access_token}",
+                    "offset": "0",
+                    "file_size": str(file_size)
+                }
+                with open(file_path, "rb") as f:
+                    video_bytes = f.read()
+                upload_res = requests.post(upload_url, headers=headers, data=video_bytes)
+                upload_res.raise_for_status()
+
+                # 3. Finish Phase
+                finish_payload = {
+                    "upload_phase": "finish",
+                    "access_token": self.access_token,
+                    "video_id": video_id,
+                    "video_state": "PUBLISHED",
+                    "description": description,
+                    "title": title
+                }
+                finish_res = requests.post(f"{self.base_url}/{self.page_id}/video_reels", json=finish_payload)
+                finish_res.raise_for_status()
+                Messenger.success(f"🎉 Reel published successfully! Video ID: {video_id}")
+                return str(video_id)
+
+            except Exception as e:
+                Messenger.warning(f"⚠️ Attempt {attempt}/{max_attempts} failed to publish Reel: {str(e)}")
+                if attempt == max_attempts:
+                    raise e
+                sleep_time = (base_delay * (2 ** (attempt - 1))) + random.uniform(1.0, 3.0)
+                Messenger.warning(f"Sleeping for {sleep_time:.2f}s before retrying...")
+                time.sleep(sleep_time)
+
+    def upload_video(
+        self,
+        file_path: Optional[Path] = None,
+        description: str = "",
+        title: Optional[str] = None,
+        **kwargs
+    ) -> str:
+        if file_path is None:
+            file_path = kwargs.get("video_path")
+        if not description and "caption" in kwargs:
+            description = kwargs.get("caption")
         """
         Uploads a video to a Facebook Page using the resumable (chunked) upload API.
         Includes robust exponential backoff to handle transient Facebook 500 errors.

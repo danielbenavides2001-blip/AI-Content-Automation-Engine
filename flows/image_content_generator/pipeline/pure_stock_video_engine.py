@@ -398,7 +398,7 @@ Responde en formato JSON siguiendo el esquema.
         # 4. Upload to Facebook Reel
         Messenger.info("📤 Publishing Master Reel to Facebook...")
         caption = f"{blueprint.title}\n\n{topic['facebook_copy']}"
-        res = self.facebook.upload_video(video_path=master_out, caption=caption)
+        res = self.facebook.upload_reel(file_path=master_out, title=blueprint.title, description=caption)
         Messenger.success(f"🎉 Successfully published to Facebook! ID: {res}")
 
         # 5. Log history
