@@ -78,19 +78,18 @@ class PureStockVideoEngine:
             Messenger.warning(f"Topic '{forced_id}' not found in catalog. Falling back to autonomous selection.")
 
         # Check history to find unposted topics
-        posted_topics = set()
+        history_text = ""
         if HISTORY_FILE.exists():
             try:
                 with open(HISTORY_FILE, "r", encoding="utf-8") as f:
-                    for line in f:
-                        parts = line.strip().split(",")
-                        if len(parts) >= 3:
-                            posted_topics.add(parts[2].lower())
+                    history_text = f.read().lower()
             except Exception as e:
                 Messenger.warning(f"Error reading history: {e}")
 
         for item in catalog:
-            if item["id"].lower() not in posted_topics and item["title"].lower() not in posted_topics:
+            item_id = item["id"].lower()
+            item_title = item["title"].lower()
+            if item_id not in history_text and item_title not in history_text:
                 Messenger.info(f"🎯 Selected next unposted topic: '{item['title']}' ({item['id']})")
                 return item
 
