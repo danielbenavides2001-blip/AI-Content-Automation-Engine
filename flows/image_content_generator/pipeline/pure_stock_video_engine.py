@@ -154,17 +154,23 @@ Responde en formato JSON siguiendo el esquema.
                         "end": round(w["end"], 2)
                     })
 
-        # Group words into 2-3 word punchy chunks
+        # Measure pixel width to ensure ZERO subtitle overflow (safe width <= 840px)
+        font_sub = ImageFont.truetype(str(FONT_PATH), 76)
+        dummy_draw = ImageDraw.Draw(Image.new("RGBA", (1080, 1920)))
+        MAX_SUB_WIDTH = 840
+
         chunks = []
         i = 0
         while i < len(words):
-            take = 3
-            if i + take > len(words):
-                take = len(words) - i
-            elif i + take == len(words) - 1:
-                take = 2
-            
-            group = words[i:i+take]
+            group = [words[i]]
+            for next_idx in range(i + 1, min(i + 3, len(words))):
+                test_str = " ".join([w["word"] for w in group + [words[next_idx]]])
+                b = dummy_draw.textbbox((0, 0), test_str, font=font_sub)
+                if b[2] - b[0] <= MAX_SUB_WIDTH:
+                    group.append(words[next_idx])
+                else:
+                    break
+
             start_t = group[0]["start"]
             end_t = group[-1]["end"]
             if end_t - start_t < 0.65:
@@ -174,7 +180,7 @@ Responde en formato JSON siguiendo el esquema.
                 "end": end_t,
                 "words": group
             })
-            i += take
+            i += len(group)
 
         def format_ass_time(sec: float) -> str:
             h = int(sec // 3600)
@@ -184,7 +190,7 @@ Responde en formato JSON siguiendo el esquema.
             return f"{h:01d}:{m:02d}:{s:02d}.{cs:02d}"
 
         # Write ASS file
-        # Style Default: Montserrat Bold, size 86, thick 10px black outline, bottom aligned with 560px vertical margin
+        # Style Default: Montserrat Bold, size 76, 9px black outline, bottom aligned with 540px vertical margin, 90px left/right margins
         ass_lines = [
             "[Script Info]",
             "ScriptType: v4.00+",
@@ -193,7 +199,7 @@ Responde en formato JSON siguiendo el esquema.
             "",
             "[V4+ Styles]",
             "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding",
-            "Style: Default,Montserrat,86,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,-1,0,0,0,100,100,-1,0,1,10,0,2,60,60,560,1",
+            "Style: Default,Montserrat,76,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,-1,0,0,0,100,100,-1,0,1,9,0,2,90,90,540,1",
             "",
             "[Events]",
             "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text"
@@ -204,7 +210,6 @@ Responde en formato JSON siguiendo el esquema.
             chunk_words = c["words"]
             for idx, w in enumerate(chunk_words):
                 w_start = w["start"]
-                # End is next word's start or chunk end
                 w_end = chunk_words[idx+1]["start"] if idx + 1 < len(chunk_words) else c["end"]
                 if w_end <= w_start:
                     w_end = round(w_start + 0.25, 2)
@@ -225,39 +230,127 @@ Responde en formato JSON siguiendo el esquema.
         with open(out_ass_path, "w", encoding="utf-8") as f:
             f.write("\n".join(ass_lines))
 
-        Messenger.success(f"✅ Generated {len(ass_lines)-10} dynamic ASS subtitle events with Montserrat 900")
+        Messenger.success(f"✅ Generated {len(ass_lines)-10} dynamic ASS subtitle events (Safe width <= 840px, size 76)")
 
-    def generate_question_card_overlay(self, blueprint: ScriptBlueprint, out_png_path: Path) -> None:
-        """Generates crisp transparent PNG for the Question Card visible from frame 0 for the thumbnail."""
+    def generate_question_card_overlay(self, topic: dict, blueprint: ScriptBlueprint, out_png_path: Path) -> None:
+        """Generates crisp transparent PNG for the Question Card with dynamic auto-wrapping and auto-sizing."""
         img = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
         draw = ImageDraw.Draw(img)
 
         font_pill = ImageFont.truetype(str(FONT_PATH), 22)
-        font_q1 = ImageFont.truetype(str(FONT_PATH), 48)
-        font_q2 = ImageFont.truetype(str(FONT_PATH), 58)
+        font_category = ImageFont.truetype(str(FONT_PATH), 20)
 
         # 1. Official EnigmaIQ Gold Header Pill
-        draw.rounded_rectangle([(55, 70), (220, 115)], radius=22, fill=(245, 158, 11, 255))
-        draw.text((75, 78), "ENIGMAIQ", font=font_pill, fill=(2, 9, 20, 255))
+        draw.rounded_rectangle([(65, 75), (235, 120)], radius=22, fill=(245, 158, 11, 255))
+        draw.text((85, 83), "ENIGMAIQ", font=font_pill, fill=(2, 9, 20, 255))
 
-        # 2. Centered Upper Question Box
-        box_coords = [(70, 380), (1010, 590)]
-        draw.rounded_rectangle(box_coords, radius=26, fill=(14, 25, 48, 244), outline=(245, 158, 11, 255), width=4)
+        # Safe text width: box width is 940 (70 to 1010), internal padding 50px -> max text width = 830px
+        max_text_width = 830
 
-        # Top line (white)
-        q1_text = blueprint.headline_top.upper()
-        b1 = draw.textbbox((0, 0), q1_text, font=font_q1)
-        w1 = b1[2] - b1[0]
-        draw.text(((1080 - w1) // 2, 415), q1_text, font=font_q1, fill=(255, 255, 255, 255))
+        top_text = (blueprint.headline_top or topic.get("headline_top", "")).strip().upper()
+        bottom_text = (blueprint.headline_bottom or topic.get("headline_bottom", "")).strip().upper()
 
-        # Bottom line (gold)
-        q2_text = blueprint.headline_bottom.upper()
-        b2 = draw.textbbox((0, 0), q2_text, font=font_q2)
-        w2 = b2[2] - b2[0]
-        draw.text(((1080 - w2) // 2, 490), q2_text, font=font_q2, fill=(245, 158, 11, 255))
+        def wrap_to_width(txt: str, fnt: ImageFont.FreeTypeFont) -> list:
+            words = txt.split()
+            lines = []
+            curr = []
+            for w in words:
+                test_str = " ".join(curr + [w])
+                bbox = draw.textbbox((0, 0), test_str, font=fnt)
+                if bbox[2] - bbox[0] <= max_text_width:
+                    curr.append(w)
+                else:
+                    if curr:
+                        lines.append(" ".join(curr))
+                        curr = [w]
+                    else:
+                        lines.append(w)
+                        curr = []
+            if curr:
+                lines.append(" ".join(curr))
+            return lines
+
+        size_top = 44
+        size_bottom = 54
+        font_top = ImageFont.truetype(str(FONT_PATH), size_top)
+        font_bottom = ImageFont.truetype(str(FONT_PATH), size_bottom)
+
+        top_lines = wrap_to_width(top_text, font_top)
+        bottom_lines = wrap_to_width(bottom_text, font_bottom)
+
+        if len(top_lines) + len(bottom_lines) > 4:
+            size_top = 38
+            size_bottom = 46
+            font_top = ImageFont.truetype(str(FONT_PATH), size_top)
+            font_bottom = ImageFont.truetype(str(FONT_PATH), size_bottom)
+            top_lines = wrap_to_width(top_text, font_top)
+            bottom_lines = wrap_to_width(bottom_text, font_bottom)
+
+        line_spacing = 16
+        gap_between = 22
+
+        total_text_h = 0
+        top_metrics = []
+        for line in top_lines:
+            b = draw.textbbox((0, 0), line, font=font_top)
+            w = b[2] - b[0]
+            h = b[3] - b[1]
+            top_metrics.append((w, h))
+            total_text_h += h + line_spacing
+        total_text_h -= line_spacing
+
+        total_text_h += gap_between
+
+        bottom_metrics = []
+        for line in bottom_lines:
+            b = draw.textbbox((0, 0), line, font=font_bottom)
+            w = b[2] - b[0]
+            h = b[3] - b[1]
+            bottom_metrics.append((w, h))
+            total_text_h += h + line_spacing
+        total_text_h -= line_spacing
+
+        pad_y = 48
+        box_w = 940
+        box_x0 = (1080 - box_w) // 2  # 70
+        box_x1 = box_x0 + box_w       # 1010
+        box_h = total_text_h + pad_y * 2
+
+        # Center box vertically around Y = 460
+        box_y0 = 460 - box_h // 2
+        box_y1 = box_y0 + box_h
+
+        # Draw card box with deep navy glass fill and crisp amber outline
+        draw.rounded_rectangle([(box_x0, box_y0), (box_x1, box_y1)], radius=28, fill=(14, 25, 48, 246), outline=(245, 158, 11, 255), width=4)
+
+        # Draw category badge centered above top edge of box
+        cat_text = topic.get("category", "CIENCIA & MISTERIOS").upper()
+        cat_b = draw.textbbox((0, 0), cat_text, font=font_category)
+        cat_w = cat_b[2] - cat_b[0]
+        cat_pill_w = cat_w + 36
+        cat_x0 = (1080 - cat_pill_w) // 2
+        cat_y0 = box_y0 - 18
+        draw.rounded_rectangle([(cat_x0, cat_y0), (cat_x0 + cat_pill_w, cat_y0 + 36)], radius=18, fill=(245, 158, 11, 255))
+        draw.text((cat_x0 + 18, cat_y0 + 7), cat_text, font=font_category, fill=(2, 9, 20, 255))
+
+        # Render top lines (white)
+        curr_y = box_y0 + pad_y
+        for i, line in enumerate(top_lines):
+            w, h = top_metrics[i]
+            draw.text(((1080 - w) // 2, curr_y), line, font=font_top, fill=(255, 255, 255, 255))
+            curr_y += h + line_spacing
+        curr_y -= line_spacing
+
+        curr_y += gap_between
+
+        # Render bottom lines (gold)
+        for i, line in enumerate(bottom_lines):
+            w, h = bottom_metrics[i]
+            draw.text(((1080 - w) // 2, curr_y), line, font=font_bottom, fill=(245, 158, 11, 255))
+            curr_y += h + line_spacing
 
         img.save(out_png_path)
-        Messenger.success("✅ Generated Question Card overlay for thumbnail and scene 1")
+        Messenger.success(f"✅ Generated Auto-Fit Question Card ({box_w}x{box_h}px, {len(top_lines)+len(bottom_lines)} lines) for thumbnail")
 
     def download_stock_videos(self, blueprint: ScriptBlueprint, work_dir: Path, scene_durations: List[float]) -> List[Path]:
         """Downloads vertical stock videos from Pexels/Pixabay and normalizes each to 1080x1920 @ 30 FPS."""
@@ -328,7 +421,7 @@ Responde en formato JSON siguiendo el esquema.
 
         # 4. Generate Question Card overlay PNG
         card_png = work_dir / "question_card.png"
-        self.generate_question_card_overlay(blueprint, card_png)
+        self.generate_question_card_overlay(topic, blueprint, card_png)
 
         # 5. Generate ASS Subtitle file
         ass_path = work_dir / "subtitles.ass"
