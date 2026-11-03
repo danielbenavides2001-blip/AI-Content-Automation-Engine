@@ -34,3 +34,5 @@ flows/image_content_generator/remotion/public/dynamic_audio/*.mp3
 !flows/image_content_generator/out_short/automated_posts_history.csv
 !flows/image_content_generator/out_short/ideas_tracking.csv
 !flows/image_content_generator/pipeline/el_porque_de_todo_catalog.json
+!flows/image_content_generator/out_short/CaidaAvion8KmHielo_Master.mp4
+flows/image_content_generator/remotion/public/avion_hielo_assets/*_frames/

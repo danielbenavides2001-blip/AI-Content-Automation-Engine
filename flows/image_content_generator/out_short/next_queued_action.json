@@ -1,7 +1,10 @@
 {
-  "next_topic": null,
-  "scheduled_for": "2026-11-02T02:00:00-05:00",
-  "note": "Proxima ejecucion a las 2 AM: sube el master video ElPorqueDeTodoMarSalado. Luego se consume para que las siguientes ejecuciones sean temas nuevos y autonomos.",
+  "next_topic": "CaidaAvion8KmHielo",
+  "pre_rendered_video": "flows/image_content_generator/out_short/CaidaAvion8KmHielo_Master.mp4",
+  "title": "¿Cómo puede un avión caer 8 kilómetros en un solo minuto? ✈️❄️",
+  "description": "¿Cómo puede un avión caer 8 kilómetros en un solo minuto? Le pasó a este jet privado que volaba de Texas a las Bahamas en medio de una tormenta... Aquí te explicamos la física detrás de la tragedia aérea.\n\n#EnigmaIQ #Aviacion #AccidentesAereos #Fisica #Ciencia #Curiosidades #SabiasQue #Misterios",
+  "scheduled_for": "2026-11-03T02:00:00-05:00",
+  "note": "A las 2 AM sube directamente el Master Reel recreado con Remotion y Blender de la Caida del Avion por Hielo. Al completarse, la cola se limpia automáticamente y las siguientes ejecuciones continúan con los temas del catálogo autónomo.",
   "last_executed": "ElPorqueDeTodoMarSalado",
   "executed_at": "2026-11-02T03:54:41.517312"
 }

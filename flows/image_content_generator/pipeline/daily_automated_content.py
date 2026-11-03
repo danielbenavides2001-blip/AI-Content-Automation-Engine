@@ -139,22 +139,59 @@ class DailyAutomator:
 
             # Check one-shot execution queue (e.g. for the 2:00 AM scheduled upload)
             queue_file = Path("flows/image_content_generator/out_short/next_queued_action.json")
+            pre_rendered_file = None
+            reel_title = ""
+            reel_description = ""
             if not forced_topic and queue_file.exists():
                 try:
                     import json, datetime
                     with open(queue_file, "r", encoding="utf-8") as qf:
                         q_data = json.load(qf)
-                        queued_topic = q_data.get("next_topic")
-                        if queued_topic:
-                            forced_topic = queued_topic
-                            Messenger.info(f"🎯 [QUEUE] Next scheduled action detected from queue: '{forced_topic}'")
-                            q_data["next_topic"] = None
-                            q_data["last_executed"] = forced_topic
-                            q_data["executed_at"] = datetime.datetime.now().isoformat()
-                            with open(queue_file, "w", encoding="utf-8") as qf_w:
-                                json.dump(q_data, qf_w, indent=2)
+                        pre_cand = q_data.get("pre_rendered_video")
+                        if pre_cand and Path(pre_cand).exists():
+                            pre_rendered_file = Path(pre_cand)
+                            reel_title = q_data.get("title", "¿Cómo puede un avión caer 8 kilómetros en un solo minuto? ✈️❄️")
+                            reel_description = q_data.get("description", "¿Cómo puede un avión caer 8 kilómetros en un solo minuto? Le pasó a este jet privado que volaba de Texas a las Bahamas en medio de una tormenta... Aquí te explicamos la física detrás de la tragedia aérea.\n\n#EnigmaIQ #Aviacion #AccidentesAereos #Fisica #Ciencia #Curiosidades #SabiasQue #Misterios")
+                            Messenger.info(f"🎯 [QUEUE] Pre-rendered Master Reel found: {pre_rendered_file}")
+                        else:
+                            queued_topic = q_data.get("next_topic")
+                            if queued_topic:
+                                forced_topic = queued_topic
+                                Messenger.info(f"🎯 [QUEUE] Next scheduled action detected from queue: '{forced_topic}'")
+                                q_data["next_topic"] = None
+                                q_data["last_executed"] = forced_topic
+                                q_data["executed_at"] = datetime.datetime.now().isoformat()
+                                with open(queue_file, "w", encoding="utf-8") as qf_w:
+                                    json.dump(q_data, qf_w, indent=2)
                 except Exception as e:
                     Messenger.warning(f"Error reading next_queued_action.json: {e}")
+
+            if pre_rendered_file and pre_rendered_file.exists():
+                Messenger.info(f"🚀 [UPLOAD] Uploading pre-rendered Master Reel directly to Meta Reels API: {pre_rendered_file.name}...")
+                try:
+                    res_id = self.facebook.upload_reel(
+                        file_path=pre_rendered_file,
+                        title=reel_title,
+                        description=reel_description
+                    )
+                    Messenger.success(f"🎉 Scheduled Reel published successfully! Video ID: {res_id}")
+                    self.log_post("video", reel_title)
+                    
+                    # Reset queue so subsequent scheduled runs use the pure stock autonomous engine
+                    with open(queue_file, "r", encoding="utf-8") as qf:
+                        q_data = json.load(qf)
+                    q_data["pre_rendered_video"] = None
+                    q_data["next_topic"] = None
+                    q_data["last_executed"] = reel_title
+                    q_data["executed_at"] = datetime.datetime.now().isoformat()
+                    with open(queue_file, "w", encoding="utf-8") as qf_w:
+                        json.dump(q_data, qf_w, indent=2)
+                        
+                    self.sync_to_github()
+                    return
+                except Exception as e:
+                    Messenger.error(f"Failed to upload pre-rendered reel: {e}")
+                    sys.exit(1)
 
             if forced_topic:
                 Messenger.info(f"🎯 Forced Topic override: '{forced_topic}'")

@@ -22,6 +22,7 @@ import { ElPorqueDeTodoMedusa } from './ElPorqueDeTodoMedusa';
 import { MEDUSA_TOTAL_FRAMES, MEDUSA_FPS } from './medusa_timeline';
 
 import { ElPorqueDeTodoMarSalado, MAR_SALADO_TOTAL_FRAMES, MAR_SALADO_FPS } from './ElPorqueDeTodoMarSalado';
+import { ElPorqueDeTodoAvionHielo, AVION_HIELO_TOTAL_FRAMES, AVION_HIELO_FPS } from './ElPorqueDeTodoAvionHielo';
 
 import { EnigmaIQDynamicMaster, DEFAULT_BLUEPRINT } from './dynamic/EnigmaIQDynamicMaster';
 import { DynamicVideoBlueprint } from './dynamic/types';
@@ -156,6 +157,14 @@ export const RemotionRoot: React.FC = () => {
         component={ElPorqueDeTodoMarSalado}
         durationInFrames={MAR_SALADO_TOTAL_FRAMES}
         fps={MAR_SALADO_FPS}
+        width={1080}
+        height={1920}
+      />
+      <Composition
+        id="ElPorqueDeTodoAvionHielo"
+        component={ElPorqueDeTodoAvionHielo}
+        durationInFrames={AVION_HIELO_TOTAL_FRAMES}
+        fps={AVION_HIELO_FPS}
         width={1080}
         height={1920}
       />
