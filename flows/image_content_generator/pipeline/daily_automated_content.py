@@ -137,32 +137,48 @@ class DailyAutomator:
             forced_topic = os.getenv("TOPIC", "").strip()
             forced_pillar = os.getenv("PILLAR", "").strip()
 
-            # Check one-shot execution queue (e.g. for the 2:00 AM scheduled upload)
+            # Check execution queue (supports multi-video sequential queue and single item fallback)
             queue_file = Path("flows/image_content_generator/out_short/next_queued_action.json")
             pre_rendered_file = None
             reel_title = ""
             reel_description = ""
+            is_from_queue_list = False
             if not forced_topic and queue_file.exists():
                 try:
                     import json, datetime
                     with open(queue_file, "r", encoding="utf-8") as qf:
                         q_data = json.load(qf)
-                        pre_cand = q_data.get("pre_rendered_video")
-                        if pre_cand and Path(pre_cand).exists():
-                            pre_rendered_file = Path(pre_cand)
-                            reel_title = q_data.get("title", "¿Cómo puede un avión caer 8 kilómetros en un solo minuto? ✈️❄️")
-                            reel_description = q_data.get("description", "¿Cómo puede un avión caer 8 kilómetros en un solo minuto? Le pasó a este jet privado que volaba de Texas a las Bahamas en medio de una tormenta... Aquí te explicamos la física detrás de la tragedia aérea.\n\n#EnigmaIQ #Aviacion #AccidentesAereos #Fisica #Ciencia #Curiosidades #SabiasQue #Misterios")
-                            Messenger.info(f"🎯 [QUEUE] Pre-rendered Master Reel found: {pre_rendered_file}")
-                        else:
-                            queued_topic = q_data.get("next_topic")
-                            if queued_topic:
-                                forced_topic = queued_topic
-                                Messenger.info(f"🎯 [QUEUE] Next scheduled action detected from queue: '{forced_topic}'")
-                                q_data["next_topic"] = None
-                                q_data["last_executed"] = forced_topic
-                                q_data["executed_at"] = datetime.datetime.now().isoformat()
-                                with open(queue_file, "w", encoding="utf-8") as qf_w:
-                                    json.dump(q_data, qf_w, indent=2)
+                        
+                        # Priority 1: Multi-video sequential queue
+                        pre_queue = q_data.get("pre_rendered_queue")
+                        if pre_queue and isinstance(pre_queue, list) and len(pre_queue) > 0:
+                            next_item = pre_queue[0]
+                            cand_path = Path(next_item.get("file_path", ""))
+                            if cand_path.exists():
+                                pre_rendered_file = cand_path
+                                reel_title = next_item.get("title", "EnigmaIQ Video Original")
+                                reel_description = next_item.get("description", "")
+                                is_from_queue_list = True
+                                Messenger.info(f"🎯 [QUEUE] Next video from queue list ({len(pre_queue)} remaining): {pre_rendered_file.name}")
+                        
+                        # Priority 2: Single pre_rendered_video legacy field
+                        if not pre_rendered_file:
+                            pre_cand = q_data.get("pre_rendered_video")
+                            if pre_cand and Path(pre_cand).exists():
+                                pre_rendered_file = Path(pre_cand)
+                                reel_title = q_data.get("title", "¿Cómo puede un avión caer 8 kilómetros en un solo minuto? ✈️❄️")
+                                reel_description = q_data.get("description", "")
+                                Messenger.info(f"🎯 [QUEUE] Single Pre-rendered Master Reel found: {pre_rendered_file}")
+                            else:
+                                queued_topic = q_data.get("next_topic")
+                                if queued_topic:
+                                    forced_topic = queued_topic
+                                    Messenger.info(f"🎯 [QUEUE] Next scheduled action detected from queue: '{forced_topic}'")
+                                    q_data["next_topic"] = None
+                                    q_data["last_executed"] = forced_topic
+                                    q_data["executed_at"] = datetime.datetime.now().isoformat()
+                                    with open(queue_file, "w", encoding="utf-8") as qf_w:
+                                        json.dump(q_data, qf_w, indent=2)
                 except Exception as e:
                     Messenger.warning(f"Error reading next_queued_action.json: {e}")
 
@@ -177,10 +193,17 @@ class DailyAutomator:
                     Messenger.success(f"🎉 Scheduled Reel published successfully! Video ID: {res_id}")
                     self.log_post("video", reel_title)
                     
-                    # Reset queue so subsequent scheduled runs use the pure stock autonomous engine
+                    # Update queue: if from list, pop head; otherwise reset single field
                     with open(queue_file, "r", encoding="utf-8") as qf:
                         q_data = json.load(qf)
-                    q_data["pre_rendered_video"] = None
+                    
+                    if is_from_queue_list and "pre_rendered_queue" in q_data and len(q_data["pre_rendered_queue"]) > 0:
+                        popped = q_data["pre_rendered_queue"].pop(0)
+                        rem = len(q_data["pre_rendered_queue"])
+                        Messenger.info(f"Popped '{popped.get('title')}' from queue. {rem} videos remaining for future cron executions.")
+                    else:
+                        q_data["pre_rendered_video"] = None
+                        
                     q_data["next_topic"] = None
                     q_data["last_executed"] = reel_title
                     q_data["executed_at"] = datetime.datetime.now().isoformat()

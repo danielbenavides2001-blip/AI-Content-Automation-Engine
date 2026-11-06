@@ -1,10 +1,34 @@
 {
-  "next_topic": null,
+  "pre_rendered_queue": [
+    {
+      "file_path": "flows/image_content_generator/out_short/pre_rendered/01_EnigmaIQ_Caida_Avion_8km.mp4",
+      "title": "¿Cómo puede un avión caer 8 kilómetros en un solo minuto? ✈️❄️",
+      "description": "¿Cómo puede un avión caer 8 kilómetros en un solo minuto? Le pasó a este jet privado que volaba de Texas a las Bahamas en medio de una tormenta... Aquí te explicamos la física detrás de la tragedia aérea.\n\n#EnigmaIQ #Aviacion #AccidentesAereos #Fisica #Ciencia #Curiosidades #SabiasQue #Misterios"
+    },
+    {
+      "file_path": "flows/image_content_generator/out_short/pre_rendered/02_EnigmaIQ_Guerra_ElSalvador_Haiti.mp4",
+      "title": "¿Quién ganaría una guerra entre El Salvador y Haití? 🇸🇻🇭🇹⚔️",
+      "description": "¿Quién ganaría una guerra entre El Salvador y Haití? Sobre el papel parece obvio, pero la geografía y la realidad militar guardan una sorpresa inesperada.\n\n#EnigmaIQ #ElSalvador #Haiti #Geopolitica #Bukele #Historia #Curiosidades #Misterios"
+    },
+    {
+      "file_path": "flows/image_content_generator/out_short/pre_rendered/03_EnigmaIQ_Crater_Jet_Florida.mp4",
+      "title": "¿Por qué donde cayó el jet de Florida solo hay un cráter y pedacitos? 💥✈️",
+      "description": "¿Por qué no se ve un avión en el lugar del impacto? Te explicamos la brutal física detrás de una caída vertical a 500 km/h y por qué el fuselaje de aluminio se desintegra.\n\n#EnigmaIQ #Aviacion #Fisica #Ciencia #Florida #AccidentesAereos #Curiosidades"
+    },
+    {
+      "file_path": "flows/image_content_generator/out_short/pre_rendered/04_EnigmaIQ_Camaron_Pistola.mp4",
+      "title": "El animal de 5 cm que dispara agua a la temperatura del Sol 🦐🔥",
+      "description": "Un camarón de 5 centímetros dispara una burbuja casi tan caliente como la superficie del Sol: 4.700 grados. El asombroso fenómeno de la cavitación y camaroluminiscencia.\n\n#EnigmaIQ #Naturaleza #Ciencia #Biologia #CamaronPistola #Fisica #Curiosidades"
+    },
+    {
+      "file_path": "flows/image_content_generator/out_short/pre_rendered/05_EnigmaIQ_Trump_Congreso.mp4",
+      "title": "Trump acaba de perder el Congreso de Estados Unidos: ¿Qué significa? 🇺🇸⚖️",
+      "description": "En una sola noche los demócratas recuperan el control legislativo. ¿Cómo cambia esto el poder de Donald Trump hasta 2029? El análisis político definitivo.\n\n#EnigmaIQ #Politica #EstadosUnidos #Trump #Congreso #Noticias #Elecciones"
+    }
+  ],
   "pre_rendered_video": null,
-  "title": "\u00bfC\u00f3mo puede un avi\u00f3n caer 8 kil\u00f3metros en un solo minuto? \u2708\ufe0f\u2744\ufe0f",
-  "description": "\u00bfC\u00f3mo puede un avi\u00f3n caer 8 kil\u00f3metros en un solo minuto? Le pas\u00f3 a este jet privado que volaba de Texas a las Bahamas en medio de una tormenta... Aqu\u00ed te explicamos la f\u00edsica detr\u00e1s de la tragedia a\u00e9rea.\n\n#EnigmaIQ #Aviacion #AccidentesAereos #Fisica #Ciencia #Curiosidades #SabiasQue #Misterios",
-  "scheduled_for": "2026-11-03T02:00:00-05:00",
-  "note": "A las 2 AM sube directamente el Master Reel recreado con Remotion y Blender de la Caida del Avion por Hielo. Al completarse, la cola se limpia autom\u00e1ticamente y las siguientes ejecuciones contin\u00faan con los temas del cat\u00e1logo aut\u00f3nomo.",
-  "last_executed": "\u00bfC\u00f3mo puede un avi\u00f3n caer 8 kil\u00f3metros en un solo minuto? \u2708\ufe0f\u2744\ufe0f",
-  "executed_at": "2026-11-03T04:58:32.570249"
+  "next_topic": null,
+  "last_executed": "¿Cómo puede un avión caer 8 kilómetros en un solo minuto? ✈️❄️",
+  "executed_at": "2026-11-03T19:44:17+00:00",
+  "note": "Cola secuencial de 5 videos editados originales con la voz 'Lo que callamos' y branding EnigmaIQ. La primera ejecución a las 2 AM sube el video 1. Cada cronjob posterior sube el siguiente video sucesivamente."
 }
