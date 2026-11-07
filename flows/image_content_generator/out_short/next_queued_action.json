@@ -1,14 +1,8 @@
 {
-  "pre_rendered_queue": [
-    {
-      "file_path": "flows/image_content_generator/out_short/pre_rendered/05_EnigmaIQ_Trump_Congreso.mp4",
-      "title": "Trump acaba de perder el Congreso de Estados Unidos: \u00bfQu\u00e9 significa? \ud83c\uddfa\ud83c\uddf8\u2696\ufe0f",
-      "description": "En una sola noche los dem\u00f3cratas recuperan el control legislativo. \u00bfC\u00f3mo cambia esto el poder de Donald Trump hasta 2029? El an\u00e1lisis pol\u00edtico definitivo.\n\n#EnigmaIQ #Politica #EstadosUnidos #Trump #Congreso #Noticias #Elecciones"
-    }
-  ],
+  "pre_rendered_queue": [],
   "pre_rendered_video": null,
   "next_topic": null,
-  "last_executed": "El animal de 5 cm que dispara agua a la temperatura del Sol \ud83e\udd90\ud83d\udd25",
-  "executed_at": "2026-11-07T08:01:33.754144",
+  "last_executed": "Trump acaba de perder el Congreso de Estados Unidos: \u00bfQu\u00e9 significa? \ud83c\uddfa\ud83c\uddf8\u2696\ufe0f",
+  "executed_at": "2026-11-07T09:01:57.293360",
   "note": "Cola secuencial de 5 videos editados originales con la voz 'Lo que callamos' y branding EnigmaIQ. La primera ejecuci\u00f3n a las 2 AM sube el video 1. Cada cronjob posterior sube el siguiente video sucesivamente."
 }
