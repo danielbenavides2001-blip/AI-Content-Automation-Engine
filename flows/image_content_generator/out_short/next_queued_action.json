@@ -1,11 +1,6 @@
 {
   "pre_rendered_queue": [
     {
-      "file_path": "flows/image_content_generator/out_short/pre_rendered/04_EnigmaIQ_Camaron_Pistola.mp4",
-      "title": "El animal de 5 cm que dispara agua a la temperatura del Sol \ud83e\udd90\ud83d\udd25",
-      "description": "Un camar\u00f3n de 5 cent\u00edmetros dispara una burbuja casi tan caliente como la superficie del Sol: 4.700 grados. El asombroso fen\u00f3meno de la cavitaci\u00f3n y camaroluminiscencia.\n\n#EnigmaIQ #Naturaleza #Ciencia #Biologia #CamaronPistola #Fisica #Curiosidades"
-    },
-    {
       "file_path": "flows/image_content_generator/out_short/pre_rendered/05_EnigmaIQ_Trump_Congreso.mp4",
       "title": "Trump acaba de perder el Congreso de Estados Unidos: \u00bfQu\u00e9 significa? \ud83c\uddfa\ud83c\uddf8\u2696\ufe0f",
       "description": "En una sola noche los dem\u00f3cratas recuperan el control legislativo. \u00bfC\u00f3mo cambia esto el poder de Donald Trump hasta 2029? El an\u00e1lisis pol\u00edtico definitivo.\n\n#EnigmaIQ #Politica #EstadosUnidos #Trump #Congreso #Noticias #Elecciones"
@@ -13,7 +8,7 @@
   ],
   "pre_rendered_video": null,
   "next_topic": null,
-  "last_executed": "\u00bfPor qu\u00e9 donde cay\u00f3 el jet de Florida solo hay un cr\u00e1ter y pedacitos? \ud83d\udca5\u2708\ufe0f",
-  "executed_at": "2026-11-07T07:01:52.906236",
+  "last_executed": "El animal de 5 cm que dispara agua a la temperatura del Sol \ud83e\udd90\ud83d\udd25",
+  "executed_at": "2026-11-07T08:01:33.754144",
   "note": "Cola secuencial de 5 videos editados originales con la voz 'Lo que callamos' y branding EnigmaIQ. La primera ejecuci\u00f3n a las 2 AM sube el video 1. Cada cronjob posterior sube el siguiente video sucesivamente."
 }
