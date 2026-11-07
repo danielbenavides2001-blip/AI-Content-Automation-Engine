@@ -1,11 +1,6 @@
 {
   "pre_rendered_queue": [
     {
-      "file_path": "flows/image_content_generator/out_short/pre_rendered/03_EnigmaIQ_Crater_Jet_Florida.mp4",
-      "title": "\u00bfPor qu\u00e9 donde cay\u00f3 el jet de Florida solo hay un cr\u00e1ter y pedacitos? \ud83d\udca5\u2708\ufe0f",
-      "description": "\u00bfPor qu\u00e9 no se ve un avi\u00f3n en el lugar del impacto? Te explicamos la brutal f\u00edsica detr\u00e1s de una ca\u00edda vertical a 500 km/h y por qu\u00e9 el fuselaje de aluminio se desintegra.\n\n#EnigmaIQ #Aviacion #Fisica #Ciencia #Florida #AccidentesAereos #Curiosidades"
-    },
-    {
       "file_path": "flows/image_content_generator/out_short/pre_rendered/04_EnigmaIQ_Camaron_Pistola.mp4",
       "title": "El animal de 5 cm que dispara agua a la temperatura del Sol \ud83e\udd90\ud83d\udd25",
       "description": "Un camar\u00f3n de 5 cent\u00edmetros dispara una burbuja casi tan caliente como la superficie del Sol: 4.700 grados. El asombroso fen\u00f3meno de la cavitaci\u00f3n y camaroluminiscencia.\n\n#EnigmaIQ #Naturaleza #Ciencia #Biologia #CamaronPistola #Fisica #Curiosidades"
@@ -18,7 +13,7 @@
   ],
   "pre_rendered_video": null,
   "next_topic": null,
-  "last_executed": "\u00bfQui\u00e9n ganar\u00eda una guerra entre El Salvador y Hait\u00ed? \ud83c\uddf8\ud83c\uddfb\ud83c\udded\ud83c\uddf9\u2694\ufe0f",
-  "executed_at": "2026-11-07T04:09:46.805117",
+  "last_executed": "\u00bfPor qu\u00e9 donde cay\u00f3 el jet de Florida solo hay un cr\u00e1ter y pedacitos? \ud83d\udca5\u2708\ufe0f",
+  "executed_at": "2026-11-07T07:01:52.906236",
   "note": "Cola secuencial de 5 videos editados originales con la voz 'Lo que callamos' y branding EnigmaIQ. La primera ejecuci\u00f3n a las 2 AM sube el video 1. Cada cronjob posterior sube el siguiente video sucesivamente."
 }
