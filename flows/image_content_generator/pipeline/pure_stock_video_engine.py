@@ -416,12 +416,12 @@ Responde en formato JSON siguiendo el esquema.
             norm_path = work_dir / f"norm_scene_{idx+1}.mp4"
             target_dur = scene_durations[idx]
 
-            # Priority query cascade to guarantee 100% exact visual match
+            # Priority query cascade: Curated queries tested for visual congruence come first
             candidate_queries = []
-            if scene.stock_query and scene.stock_query.strip():
-                candidate_queries.append(scene.stock_query.strip())
             if idx < len(curated_queries) and curated_queries[idx].strip():
                 candidate_queries.append(curated_queries[idx].strip())
+            if scene.stock_query and scene.stock_query.strip():
+                candidate_queries.append(scene.stock_query.strip())
 
             downloaded = False
             for q in candidate_queries:
