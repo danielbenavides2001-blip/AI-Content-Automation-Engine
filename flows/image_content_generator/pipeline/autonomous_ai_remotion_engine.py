@@ -33,6 +33,7 @@ from tools.text_generation.gemini import GeminiTextGenerator
 from tools.audio_generation.gemini import GeminiAudioGenerator
 from tools.video_generation.pexels import PexelsTool
 from tools.video_generation.pixabay import PixabayTool
+from tools.video_generation.media_hub import MediaHub
 
 # ==============================================================================
 # PYDANTIC SCHEMAS FOR STRUCTURED GEMINI BLUEPRINT GENERATION
@@ -114,6 +115,7 @@ class AutonomousAIRemotionEngine:
         self.audio_gen = GeminiAudioGenerator()
         self.pexels = PexelsTool()
         self.pixabay = PixabayTool()
+        self.media_hub = MediaHub()
 
     def get_recent_topics(self) -> str:
         """Reads recent topics to strictly avoid repetition."""
@@ -248,9 +250,9 @@ Genera la respuesta estrictamente en el formato de esquema JSON solicitado.
             Messenger.error(f"❌ Fallback Neural TTS falló: {e2}")
             raise e2
 
-    def _download_scene_stock_video(self, query: str, scene_num: int) -> tuple[str, bool]:
+    def _download_scene_stock_video(self, query: str, scene_num: int, scene_topic: str = "", duration: float = 4.0) -> tuple[str, bool]:
         """
-        Downloads vertical HD stock video for the scene using Pexels / Pixabay.
+        Downloads vertical HD stock video for the scene using MediaHub multi-source cascade.
         Falls back to curated stock assets if external download fails.
         """
         clean_query = query.strip() if query else "nature science ocean"
@@ -258,28 +260,17 @@ Genera la respuesta estrictamente en el formato de esquema JSON solicitado.
         video_path = VIDEO_DIR / video_filename
         video_rel_path = f"dynamic_videos/{video_filename}"
 
-        Messenger.info(f"   🎥 Buscando metraje de stock para Escena {scene_num}: '{clean_query}'...")
+        Messenger.info(f"   🎥 Buscando metraje con MediaHub para Escena {scene_num}: '{clean_query}'...")
         
-        # 1. Pexels search
         try:
-            success = self.pexels.fetch_video(clean_query, video_path)
+            success = self.media_hub.fetch_best_clip(clean_query, video_path, scene_topic=scene_topic, duration=duration)
             if success and video_path.exists() and video_path.stat().st_size > 10000:
-                Messenger.success(f"   ✅ Video descargado de Pexels para Escena {scene_num} ({video_path.stat().st_size / 1024:.1f} KB)")
+                Messenger.success(f"   ✅ Video obtenido con MediaHub para Escena {scene_num} ({video_path.stat().st_size / 1024:.1f} KB)")
                 return video_rel_path, True
         except Exception as e:
-            Messenger.warning(f"   ⚠️ Error en Pexels: {e}")
+            Messenger.warning(f"   ⚠️ Error en MediaHub: {e}")
 
-        # 2. Pixabay fallback
-        try:
-            Messenger.info(f"   🔄 Probando Pixabay fallback para: '{clean_query}'...")
-            success = self.pixabay.fetch_video(clean_query, video_path)
-            if success and video_path.exists() and video_path.stat().st_size > 10000:
-                Messenger.success(f"   ✅ Video descargado de Pixabay para Escena {scene_num}")
-                return video_rel_path, True
-        except Exception as e:
-            Messenger.warning(f"   ⚠️ Error en Pixabay: {e}")
-
-        # 3. Asset fallback from existing curated library (mar_salado_assets)
+        # Fallback from existing curated library (mar_salado_assets)
         fallback_candidates = list((PUBLIC_DIR / "mar_salado_assets").glob("scene*.mp4"))
         if fallback_candidates:
             chosen = fallback_candidates[(scene_num - 1) % len(fallback_candidates)]
@@ -311,8 +302,13 @@ Genera la respuesta estrictamente en el formato de esquema JSON solicitado.
             final_audio_rel, duration_sec = self._synthesize_scene_audio(scene.narration, wav_path, mp3_path)
             total_audio_sec += duration_sec
             
-            # 2. Metraje de stock real ("se debe mostrar lo que se esta narrando")
-            stock_rel, _ = self._download_scene_stock_video(scene.stockQuery, scene_num)
+            # 2. Metraje de stock real con MediaHub ("se debe mostrar lo que se esta narrando")
+            stock_rel, _ = self._download_scene_stock_video(
+                scene.stockQuery,
+                scene_num,
+                scene_topic=blueprint.title,
+                duration=duration_sec
+            )
             
             # Frame allocation: duration in frames + 15 frames padding for smooth scene transitions
             duration_frames = int(math.ceil((duration_sec + 0.5) * 30))

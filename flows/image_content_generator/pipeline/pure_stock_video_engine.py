@@ -32,6 +32,7 @@ from tools.text_generation.gemini import GeminiTextGenerator
 from tools.audio_generation.gemini import GeminiAudioGenerator
 from tools.video_generation.pexels import PexelsTool
 from tools.video_generation.pixabay import PixabayTool
+from tools.video_generation.media_hub import MediaHub
 from tools.social_media.facebook import FacebookTool
 
 # ==============================================================================
@@ -68,6 +69,7 @@ class PureStockVideoEngine:
         self.audio_gen = GeminiAudioGenerator()
         self.pexels = PexelsTool()
         self.pixabay = PixabayTool()
+        self.media_hub = MediaHub()
         self.facebook = FacebookTool(
             page_id=os.getenv("FACEBOOK_PAGE_ID"),
             access_token=os.getenv("FACEBOOK_PAGE_ACCESS_TOKEN")
@@ -392,9 +394,10 @@ Responde en formato JSON siguiendo el esquema.
         Messenger.success(f"✅ Generated Auto-Fit Question Card ({box_w}x{box_h}px, {len(top_lines)+len(bottom_lines)} lines) for thumbnail")
 
     def download_stock_videos(self, topic: dict, blueprint: ScriptBlueprint, work_dir: Path, scene_durations: List[float]) -> List[Path]:
-        """Downloads vertical stock videos from Pexels/Pixabay matching narration with zero margin of error."""
+        """Downloads vertical clips using MediaHub multi-source cascade matching narration with zero margin of error."""
         prepared_clips = []
         curated_queries = topic.get("stock_queries", [])
+        scene_topic = topic.get("title", "")
 
         for idx, scene in enumerate(blueprint.scenes):
             raw_path = work_dir / f"raw_scene_{idx+1}.mp4"
@@ -409,34 +412,36 @@ Responde en formato JSON siguiendo el esquema.
                 candidate_queries.append(curated_queries[idx].strip())
 
             downloaded = False
-            matched_query = ""
             for q in candidate_queries:
-                Messenger.info(f"🔎 Scene {idx+1}/5: Searching stock video for '{q}'...")
-                downloaded = self.pexels.fetch_video(q, raw_path)
-                if not downloaded:
-                    Messenger.info(f"Trying Pixabay for '{q}'...")
-                    downloaded = self.pixabay.fetch_video(q, raw_path)
+                Messenger.info(f"🔎 Scene {idx+1}/5: Searching visual clip for '{q}' via MediaHub...")
+                downloaded = self.media_hub.fetch_best_clip(
+                    query=q,
+                    out_path=raw_path,
+                    scene_topic=scene_topic,
+                    duration=target_dur
+                )
                 if downloaded and raw_path.exists() and raw_path.stat().st_size > 10000:
-                    matched_query = q
-                    Messenger.success(f"🎬 Scene {idx+1}/5: Exact stock match found for narration: '{matched_query}'")
+                    Messenger.success(f"🎬 Scene {idx+1}/5: Exact visual match obtained for narration: '{q}'")
                     break
 
             if not downloaded or not raw_path.exists() or raw_path.stat().st_size < 10000:
-                # Secondary fallback: try core topic title query
                 core_fallback = topic.get("id", "").replace("_", " ")
                 Messenger.warning(f"Trying core topic search: '{core_fallback}'")
-                downloaded = self.pexels.fetch_video(core_fallback, raw_path) or self.pixabay.fetch_video(core_fallback, raw_path)
+                downloaded = self.media_hub.fetch_best_clip(
+                    query=core_fallback,
+                    out_path=raw_path,
+                    scene_topic=scene_topic,
+                    duration=target_dur
+                )
 
+            # Ensure raw_path exists or synthesize Ken Burns clip
             if not downloaded or not raw_path.exists() or raw_path.stat().st_size < 10000:
-                Messenger.warning(f"Using atmospheric fallback for scene {idx+1}")
-                cmd_fall = [
-                    "ffmpeg", "-y", "-f", "lavfi",
-                    "-i", f"color=c=0x07192f:s=1080x1920:d={target_dur}:r=30",
-                    "-c:v", "libx264", "-pix_fmt", "yuv420p", str(norm_path)
-                ]
-                subprocess.run(cmd_fall, check=True, capture_output=True)
-                prepared_clips.append(norm_path)
-                continue
+                Messenger.warning(f"Using emergency visual generator for scene {idx+1}")
+                self.media_hub.generative.generate_clip(
+                    f"{scene.narration[:60]}, vertical documentary 4k",
+                    raw_path,
+                    duration=target_dur
+                )
 
             # Normalize video to 1080x1920, 30 FPS, muted, looping to target_dur
             cmd_norm = [
