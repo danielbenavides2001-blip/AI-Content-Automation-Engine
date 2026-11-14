@@ -20,6 +20,8 @@ if sys.stdout.encoding.lower() != 'utf-8':
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parents[3]
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
 REMOTION_DIR = BASE_DIR / "flows" / "image_content_generator" / "remotion"
 PUBLIC_DIR = REMOTION_DIR / "public"
 AUDIO_DIR = PUBLIC_DIR / "dynamic_audio"
