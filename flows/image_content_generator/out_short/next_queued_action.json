@@ -1,8 +1,14 @@
 {
-  "pre_rendered_queue": [],
+  "pre_rendered_queue": [
+    {
+      "file_path": "flows/image_content_generator/out_short/pre_rendered/06_EnigmaIQ_Numero_3.mp4",
+      "title": "El misterio del número 3 en la crucifixión y la historia 🔢✝️",
+      "description": "Jesús murió con 33 años a las 3 de la tarde un 3 de abril del año 33. ¿Por qué el número 3 se repite tantas veces en los momentos más trascendentales de la historia? Te explicamos el misterio.\n\n#EnigmaIQ #ElPorquéDeTodo #Historia #Misterios #Religion #Curiosidades #Numero3"
+    }
+  ],
   "pre_rendered_video": null,
   "next_topic": null,
-  "last_executed": "Trump acaba de perder el Congreso de Estados Unidos: \u00bfQu\u00e9 significa? \ud83c\uddfa\ud83c\uddf8\u2696\ufe0f",
+  "last_executed": "Trump acaba de perder el Congreso de Estados Unidos: ¿Qué significa? 🇺🇸⚖️",
   "executed_at": "2026-11-07T09:01:57.293360",
-  "note": "Cola secuencial de 5 videos editados originales con la voz 'Lo que callamos' y branding EnigmaIQ. La primera ejecuci\u00f3n a las 2 AM sube el video 1. Cada cronjob posterior sube el siguiente video sucesivamente."
+  "note": "Cola secuencial de 5 videos editados originales con la voz 'Lo que callamos' y branding EnigmaIQ. La primera ejecución a las 2 AM sube el video 1. Cada cronjob posterior sube el siguiente video sucesivamente."
 }

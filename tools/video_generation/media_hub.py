@@ -30,13 +30,13 @@ class MediaHub:
         q_lower = clean_q.lower()
         topic_lower = scene_topic.lower()
 
-        # 1. Si el tema involucra espacio, planetas, atmósfera, órbita o satélites -> Intentar NASA primero
-        is_space_or_aero = any(w in q_lower or w in topic_lower for w in [
-            "space", "earth", "planet", "orbit", "nasa", "satellite", "atmosphere", 
-            "solar", "sun", "moon", "star", "hurricane", "tornado", "aviation", "airplane"
+        # 1. Si la consulta específica trata estrictamente de astronomía, el espacio exterior o la NASA -> Intentar NASA
+        is_space_or_aero = any(w in q_lower for w in [
+            "outer space", "planet earth in space", "orbiting earth", "nasa", "satellite in orbit", 
+            "solar flare", "solar eclipse", "moon surface", "astronaut", "space telescope"
         ])
         if is_space_or_aero:
-            Messenger.info("🛰️ Tema detectado compatible con NASA API...")
+            Messenger.info("🛰️ Búsqueda astronómica detectada compatible con NASA API...")
             if self.nasa.fetch_video(clean_q, out_path):
                 return True
 
@@ -57,12 +57,7 @@ class MediaHub:
         if self.wikimedia.fetch_image_clip(clean_q, out_path, duration=duration):
             return True
 
-        # 5. Si no se ha probado NASA aún, intentar NASA
-        if not is_space_or_aero:
-            if self.nasa.fetch_video(clean_q, out_path):
-                return True
-
-        # 6. Fallback Definitivo Cero Margen de Error: IA Generativa Hiperrealista + Ken Burns
+        # 5. Fallback Definitivo Cero Margen de Error: IA Generativa Hiperrealista + Ken Burns
         Messenger.info("🎨 Ningún stock comercial tiene este evento exacto. Activando IA Generativa...")
         full_prompt = f"{clean_q}, {scene_topic}".strip(", ")
         if self.generative.generate_clip(full_prompt, out_path, duration=duration):
