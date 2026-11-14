@@ -19,6 +19,8 @@ if sys.stdout.encoding.lower() != 'utf-8':
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parents[3]
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
 CATALOG_FILE = Path(__file__).resolve().parent / "el_porque_de_todo_catalog.json"
 HISTORY_FILE = BASE_DIR / "flows" / "image_content_generator" / "out_short" / "automated_posts_history.csv"
 FONTS_DIR = BASE_DIR / "flows" / "curiosity_image_generator" / "resources" / "fonts"
@@ -163,19 +165,29 @@ Responde en formato JSON siguiendo el esquema.
 
     def synthesize_narration(self, blueprint: ScriptBlueprint, out_audio_path: Path) -> float:
         full_text = " ".join([s.narration.strip() for s in blueprint.scenes])
-        Messenger.info(f"🎙️ Synthesizing Fenrir TTS narration ({len(full_text.split())} words)...")
+        Messenger.info(f"🎙️ Synthesizing narration ({len(full_text.split())} words)...")
         wav_path = out_audio_path.with_suffix(".wav")
-        self.audio_gen.text_to_speech(full_text, wav_path)
-
-        # Convert to high-quality MP3
-        cmd = ["ffmpeg", "-y", "-i", str(wav_path), "-c:a", "libmp3lame", "-b:a", "192k", str(out_audio_path)]
-        subprocess.run(cmd, check=True, capture_output=True)
+        try:
+            self.audio_gen.text_to_speech(full_text, wav_path)
+            # Convert to high-quality MP3
+            cmd = ["ffmpeg", "-y", "-i", str(wav_path), "-c:a", "libmp3lame", "-b:a", "192k", str(out_audio_path)]
+            subprocess.run(cmd, check=True, capture_output=True)
+            Messenger.success("✅ Fenrir TTS narration generated.")
+        except Exception as e:
+            Messenger.warning(f"⚠️ Gemini TTS no disponible ({e}). Activando Neural Fallback (es-CO-GonzaloNeural)...")
+            import asyncio
+            import edge_tts
+            async def _run_edge():
+                comm = edge_tts.Communicate(full_text, "es-CO-GonzaloNeural", rate="+3%")
+                await comm.save(str(out_audio_path))
+            asyncio.run(_run_edge())
+            Messenger.success("✅ Neural Fallback audio generated.")
 
         # Measure duration
         cmd_dur = ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", str(out_audio_path)]
         res = subprocess.run(cmd_dur, check=True, capture_output=True, text=True)
         dur = float(res.stdout.strip())
-        Messenger.success(f"✅ Fenrir audio synthesized: {dur:.2f} seconds (> 60s)")
+        Messenger.success(f"✅ Audio duration: {dur:.2f} seconds")
         return dur
 
     def transcribe_and_build_ass(self, audio_path: Path, out_ass_path: Path) -> None:
@@ -498,12 +510,18 @@ Responde en formato JSON siguiendo el esquema.
         # [2] Fenrir voice audio MP3
         # [3] Ambient bed MP3 (optional loop)
         Messenger.info("🎬 Assembling master video with FFmpeg...")
-        fonts_param = FONTS_DIR.as_posix()
-        ass_filter_path = ass_path.as_posix().replace(":", "\\:")
+        try:
+            rel_fonts = FONTS_DIR.relative_to(BASE_DIR).as_posix()
+        except Exception:
+            rel_fonts = FONTS_DIR.as_posix().replace(":", "\\:")
+        try:
+            rel_ass = ass_path.relative_to(BASE_DIR).as_posix()
+        except Exception:
+            rel_ass = ass_path.as_posix().replace(":", "\\:")
 
         filter_complex = (
             f"[0:v][1:v]overlay=0:0:enable='between(t,0,5.8)'[v_card];"
-            f"[v_card]ass='{ass_filter_path}':fontsdir='{fonts_param}'[v_out];"
+            f"[v_card]ass='{rel_ass}':fontsdir='{rel_fonts}'[v_out];"
             f"[2:a]volume=1.0[a_voice];"
             f"[3:a]volume=0.12[a_bed];"
             f"[a_voice][a_bed]amix=inputs=2:duration=first:dropout_transition=2[a_out]"
@@ -533,7 +551,7 @@ Responde en formato JSON siguiendo el esquema.
         Messenger.success(f"🏆 Master video successfully rendered with FFmpeg: {master_out.name} ({size_mb:.2f} MB, {total_dur:.2f}s)")
         return master_out
 
-    def run(self, forced_topic_id: Optional[str] = None):
+    def run(self, forced_topic_id: Optional[str] = None, skip_upload: bool = False, copy_to: Optional[str] = None):
         topic = self.select_next_topic(forced_topic_id)
         Messenger.info(f"🚀 Launching Pure Stock Video Engine for topic: '{topic['title']}'...")
 
@@ -551,19 +569,30 @@ Responde en formato JSON siguiendo el esquema.
         # 3. Master Render
         self.render_master_video(topic, blueprint, audio_path, total_dur, master_out)
 
-        # 4. Upload to Facebook Reel
-        Messenger.info("📤 Publishing Master Reel to Facebook...")
-        caption = f"{blueprint.title}\n\n{topic['facebook_copy']}"
-        res = self.facebook.upload_reel(file_path=master_out, title=blueprint.title, description=caption)
-        Messenger.success(f"🎉 Successfully published to Facebook! ID: {res}")
+        # Copy to custom folder if specified
+        if copy_to:
+            dest_dir = Path(copy_to)
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            dest_file = dest_dir / master_out.name
+            shutil.copy2(master_out, dest_file)
+            Messenger.success(f"📂 Master video copied to: {dest_file}")
 
-        # 5. Log history
-        today = datetime.date.today().isoformat()
-        with open(HISTORY_FILE, "a", encoding="utf-8") as f:
-            f.write(f"{today},video_pure_stock,{topic['id']} - {topic['title']}\n")
+        # 4. Upload to Facebook Reel (if not skipped)
+        if not skip_upload:
+            Messenger.info("📤 Publishing Master Reel to Facebook...")
+            caption = f"{blueprint.title}\n\n{topic['facebook_copy']}"
+            res = self.facebook.upload_reel(file_path=master_out, title=blueprint.title, description=caption)
+            Messenger.success(f"🎉 Successfully published to Facebook! ID: {res}")
 
-        # 6. Git sync
-        self.sync_to_github()
+            # 5. Log history
+            today = datetime.date.today().isoformat()
+            with open(HISTORY_FILE, "a", encoding="utf-8") as f:
+                f.write(f"{today},video_pure_stock,{topic['id']} - {topic['title']}\n")
+
+            # 6. Git sync
+            self.sync_to_github()
+        else:
+            Messenger.info("⏭️ Skip-upload requested: video rendered locally and not published to Facebook.")
 
     def sync_to_github(self):
         try:
@@ -580,7 +609,9 @@ Responde en formato JSON siguiendo el esquema.
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--topic", type=str, default=None, help="Force a specific topic ID from catalog")
+    parser.add_argument("--skip-upload", action="store_true", help="Skip Facebook upload and git sync")
+    parser.add_argument("--copy-to", type=str, default=None, help="Copy final video to target directory")
     args = parser.parse_args()
 
     engine = PureStockVideoEngine()
-    engine.run(forced_topic_id=args.topic)
+    engine.run(forced_topic_id=args.topic, skip_upload=args.skip_upload, copy_to=args.copy_to)
