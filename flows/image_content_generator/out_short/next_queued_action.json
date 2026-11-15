@@ -1,11 +1,6 @@
 {
   "pre_rendered_queue": [
     {
-      "file_path": "flows/image_content_generator/out_short/pre_rendered/10_EnigmaIQ_Reloj_Sueno.mp4",
-      "title": "\u00bfC\u00f3mo sabe tu reloj inteligente cu\u00e1ndo est\u00e1s dormido? \u231a\ud83d\udca4",
-      "description": "Tu smartwatch mide el pulso por fotopletismograf\u00eda infrarroja y la micro-inmovilidad para calcular tus fases REM y sue\u00f1o profundo con precisi\u00f3n cient\u00edfica.\n\n#EnigmaIQ #Smartwatch #Salud #Ciencia #Tecnologia #Sueno #Curiosidades"
-    },
-    {
       "file_path": "flows/image_content_generator/out_short/pre_rendered/07_EnigmaIQ_Pantalla_Tactil.mp4",
       "title": "\u00bfC\u00f3mo funciona la pantalla t\u00e1ctil de tu m\u00f3vil? \ud83d\udcf1\u26a1",
       "description": "Tu m\u00f3vil detecta el toque m\u00e1s suave de tu dedo, pero si lo presionas con un boli o una cuchara de pl\u00e1stico no pasa nada. \u00bfPor qu\u00e9? Te explicamos la f\u00edsica de la capacitancia el\u00e9ctrica.\n\n#EnigmaIQ #Tecnologia #Fisica #Ciencia #Celulares #Curiosidades"
@@ -33,7 +28,7 @@
   ],
   "pre_rendered_video": null,
   "next_topic": null,
-  "last_executed": "\u00bfQu\u00e9 pasar\u00eda si la Luna desaparece de golpe? \ud83c\udf15\ud83d\udca5",
-  "executed_at": "2026-11-15T08:01:49.656071",
+  "last_executed": "\u00bfC\u00f3mo sabe tu reloj inteligente cu\u00e1ndo est\u00e1s dormido? \u231a\ud83d\udca4",
+  "executed_at": "2026-11-15T09:01:50.328553",
   "note": "Cola secuencial de videos editados originales con la voz 'El Porqu\u00e9 de Todo' y branding EnigmaIQ. Cada ejecuci\u00f3n sube el siguiente video sucesivamente."
 }
