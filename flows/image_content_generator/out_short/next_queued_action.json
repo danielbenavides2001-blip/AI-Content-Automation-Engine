@@ -1,11 +1,6 @@
 {
   "pre_rendered_queue": [
     {
-      "file_path": "flows/image_content_generator/out_short/pre_rendered/12_EnigmaIQ_Curvas_Autopista.mp4",
-      "title": "\u00bfPor qu\u00e9 las carreteras y autopistas casi nunca son rectas? \ud83d\udee3\ufe0f\ud83d\udd04",
-      "description": "Si una recta es la distancia m\u00e1s corta entre dos puntos, \u00bfpor qu\u00e9 los ingenieros dise\u00f1an curvas forzadas? El peligro mortal de la hipnosis vial explicado por la psicolog\u00eda vial.\n\n#EnigmaIQ #Ingenieria #Autopistas #Carreteras #SeguridadVial #Psicologia #Curiosidades"
-    },
-    {
       "file_path": "flows/image_content_generator/out_short/pre_rendered/11_EnigmaIQ_Luna_Desaparece.mp4",
       "title": "\u00bfQu\u00e9 pasar\u00eda si la Luna desaparece de golpe? \ud83c\udf15\ud83d\udca5",
       "description": "Sin la Luna, las mareas colapsar\u00edan y el eje de la Tierra empezar\u00eda a oscilar de forma ca\u00f3tica, provocando una era glaciar extrema o un infierno abrasador.\n\n#EnigmaIQ #Espacio #Luna #Astronomia #Fisica #PlanetaTierra #Curiosidades"
@@ -43,7 +38,7 @@
   ],
   "pre_rendered_video": null,
   "next_topic": null,
-  "last_executed": "La sorprendente ciencia detr\u00e1s del olor a pescado en el cuerpo humano \ud83d\udc1f\ud83d\udd2c",
-  "executed_at": "2026-11-15T04:22:00.739310",
+  "last_executed": "\u00bfPor qu\u00e9 las carreteras y autopistas casi nunca son rectas? \ud83d\udee3\ufe0f\ud83d\udd04",
+  "executed_at": "2026-11-15T07:02:59.160301",
   "note": "Cola secuencial de videos editados originales con la voz 'El Porqu\u00e9 de Todo' y branding EnigmaIQ. Cada ejecuci\u00f3n sube el siguiente video sucesivamente."
 }
