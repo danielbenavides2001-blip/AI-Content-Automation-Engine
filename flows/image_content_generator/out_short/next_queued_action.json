@@ -1,11 +1,6 @@
 {
   "pre_rendered_queue": [
     {
-      "file_path": "flows/image_content_generator/out_short/pre_rendered/13_EnigmaIQ_Mar_Muerto.mp4",
-      "title": "\u00bfPor qu\u00e9 es f\u00edsicamente imposible hundirse en el Mar Muerto? \ud83c\udf0a\ud83e\uddc2",
-      "description": "Aunque no sepas nadar, tu cuerpo flota como un corcho sin ning\u00fan esfuerzo. Con un 34% de salinidad, la densidad del agua supera a la del cuerpo humano. Te contamos la f\u00edsica detr\u00e1s del punto m\u00e1s bajo del planeta.\n\n#EnigmaIQ #ElPorqu\u00e9DeTodo #MarMuerto #Ciencia #Fisica #Naturaleza #Curiosidades"
-    },
-    {
       "file_path": "flows/image_content_generator/out_short/pre_rendered/14_EnigmaIQ_Palomita_Maiz.mp4",
       "title": "La violenta explosi\u00f3n dentro de cada palomita de ma\u00edz \ud83c\udf7f\ud83d\udca5",
       "description": "Cada grano de ma\u00edz contiene una gota de agua atrapada en su endospermo de almid\u00f3n. Al calentarse a m\u00e1s de 180\u00b0C, la presi\u00f3n rompe la c\u00e1scara en una microexplosi\u00f3n termodin\u00e1mica instant\u00e1nea.\n\n#EnigmaIQ #ElPorqu\u00e9DeTodo #PalomitasDeMaiz #Ciencia #Fisica #Gastronomia #Curiosidades"
@@ -18,7 +13,7 @@
   ],
   "pre_rendered_video": null,
   "next_topic": null,
-  "last_executed": "\u00bfQu\u00e9 pasar\u00eda si se apagara Internet en todo el planeta durante 24 horas? \ud83c\udf10\ud83d\udd0c",
-  "executed_at": "2026-11-15T11:02:02.973923",
+  "last_executed": "\u00bfPor qu\u00e9 es f\u00edsicamente imposible hundirse en el Mar Muerto? \ud83c\udf0a\ud83e\uddc2",
+  "executed_at": "2026-11-15T12:02:28.448588",
   "note": "Cola secuencial de videos editados originales con la voz 'El Porqu\u00e9 de Todo' y branding EnigmaIQ. Cada ejecuci\u00f3n sube el siguiente video sucesivamente."
 }
