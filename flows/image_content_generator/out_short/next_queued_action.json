@@ -1,14 +1,8 @@
 {
-  "pre_rendered_queue": [
-    {
-      "file_path": "flows/image_content_generator/out_short/pre_rendered/15_EnigmaIQ_Nevera_Calor.mp4",
-      "title": "\u00bfPor qu\u00e9 abrir la nevera calienta tu cocina en vez de enfriarla? \u2744\ufe0f\ud83d\udd25",
-      "description": "La segunda ley de la termodin\u00e1mica dicta que el fr\u00edo no existe: solo es ausencia de calor. Tu refrigerador no crea fr\u00edo, extrae calor del interior y lo expulsa con creces por la rejilla trasera junto al calor del motor.\n\n#EnigmaIQ #ElPorqu\u00e9DeTodo #Termodinamica #Fisica #Ciencia #Hogar #Curiosidades"
-    }
-  ],
+  "pre_rendered_queue": [],
   "pre_rendered_video": null,
   "next_topic": null,
-  "last_executed": "La violenta explosi\u00f3n dentro de cada palomita de ma\u00edz \ud83c\udf7f\ud83d\udca5",
-  "executed_at": "2026-11-15T22:10:19.722050",
+  "last_executed": "\u00bfPor qu\u00e9 abrir la nevera calienta tu cocina en vez de enfriarla? \u2744\ufe0f\ud83d\udd25",
+  "executed_at": "2026-11-16T04:21:51.746669",
   "note": "Cola secuencial de videos editados originales con la voz 'El Porqu\u00e9 de Todo' y branding EnigmaIQ. Cada ejecuci\u00f3n sube el siguiente video sucesivamente."
 }
