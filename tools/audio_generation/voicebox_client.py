@@ -44,9 +44,9 @@ class VoiceboxClient:
             if not gen_id:
                 return False
 
-            # Poll status (up to 180 seconds per chunk)
-            for _ in range(90):
-                time.sleep(2.0)
+            # Poll status with responsive 0.4s interval for fast CUDA response
+            for _ in range(250):
+                time.sleep(0.4)
                 st_res = requests.get(f"{self.base_url}/history/{gen_id}", timeout=5)
                 if st_res.status_code == 200:
                     data = st_res.json()

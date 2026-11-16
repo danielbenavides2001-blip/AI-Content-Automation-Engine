@@ -2,13 +2,18 @@
   "pre_rendered_queue": [
     {
       "file_path": "flows/image_content_generator/out_short/pre_rendered/20_EnigmaIQ_Bolsillo_Jeans.mp4",
-      "title": "\u00bfPara qu\u00e9 sirve realmente el bolsillo peque\u00f1o de tus jeans? \ud83d\udc56\u23f3",
-      "description": "Ese peque\u00f1o bolsillo en el que apenas cabe un dedo no fue creado para monedas ni para encendedores \ud83d\udc56 Naci\u00f3 en la fiebre del oro de 1873 para proteger los objetos m\u00e1s valiosos de los vaqueros: sus relojes de cadena.\n\n#EnigmaIQ #ElPorqu\u00e9DeTodo #Jeans #Moda #Historia #Inventos #Curiosidades #Diseno"
+      "title": "¿Para qué sirve realmente el bolsillo pequeño de tus jeans? 👖⏳",
+      "description": "Ese pequeño bolsillo en el que apenas cabe un dedo no fue creado para monedas ni para encendedores 👖 Nació en la fiebre del oro de 1873 para proteger los objetos más valiosos de los vaqueros: sus relojes de cadena.\n\n#EnigmaIQ #ElPorquéDeTodo #Jeans #Moda #Historia #Inventos #Curiosidades #Diseno"
+    },
+    {
+      "file_path": "flows/image_content_generator/out_short/pre_rendered/21_EnigmaIQ_5_Cosas_Vol1.mp4",
+      "title": "5 Cosas que NO sabías hace un minuto 🤯⏳",
+      "description": "5 Cosas y datos curiosos que te volarán la cabeza en menos de un minuto 🤯 Desde el color real de los espejos hasta el secreto del parche pirata.\n\n#EnigmaIQ #XpressTV #Curiosidades #DatosCuriosos #Aprender #Ciencia #SabiasQue #Misterios"
     }
   ],
   "pre_rendered_video": null,
   "next_topic": null,
-  "last_executed": "\u00bfPor qu\u00e9 los gatos siempre caen de pie? El truco f\u00edsico de 1894 \ud83d\udc08\ud83d\udc3e",
-  "executed_at": "2026-11-16T12:02:07.241332",
-  "note": "Cola secuencial de videos editados originales con m\u00e1xima congruencia visual, voz cinematogr\u00e1fica 'El Porqu\u00e9 de Todo' y branding EnigmaIQ."
+  "last_executed": "¿Por qué las ventanas de los aviones son redondas y nunca cuadradas? ✈️🪟",
+  "executed_at": "2026-11-16T09:07:59.823873",
+  "note": "Cola secuencial de videos originales (5 curiosidades por video) con voz XpressTV y branding EnigmaIQ."
 }
