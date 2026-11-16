@@ -38,12 +38,13 @@ from tools.video_generation.media_hub import MediaHub
 from tools.social_media.facebook import FacebookTool
 
 # ==============================================================================
-# PYDANTIC SCHEMA FOR 5-SCENE VIDEO SCRIPT (> 60s)
+# PYDANTIC SCHEMA FOR 8-SCENE HIGH-PRECISION VIDEO SCRIPT (> 60s)
 # ==============================================================================
 class ScriptScene(BaseModel):
-    scene_number: int = Field(description="1 to 5")
-    narration: str = Field(description="22 to 25 words of high-impact narration in neutral Spanish")
-    stock_query: str = Field(description="English search query (2-4 words) for vertical stock video")
+    scene_number: int = Field(description="1 to 8")
+    narration: str = Field(description="14 to 18 words of high-impact narration in neutral Spanish")
+    visual_subject: str = Field(description="Concrete physical action or object visible on screen")
+    stock_query: str = Field(description="2-3 simple English keywords for vertical stock footage (e.g. 'airplane window', 'coffee pour')")
 
 class CatalogItemSchema(BaseModel):
     id: str = Field(description="Unique snake_case slug without spaces")
@@ -53,13 +54,13 @@ class CatalogItemSchema(BaseModel):
     category: str = Field(description="Category (e.g. 'FÍSICA & TERMODINÁMICA', 'BIOLOGÍA & CUERPO', etc.)")
     core_premise: str = Field(description="2-3 sentences explaining the rigorous scientific mechanism in simple words")
     facebook_copy: str = Field(description="Engaging caption for Facebook with hashtags")
-    stock_queries: List[str] = Field(description="5 English search queries for vertical stock video clips")
+    stock_queries: List[str] = Field(description="8 English search queries for vertical stock video clips")
 
 class ScriptBlueprint(BaseModel):
     title: str = Field(description="Catchy title matching the catalog topic")
     headline_top: str = Field(description="Top line of question card (e.g. '¿POR QUÉ LAS VENTANAS')")
     headline_bottom: str = Field(description="Bottom line in gold (e.g. 'DE AVIONES SON REDONDAS?')")
-    scenes: List[ScriptScene] = Field(description="Exactly 5 scenes")
+    scenes: List[ScriptScene] = Field(description="Exactly 8 scenes to provide dynamic visual cuts every 7-8 seconds")
     facebook_copy: str = Field(description="Facebook description with hashtags")
 
 # ==============================================================================
@@ -136,9 +137,9 @@ Reglas estrictas:
         return item_schema.model_dump()
 
     def generate_script(self, topic: dict) -> ScriptBlueprint:
-        Messenger.info(f"🧠 Generating high-retention 5-scene script with Gemini for: '{topic['title']}'...")
+        Messenger.info(f"🧠 Generating high-retention 8-scene script with Gemini for: '{topic['title']}'...")
         prompt = f"""
-Eres el Guionista y Director de 'EnigmaIQ' (estilo 'El porqué de todo').
+Eres el Guionista y Director de 'EnigmaIQ' (estilo 'El porqué de todo' en Facebook Reels).
 Crea un guion audiovisual fascinante, científico y de intriga viral sobre este tema:
 
 TÍTULO: {topic['title']}
@@ -147,18 +148,20 @@ LÍNEA SUPERIOR PREGUNTA: {topic['headline_top']}
 LÍNEA INFERIOR PREGUNTA: {topic['headline_bottom']}
 
 REGLAS CRÍTICAS DE DURACIÓN (DEBE DURAR MÁS DE 60 SEGUNDOS):
-1. Debes generar exactamente 5 escenas consecutivas.
-2. Cada escena DEBE tener una narración de entre 22 y 26 palabras concisas, rítmicas y con intriga.
-3. El total de palabras debe estar entre 115 y 128 palabras. A la velocidad de narración del locutor (1.7 palabras/segundo), esto garantiza que el audio dure exactamente entre 66 y 76 segundos (> 60s obligatorio).
-4. La Escena 5 debe cerrar con el llamado a la acción: "Esto es EnigmaIQ. ¿Conocías este dato? Cuéntanos en los comentarios."
+1. Debes generar exactamente 8 escenas consecutivas.
+2. Cada escena DEBE tener una narración de entre 18 y 22 palabras concisas, rítmicas y con intriga.
+3. El total acumulado de las 8 escenas debe estar entre 145 y 165 palabras. Esto garantiza que el audio dure exactamente entre 68 y 78 segundos (> 60s obligatorio para monetización en Meta Reels).
+4. La Escena 8 debe cerrar con el llamado a la acción: "Esto es EnigmaIQ. ¿Conocías este secreto de la ciencia? Cuéntanos en los comentarios."
 
 REGLA DE ORO DE CONGRUENCIA VISUAL ABSOLUTA (SIN MARGEN DE ERROR):
-5. CADA ESCENA DEBE MOSTRAR EXACTAMENTE LO QUE SE ESTÁ NARRANDO. Cero margen de error.
-   - Si la narración menciona una acción (abrir nevera, café cayendo, avión volando, hielo derritiéndose, gato saltando), el metraje DEBE mostrar esa acción u objeto literal en primer plano.
-   - Prohibido usar metáforas abstractas o conceptos difusos.
-   - En el campo 'stock_query' de cada escena escribe una búsqueda en INGLÉS (2-4 palabras) hiper-específica y directa que garantice metraje cinematográfico vertical en Pexels/Pixabay.
+5. CADA ESCENA DEBE MOSTRAR EXACTAMENTE LO QUE SE ESTÁ NARRANDO EN ESE PRECISO INSTANTE:
+   - Si la frase habla del avión temblando en el cielo, la imagen DEBE ser 'airplane flying clouds'.
+   - Si la frase habla del café caliente cayendo en la taza, la imagen DEBE ser 'coffee pouring cup'.
+   - Si la frase habla de la presión rompiendo el material, la imagen DEBE ser 'glass breaking explosion' o 'steam burst'.
+   - 'visual_subject': describe en español el objeto o acción física exacta visible.
+   - 'stock_query': escribe de 2 a 3 palabras clave en INGLÉS directas y comerciales (ej: 'airplane window', 'metal fatigue', 'cracked glass').
 
-Responde en formato JSON siguiendo el esquema.
+Responde en formato JSON siguiendo el esquema ScriptBlueprint.
 """
         blueprint = self.text_gen.generate_text(prompt=prompt, schema=ScriptBlueprint)
         return blueprint
@@ -166,27 +169,9 @@ Responde en formato JSON siguiendo el esquema.
     def synthesize_narration(self, blueprint: ScriptBlueprint, out_audio_path: Path) -> float:
         full_text = " ".join([s.narration.strip() for s in blueprint.scenes])
         Messenger.info(f"🎙️ Synthesizing narration ({len(full_text.split())} words)...")
-        wav_path = out_audio_path.with_suffix(".wav")
-        try:
-            self.audio_gen.text_to_speech(full_text, wav_path)
-            # Convert to high-quality MP3
-            cmd = ["ffmpeg", "-y", "-i", str(wav_path), "-c:a", "libmp3lame", "-b:a", "192k", str(out_audio_path)]
-            subprocess.run(cmd, check=True, capture_output=True)
-            Messenger.success("✅ Fenrir TTS narration generated.")
-        except Exception as e:
-            Messenger.warning(f"⚠️ Gemini TTS no disponible ({e}). Activando Neural Fallback (es-CO-GonzaloNeural)...")
-            import asyncio
-            import edge_tts
-            async def _run_edge():
-                comm = edge_tts.Communicate(full_text, "es-CO-GonzaloNeural", rate="+3%")
-                await comm.save(str(out_audio_path))
-            asyncio.run(_run_edge())
-            Messenger.success("✅ Neural Fallback audio generated.")
-
-        # Measure duration
-        cmd_dur = ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", str(out_audio_path)]
-        res = subprocess.run(cmd_dur, check=True, capture_output=True, text=True)
-        dur = float(res.stdout.strip())
+        from tools.audio_generation.voicebox_client import VoiceboxClient
+        vb_client = VoiceboxClient()
+        dur = vb_client.synthesize_full_narration(full_text, out_audio_path)
         Messenger.success(f"✅ Audio duration: {dur:.2f} seconds")
         return dur
 
@@ -416,16 +401,18 @@ Responde en formato JSON siguiendo el esquema.
             norm_path = work_dir / f"norm_scene_{idx+1}.mp4"
             target_dur = scene_durations[idx]
 
-            # Priority query cascade: Curated queries tested for visual congruence come first
+            # Priority query cascade: Scene-specific stock query matching narration comes first!
             candidate_queries = []
-            if idx < len(curated_queries) and curated_queries[idx].strip():
-                candidate_queries.append(curated_queries[idx].strip())
             if scene.stock_query and scene.stock_query.strip():
                 candidate_queries.append(scene.stock_query.strip())
+            if hasattr(scene, "visual_subject") and scene.visual_subject and scene.visual_subject.strip():
+                candidate_queries.append(scene.visual_subject.strip())
+            if idx < len(curated_queries) and curated_queries[idx].strip():
+                candidate_queries.append(curated_queries[idx].strip())
 
             downloaded = False
             for q in candidate_queries:
-                Messenger.info(f"🔎 Scene {idx+1}/5: Searching visual clip for '{q}' via MediaHub...")
+                Messenger.info(f"🔎 Scene {idx+1}/{len(blueprint.scenes)}: Searching visual clip for '{q}' via MediaHub...")
                 downloaded = self.media_hub.fetch_best_clip(
                     query=q,
                     out_path=raw_path,
@@ -433,7 +420,7 @@ Responde en formato JSON siguiendo el esquema.
                     duration=target_dur
                 )
                 if downloaded and raw_path.exists() and raw_path.stat().st_size > 10000:
-                    Messenger.success(f"🎬 Scene {idx+1}/5: Exact visual match obtained for narration: '{q}'")
+                    Messenger.success(f"🎬 Scene {idx+1}/{len(blueprint.scenes)}: Exact visual match obtained for narration: '{q}'")
                     break
 
             if not downloaded or not raw_path.exists() or raw_path.stat().st_size < 10000:
@@ -538,8 +525,8 @@ Responde en formato JSON siguiendo el esquema.
             "-map", "[a_out]",
             "-t", str(total_dur),
             "-c:v", "libx264",
-            "-preset", "medium",
-            "-crf", "20",
+            "-preset", "fast",
+            "-crf", "23",
             "-pix_fmt", "yuv420p",
             "-c:a", "aac",
             "-b:a", "192k",

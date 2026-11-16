@@ -15,7 +15,12 @@ __pycache__/
 models
 **/out
 **/out_long
-**/out_short
+**/out_short/*
+!**/out_short/pre_rendered/
+!**/out_short/pre_rendered/**
+!flows/image_content_generator/out_short/next_queued_action.json
+!flows/image_content_generator/out_short/automated_posts_history.csv
+!flows/image_content_generator/out_short/ideas_tracking.csv
 **/node_modules/
 **/scratch/
 

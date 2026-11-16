@@ -26,18 +26,35 @@ class GeminiQuotaExhaustedError(Exception):
     pass
 
 
+def _is_fatal_key_error(exc: Exception) -> bool:
+    """Returns True if the key itself is permanently invalid, leaked, or revoked."""
+    msg = str(exc).lower()
+    return any(k in msg for k in [
+        "leaked",
+        "permission_denied",
+        "api_key_invalid",
+        "key not valid",
+        "403",
+        "forbidden"
+    ])
+
+
 def _is_daily_quota_exhausted(exc: Exception) -> bool:
-    """Returns True if the error indicates key quota exhaustion or server unavailability on free tier."""
+    """Returns True if the error indicates key quota exhaustion, temporary server unavailability, or revoked key."""
     msg = str(exc)
     keywords = [
-        "GenerateRequestsPerDayPerProjectPerModel",
+        "generaterequestsperdayperprojectpermodel",
         "quota exceeded",
-        "RESOURCE_EXHAUSTED",
+        "resource_exhausted",
         "429",
         "503",
-        "UNAVAILABLE"
+        "403",
+        "unavailable",
+        "leaked",
+        "permission_denied",
+        "api_key_invalid"
     ]
-    return any(k.lower() in msg.lower() for k in keywords)
+    return any(k in msg.lower() for k in keywords)
 
 
 def _extract_retry_delay(exc: Exception) -> float:
@@ -172,6 +189,18 @@ class GeminiBase(BaseModelTool):
             if "not found" in err_str or "404" in err_str:
                 Messenger.warning(f"⚠️ Modelo no encontrado o no soportado ({type(e).__name__}). Saltando a fallback...")
                 raise GeminiQuotaExhaustedError(str(e))
+            
+            # Si la clave está revocada, filtrada o es inválida, eliminarla inmediatamente de la lista
+            if _is_fatal_key_error(e):
+                Messenger.error(f"❌ Clave API #{self._client_index + 1} inválida o revocada: {e}. Eliminándola de rotación.")
+                if self._clients_info:
+                    self._clients_info.pop(self._client_index)
+                if self._clients_info:
+                    self._client_index %= len(self._clients_info)
+                    raise errors.APIError(f"Clave revocada eliminada, rotando a cliente #{self._client_index+1}", None)
+                else:
+                    raise GeminiQuotaExhaustedError("❌ No quedan claves válidas de Gemini.")
+
             # Si la cuota o disponibilidad de la clave gratuita falla, rotar a la siguiente inmediatamente
             if _is_daily_quota_exhausted(e):
                 if self._rotate_to_next_client():

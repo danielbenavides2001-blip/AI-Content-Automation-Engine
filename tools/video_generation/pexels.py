@@ -31,25 +31,46 @@ class PexelsTool(BaseModelTool):
         url = "https://api.pexels.com/videos/search"
         headers = {"Authorization": self.api_key}
         
-        # Intentos progresivos: 1) Portrait específico, 2) Sin restricción estricta de size, 3) Orientación general
-        # Intentos de búsqueda: 1) Portrait específico, 2) Orientación general
-        search_attempts = [
-            {"query": clean_query, "orientation": "portrait", "per_page": 10, "page": 1},
-            {"query": clean_query, "per_page": 10, "page": 1},
-        ]
+        # Lista de stopwords en inglés para simplificación de queries
+        stopwords = {"in", "the", "at", "of", "and", "a", "an", "on", "with", "for", "to", "from", "by", "is", "up", "down", "out", "into", "as", "very", "extreme", "slow", "motion"}
+        words = [w for w in clean_query.lower().split() if w not in stopwords]
+        
+        query_variants = [clean_query]
+        if len(words) >= 2:
+            query_variants.append(" ".join(words[:2]))
+            query_variants.append(" ".join(words[-2:]))
+        if words:
+            query_variants.append(words[0])
+            query_variants.append(words[-1])
+
+        # Eliminar duplicados manteniendo orden
+        seen_q = set()
+        unique_variants = []
+        for q in query_variants:
+            if q and q not in seen_q:
+                seen_q.add(q)
+                unique_variants.append(q)
 
         videos = []
-        for attempt_params in search_attempts:
-            try:
-                response = requests.get(url, headers=headers, params=attempt_params, timeout=10)
-                if response.status_code == 200:
-                    data = response.json()
-                    vids = data.get("videos", [])
-                    if vids:
-                        videos = vids
-                        break
-            except Exception:
-                continue
+        for q_variant in unique_variants:
+            search_attempts = [
+                {"query": q_variant, "orientation": "portrait", "per_page": 10, "page": 1},
+                {"query": q_variant, "per_page": 10, "page": 1},
+            ]
+            for attempt_params in search_attempts:
+                try:
+                    response = requests.get(url, headers=headers, params=attempt_params, timeout=10)
+                    if response.status_code == 200:
+                        data = response.json()
+                        vids = data.get("videos", [])
+                        if vids:
+                            videos = vids
+                            Messenger.info(f"🎯 Pexels match encontrado con query variante: '{q_variant}' ({len(vids)} videos)")
+                            break
+                except Exception:
+                    continue
+            if videos:
+                break
 
         if not videos:
             Messenger.warning(f"⚠️ No se encontraron videos para '{clean_query}' en Pexels.")
