@@ -1,11 +1,6 @@
 {
   "pre_rendered_queue": [
     {
-      "file_path": "flows/image_content_generator/out_short/pre_rendered/18_EnigmaIQ_Relampago_Trueno.mp4",
-      "title": "El rel\u00e1mpago y el trueno pasan al mismo tiempo: \u00bfPor qu\u00e9 primero ves la luz? \u26a1\ud83d\udc42",
-      "description": "Ambos nacen exactamente en la misma mil\u00e9sima de segundo, pero la luz viaja casi un mill\u00f3n de veces m\u00e1s r\u00e1pido que las ondas sonoras en el aire \u26a1 Te explicamos c\u00f3mo calcular a qu\u00e9 distancia caer\u00e1 el siguiente rayo.\n\n#EnigmaIQ #ElPorqu\u00e9DeTodo #Tormenta #Rayo #Trueno #Fisica #Naturaleza #Curiosidades"
-    },
-    {
       "file_path": "flows/image_content_generator/out_short/pre_rendered/19_EnigmaIQ_Gatos_Caida.mp4",
       "title": "\u00bfPor qu\u00e9 los gatos siempre caen de pie? El truco f\u00edsico de 1894 \ud83d\udc08\ud83d\udc3e",
       "description": "Durante siglos la ciencia crey\u00f3 que los gatos violaban las leyes de la f\u00edsica al girar en el aire sin nada sobre lo que apoyarse \ud83d\udc08 En 1894 la cronofotograf\u00eda revel\u00f3 su asombrosa mec\u00e1nica biomec\u00e1nica.\n\n#EnigmaIQ #ElPorqu\u00e9DeTodo #Gatos #Fisica #Animales #Mascotas #Biomecanica #Curiosidades"
@@ -18,7 +13,7 @@
   ],
   "pre_rendered_video": null,
   "next_topic": null,
-  "last_executed": "El caf\u00e9 no te da energ\u00eda: \u00bfC\u00f3mo enga\u00f1a a tu cerebro? \u2615\ud83e\udde0",
-  "executed_at": "2026-11-16T10:02:39.362361",
+  "last_executed": "El rel\u00e1mpago y el trueno pasan al mismo tiempo: \u00bfPor qu\u00e9 primero ves la luz? \u26a1\ud83d\udc42",
+  "executed_at": "2026-11-16T11:02:23.055557",
   "note": "Cola secuencial de videos editados originales con m\u00e1xima congruencia visual, voz cinematogr\u00e1fica 'El Porqu\u00e9 de Todo' y branding EnigmaIQ."
 }
