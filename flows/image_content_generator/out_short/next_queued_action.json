@@ -1,11 +1,6 @@
 {
   "pre_rendered_queue": [
     {
-      "file_path": "flows/image_content_generator/out_short/pre_rendered/17_EnigmaIQ_Cafe_Cerebro.mp4",
-      "title": "El caf\u00e9 no te da energ\u00eda: \u00bfC\u00f3mo enga\u00f1a a tu cerebro? \u2615\ud83e\udde0",
-      "description": "El caf\u00e9 no produce energ\u00eda en tu cuerpo\u2026 solo sabotea temporalmente el freno de mano de tu cerebro \u2615 Y cuando la cafe\u00edna desaparece, la fatiga acumulada te golpea de golpe. La neuroqu\u00edmica de tu taza matutina.\n\n#EnigmaIQ #ElPorqu\u00e9DeTodo #Cafe #Cerebro #Neurociencia #Curiosidades #Salud #Ciencia"
-    },
-    {
       "file_path": "flows/image_content_generator/out_short/pre_rendered/18_EnigmaIQ_Relampago_Trueno.mp4",
       "title": "El rel\u00e1mpago y el trueno pasan al mismo tiempo: \u00bfPor qu\u00e9 primero ves la luz? \u26a1\ud83d\udc42",
       "description": "Ambos nacen exactamente en la misma mil\u00e9sima de segundo, pero la luz viaja casi un mill\u00f3n de veces m\u00e1s r\u00e1pido que las ondas sonoras en el aire \u26a1 Te explicamos c\u00f3mo calcular a qu\u00e9 distancia caer\u00e1 el siguiente rayo.\n\n#EnigmaIQ #ElPorqu\u00e9DeTodo #Tormenta #Rayo #Trueno #Fisica #Naturaleza #Curiosidades"
@@ -23,7 +18,7 @@
   ],
   "pre_rendered_video": null,
   "next_topic": null,
-  "last_executed": "\u00bfPor qu\u00e9 las ventanas de los aviones son redondas y nunca cuadradas? \u2708\ufe0f\ud83e\ude9f",
-  "executed_at": "2026-11-16T09:07:59.823873",
+  "last_executed": "El caf\u00e9 no te da energ\u00eda: \u00bfC\u00f3mo enga\u00f1a a tu cerebro? \u2615\ud83e\udde0",
+  "executed_at": "2026-11-16T10:02:39.362361",
   "note": "Cola secuencial de videos editados originales con m\u00e1xima congruencia visual, voz cinematogr\u00e1fica 'El Porqu\u00e9 de Todo' y branding EnigmaIQ."
 }
