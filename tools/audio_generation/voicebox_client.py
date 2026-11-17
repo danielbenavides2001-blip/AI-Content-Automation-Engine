@@ -49,9 +49,11 @@ class VoiceboxClient:
                     time.sleep(1.0)
                     continue
 
-                # Poll status for up to 600s (10 min) allowing parallel queues to finish
-                for _ in range(1200):
+                # Poll status for up to 180s (3 min) per chunk, allowing parallel queue to finish
+                poll_count = 0
+                for _ in range(360):
                     time.sleep(0.5)
+                    poll_count += 1
                     try:
                         st_res = requests.get(f"{self.base_url}/history/{gen_id}", timeout=10)
                         if st_res.status_code == 200:
@@ -63,11 +65,18 @@ class VoiceboxClient:
                                     out_wav.parent.mkdir(parents=True, exist_ok=True)
                                     out_wav.write_bytes(audio_res.content)
                                     return True
-                            elif status == "failed":
-                                Messenger.warning(f"Voicebox tarea {gen_id} falló: {data.get('error')}. Reintentando...")
+                            elif status in ("failed", "cancelled"):
+                                Messenger.warning(f"Voicebox tarea {gen_id} {status}: {data.get('error')}. Reintentando...")
                                 break
                     except Exception:
                         time.sleep(1.0)
+                else:
+                    # Timeout after 180s in queue: cancel and retry
+                    try:
+                        requests.post(f"{self.base_url}/generate/{gen_id}/cancel", timeout=5)
+                    except Exception:
+                        pass
+                    Messenger.warning(f"Voicebox tarea {gen_id} timeout tras 180s. Cancelando y reintentando...")
             except Exception as e:
                 Messenger.warning(f"Voicebox intento {attempt+1}/{max_retries} excepción: {e}")
                 time.sleep(2.0)
