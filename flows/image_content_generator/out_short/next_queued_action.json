@@ -1,11 +1,6 @@
 {
   "pre_rendered_queue": [
     {
-      "file_path": "flows/image_content_generator/out_short/pre_rendered/23_EnigmaIQ_5_Cosas_Vol3.mp4",
-      "title": "5 Objetos que usas TODOS los D\u00cdAS y no sabes su secreto \ud83d\udc56\ud83d\udd12",
-      "description": "Ese peque\u00f1o agujero o bolsillo en tus cosas tiene un prop\u00f3sito oculto de ingenier\u00eda \ud83d\udc56 Descubre el verdadero dise\u00f1o de lo cotidiano.\n\n#EnigmaIQ #Inventos #Curiosidades #Ingenieria #DatosCuriosos #XpressTV"
-    },
-    {
       "file_path": "flows/image_content_generator/out_short/pre_rendered/24_EnigmaIQ_5_Cosas_Vol4.mp4",
       "title": "5 Fen\u00f3menos de la TIERRA que desaf\u00edan la l\u00f3gica \u26a1\ud83c\udf0a",
       "description": "La Tierra tiene lugares y fen\u00f3menos que parecen de otro planeta \u26a1 Rayos que caen hacia el espacio y el lago donde nadie puede hundirse.\n\n#EnigmaIQ #Tierra #Clima #Fisica #Curiosidades #Misterios #XpressTV"
@@ -63,7 +58,7 @@
   ],
   "pre_rendered_video": null,
   "next_topic": null,
-  "last_executed": "5 Secretos ANIMALES que parecen de ciencia ficci\u00f3n \ud83d\udc19\ud83e\udd88",
-  "executed_at": "2026-11-17T07:03:04.441244",
+  "last_executed": "5 Objetos que usas TODOS los D\u00cdAS y no sabes su secreto \ud83d\udc56\ud83d\udd12",
+  "executed_at": "2026-11-17T08:02:21.419644",
   "note": "Cola secuencial de videos originales (5 curiosidades por video) con voz XpressTV y branding EnigmaIQ."
 }
