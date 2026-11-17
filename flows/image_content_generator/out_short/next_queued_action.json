@@ -1,11 +1,6 @@
 {
   "pre_rendered_queue": [
     {
-      "file_path": "flows/image_content_generator/out_short/pre_rendered/22_EnigmaIQ_5_Cosas_Vol2.mp4",
-      "title": "5 Secretos ANIMALES que parecen de ciencia ficci\u00f3n \ud83d\udc19\ud83e\udd88",
-      "description": "El reino animal esconde secretos imposibles \ud83d\udc19 Los pulpos tienen 3 corazones y los tiburones son m\u00e1s viejos que los \u00e1rboles.\n\n#EnigmaIQ #Animales #Naturaleza #Curiosidades #Biologia #XpressTV #DatosCuriosos"
-    },
-    {
       "file_path": "flows/image_content_generator/out_short/pre_rendered/23_EnigmaIQ_5_Cosas_Vol3.mp4",
       "title": "5 Objetos que usas TODOS los D\u00cdAS y no sabes su secreto \ud83d\udc56\ud83d\udd12",
       "description": "Ese peque\u00f1o agujero o bolsillo en tus cosas tiene un prop\u00f3sito oculto de ingenier\u00eda \ud83d\udc56 Descubre el verdadero dise\u00f1o de lo cotidiano.\n\n#EnigmaIQ #Inventos #Curiosidades #Ingenieria #DatosCuriosos #XpressTV"
@@ -68,7 +63,7 @@
   ],
   "pre_rendered_video": null,
   "next_topic": null,
-  "last_executed": "5 Cosas que NO sab\u00edas hace un minuto \ud83e\udd2f\u23f3",
-  "executed_at": "2026-11-17T06:04:57.914464",
+  "last_executed": "5 Secretos ANIMALES que parecen de ciencia ficci\u00f3n \ud83d\udc19\ud83e\udd88",
+  "executed_at": "2026-11-17T07:03:04.441244",
   "note": "Cola secuencial de videos originales (5 curiosidades por video) con voz XpressTV y branding EnigmaIQ."
 }
