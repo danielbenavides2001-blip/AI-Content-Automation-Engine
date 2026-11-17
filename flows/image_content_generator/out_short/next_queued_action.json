@@ -1,11 +1,6 @@
 {
   "pre_rendered_queue": [
     {
-      "file_path": "flows/image_content_generator/out_short/pre_rendered/24_EnigmaIQ_5_Cosas_Vol4.mp4",
-      "title": "5 Fen\u00f3menos de la TIERRA que desaf\u00edan la l\u00f3gica \u26a1\ud83c\udf0a",
-      "description": "La Tierra tiene lugares y fen\u00f3menos que parecen de otro planeta \u26a1 Rayos que caen hacia el espacio y el lago donde nadie puede hundirse.\n\n#EnigmaIQ #Tierra #Clima #Fisica #Curiosidades #Misterios #XpressTV"
-    },
-    {
       "file_path": "flows/image_content_generator/out_short/pre_rendered/25_EnigmaIQ_5_Cosas_Vol5.mp4",
       "title": "5 Secretos de AVIONES y TRENES que nunca te dijeron \u2708\ufe0f\ud83d\ude84",
       "description": "La ingenier\u00eda aeron\u00e1utica y ferroviaria oculta secretos fascinantes \u2708\ufe0f \u00bfPor qu\u00e9 todos los aviones son blancos y las ruedas de tren c\u00f3nicas?\n\n#EnigmaIQ #Aviones #Trenes #Ingenieria #Curiosidades #XpressTV"
@@ -58,7 +53,7 @@
   ],
   "pre_rendered_video": null,
   "next_topic": null,
-  "last_executed": "5 Objetos que usas TODOS los D\u00cdAS y no sabes su secreto \ud83d\udc56\ud83d\udd12",
-  "executed_at": "2026-11-17T08:02:21.419644",
+  "last_executed": "5 Fen\u00f3menos de la TIERRA que desaf\u00edan la l\u00f3gica \u26a1\ud83c\udf0a",
+  "executed_at": "2026-11-17T09:02:32.115826",
   "note": "Cola secuencial de videos originales (5 curiosidades por video) con voz XpressTV y branding EnigmaIQ."
 }
