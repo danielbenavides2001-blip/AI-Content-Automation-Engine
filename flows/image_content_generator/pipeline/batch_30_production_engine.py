@@ -175,16 +175,123 @@ def transcribe_and_make_ass(audio_path: Path, out_ass: Path):
         f.write("\n".join(lines))
     Messenger.info(f"  ⚡ [Subtítulos ASS] Generados en {time.time()-t0:.2f}s ({len(words)} palabras)")
 
+def get_dynamic_intro(video: dict) -> dict:
+    """Generates a dynamic narrative hook and unique visual query tailored to the specific topic (no static clock!)."""
+    import random
+    title = video.get("title", "")
+    category = video.get("category", "").upper()
+    curiosities = video.get("curiosities", [])
+    c1 = curiosities[0] if curiosities else {}
+    c1_q = c1.get("q1", "")
+    
+    h_top = sanitize_card_text(video.get("headline_top", "")).strip()
+    h_bottom = sanitize_card_text(video.get("headline_bottom", "")).strip()
+    
+    narration_options = [
+        f"¡{h_top.capitalize()} {h_bottom.lower()} que cambiarán por completo cómo ves el mundo!",
+        f"¡{h_top.capitalize()} {h_bottom.lower()} que la gran mayoría de personas desconoce!",
+        f"¡{h_top.capitalize()} {h_bottom.lower()} que desafían todo lo que creías saber!",
+        f"¡{h_top.capitalize()} {h_bottom.lower()} que te dejarán con la boca abierta!"
+    ]
+    narration = random.choice(narration_options)
+
+    cat_upper = f"{category} {title}".upper()
+    if any(k in cat_upper for k in ["AVIONES", "TRENES", "TRANSPORTE", "INGENIERIA"]):
+        query = random.choice([
+            "airplane jet flying clouds speed cinematic",
+            "modern bullet train fast motion cinematic",
+            "airplane cockpit flight speed clouds"
+        ])
+        fallback = "hyperlapse modern city highway traffic speed"
+    elif any(k in cat_upper for k in ["CUERPO", "CEREBRO", "MENTE", "SALUD", "PSICOLOGIA"]):
+        query = random.choice([
+            "human brain neural synapse firing electric glow",
+            "human eye iris pupil zoom extreme macro",
+            "heart pumping anatomical 3d glowing animation"
+        ])
+        fallback = "microscopic cell division human biology"
+    elif any(k in cat_upper for k in ["ESPACIO", "COSMOS", "UNIVERSO", "NASA", "PLANETA"]):
+        query = random.choice([
+            "deep space galaxy nebula stars vortex cinematic",
+            "planet earth from orbit space cinematic sunrise",
+            "massive black hole accretion disk space gravity"
+        ])
+        fallback = "night sky milky way stars timelapse cinematic"
+    elif any(k in cat_upper for k in ["ANIMAL", "OCEANO", "MAR", "CRIATURA"]):
+        query = random.choice([
+            "wild predator tiger intense eyes slow motion",
+            "giant blue whale underwater deep ocean cinematic",
+            "octopus bioluminescent deep sea creature swimming"
+        ])
+        fallback = "coral reef exotic colorful fish swimming macro"
+    elif any(k in cat_upper for k in ["HISTORIA", "ANTIGUO", "ARQUEOLOGIA", "MITOS"]):
+        query = random.choice([
+            "ancient egyptian pyramids golden cinematic aerial",
+            "ancient roman colosseum cinematic historical ruins",
+            "burning medieval torch dark secret stone tunnel"
+        ])
+        fallback = "ancient parchment map magnifying glass mystery"
+    elif any(k in cat_upper for k in ["COMIDA", "COCINA", "ALIMENTOS"]):
+        query = random.choice([
+            "honey dripping golden macro slow motion cinematic",
+            "popcorn kernel exploding slow motion macro",
+            "coffee roasting steam rising dark cinematic"
+        ])
+        fallback = "cooking flame skillet chef kitchen slow motion"
+    elif any(k in cat_upper for k in ["PLANTA", "BOSQUE", "NATURALEZA"]):
+        query = random.choice([
+            "green rainforest canopy drone cinematic mist",
+            "venus flytrap catching fly insect macro nature",
+            "mushroom spores glowing magical forest night"
+        ])
+        fallback = "plant growing sprouting soil timelapse green"
+    else:
+        if c1_q:
+            query = f"{c1_q} cinematic 4k"
+            fallback = "neon lightning strike storm electric slow motion"
+        else:
+            query = random.choice([
+                "lightning storm super slow motion cinematic",
+                "magnifying glass inspect mysterious document macro",
+                "futuristic neon tunnel warp speed hyperlapse",
+                "volcanic eruption lava glowing night cinematic"
+            ])
+            fallback = "ocean wave crashing massive slow motion"
+
+    return {
+        "narration": narration,
+        "query": query,
+        "fallback": fallback,
+        "is_intro": True
+    }
+
+def get_dynamic_outro() -> dict:
+    import random
+    outro_queries = [
+        {"q": "earth from space sunset golden hour cinematic", "fb": "planet earth orbit sunrise"},
+        {"q": "starry night sky milky way timelapse cinematic", "fb": "galaxy stars moving night"},
+        {"q": "neon glowing particle vortex abstract 4k", "fb": "futuristic technology digital background"},
+        {"q": "cinematic sunset time lapse mountain landscape", "fb": "golden hour clouds flying drone"}
+    ]
+    pick = random.choice(outro_queries)
+    return {
+        "narration": "¿Cuál de estas cinco curiosidades te sorprendió más? Déjanos tu opinión en los comentarios y sigue a EnigmaIQ.",
+        "query": pick["q"],
+        "fallback": pick["fb"],
+        "is_intro": False
+    }
+
 def fetch_and_norm_scene(idx: int, sc: dict, t_dur: float, work_dir: Path, media_hub: MediaHub) -> Path:
     raw_clip = work_dir / f"raw_scene_{idx+1}.mp4"
     norm_clip = work_dir / f"norm_scene_{idx+1}.mp4"
 
+    is_intro = sc.get("is_intro", False)
     q = sc["query"].strip()
     cache_key = hashlib.md5(f"{q}_{round(t_dur, 1)}".encode("utf-8")).hexdigest()
     cached_file = SHARED_CACHE_DIR / f"{cache_key}.mp4"
 
-    # 1. Reusar de la caché compartida global
-    if cached_file.exists() and cached_file.stat().st_size > 50000:
+    # 1. Reusar de la caché compartida global (EXCEPTO si es la escena de intro)
+    if not is_intro and cached_file.exists() and cached_file.stat().st_size > 50000:
         shutil.copy(cached_file, norm_clip)
         return norm_clip
 
@@ -205,11 +312,12 @@ def fetch_and_norm_scene(idx: int, sc: dict, t_dur: float, work_dir: Path, media
     ]
     subprocess.run(cmd_norm, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=str(BASE_DIR))
 
-    # Guardar en caché global para acelerar futuros videos
-    try:
-        shutil.copy(norm_clip, cached_file)
-    except Exception:
-        pass
+    # Guardar en caché global para acelerar futuros videos (solo si no es intro)
+    if not is_intro:
+        try:
+            shutil.copy(norm_clip, cached_file)
+        except Exception:
+            pass
 
     return norm_clip
 
@@ -236,10 +344,10 @@ def produce_single_video(video: dict, media_hub: MediaHub, vb_client: VoiceboxCl
     Messenger.info(f"Tema: {video['title']}")
     Messenger.info(f"==========================================")
 
-    # 1. Preparar lista de 12 escenas
-    scenes = [
-        {"narration": "¡Cinco cosas completamente asombrosas que probablemente no sabías hace apenas un minuto!", "query": "fast clock countdown ticking", "fallback": "hourglass sand falling macro"}
-    ]
+    # 1. Preparar lista de 12 escenas con Gancho de Intro Dinámico y Outro Variado
+    intro_scene = get_dynamic_intro(video)
+    outro_scene = get_dynamic_outro()
+    scenes = [intro_scene]
     for c in video["curiosities"]:
         p1 = c.get("p1")
         p2 = c.get("p2")
@@ -248,13 +356,9 @@ def produce_single_video(video: dict, media_hub: MediaHub, vb_client: VoiceboxCl
             mid = len(words) // 2
             p1 = " ".join(words[:mid])
             p2 = " ".join(words[mid:])
-        scenes.append({"narration": p1, "query": c["q1"], "fallback": c["q2"]})
-        scenes.append({"narration": p2, "query": c["q2"], "fallback": c["q1"]})
-    scenes.append({
-        "narration": "¿Cuál de estas cinco curiosidades te sorprendió más? Déjanos tu opinión en los comentarios y sigue a EnigmaIQ.",
-        "query": "dramatic golden sunset clouds landscape",
-        "fallback": "cinematic sunset time lapse sky"
-    })
+        scenes.append({"narration": p1, "query": c["q1"], "fallback": c["q2"], "is_intro": False})
+        scenes.append({"narration": p2, "query": c["q2"], "fallback": c["q1"], "is_intro": False})
+    scenes.append(outro_scene)
 
     # =========================================================================
     # PIPELINE EN PARALELO: Audio en Voicebox CUDA + Descarga y Pre-normalización
