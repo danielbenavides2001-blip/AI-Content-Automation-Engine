@@ -1,11 +1,6 @@
 {
   "pre_rendered_queue": [
     {
-      "file_path": "flows/image_content_generator/out_short/pre_rendered/26_EnigmaIQ_5_Cosas_Vol6.mp4",
-      "title": "5 Cosas que tu CUERPO hace sin que te des cuenta \ud83e\udde0\ud83d\udc40",
-      "description": "Tu cuerpo es una m\u00e1quina biol\u00f3gica alucinante \ud83e\udde0 Desde por qu\u00e9 se arrugan tus dedos en agua hasta la huella \u00fanica de tu lengua.\n\n#EnigmaIQ #CuerpoHumano #Salud #Ciencia #Curiosidades #XpressTV"
-    },
-    {
       "file_path": "flows/image_content_generator/out_short/pre_rendered/27_EnigmaIQ_5_Cosas_Vol7.mp4",
       "title": "5 Misterios del ESPACIO que parecen imposibles \ud83d\ude80\ud83c\udf0c",
       "description": "El espacio exterior desaf\u00eda todo lo que conocemos \ud83d\ude80 En Venus un d\u00eda dura m\u00e1s que un a\u00f1o y los astronautas crecen en \u00f3rbita.\n\n#EnigmaIQ #Espacio #Cosmos #NASA #Astronomia #Curiosidades #XpressTV"
@@ -68,7 +63,7 @@
   ],
   "pre_rendered_video": null,
   "next_topic": null,
-  "last_executed": "5 Secretos de AVIONES y TRENES que nunca te dijeron \u2708\ufe0f\ud83d\ude84",
-  "executed_at": "2026-11-18T05:41:22.640984",
+  "last_executed": "5 Cosas que tu CUERPO hace sin que te des cuenta \ud83e\udde0\ud83d\udc40",
+  "executed_at": "2026-11-18T07:02:57.179897",
   "note": "Cola secuencial de videos originales (5 curiosidades por video) con voz XpressTV y branding EnigmaIQ."
 }
