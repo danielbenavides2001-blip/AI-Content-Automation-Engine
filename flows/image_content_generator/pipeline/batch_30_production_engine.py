@@ -5,7 +5,9 @@ import time
 import shutil
 import subprocess
 import re
+import hashlib
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
 
 # Setup paths
 BASE_DIR = Path(r"C:\Users\Vanes\.gemini\antigravity\scratch\AI-Content-Automation-Engine1")
@@ -28,10 +30,25 @@ REPO_PRE_DIR = BASE_DIR / "flows" / "image_content_generator" / "out_short" / "p
 REPO_PRE_DIR.mkdir(parents=True, exist_ok=True)
 SCRATCH_DIR = BASE_DIR / "scratch" / "batch_30_production"
 SCRATCH_DIR.mkdir(parents=True, exist_ok=True)
+SHARED_CACHE_DIR = BASE_DIR / "scratch" / "shared_clip_cache"
+SHARED_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 QUEUE_FILE = BASE_DIR / "flows" / "image_content_generator" / "out_short" / "next_queued_action.json"
 CATALOG_FILE = BASE_DIR / "flows" / "image_content_generator" / "pipeline" / "curiosities_30_catalog.json"
 
 XPRESSTV_PROFILE_ID = "e294f4c2-3dc3-42af-bfa5-51a6492a28b9"
+
+# Singleton Whisper model for zero reloading latency
+_GLOBAL_WHISPER_MODEL = None
+
+def get_whisper_model():
+    global _GLOBAL_WHISPER_MODEL
+    if _GLOBAL_WHISPER_MODEL is None:
+        import whisper
+        import torch
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        Messenger.info(f"⚡ [Whisper] Inicializando modelo en memoria ({device})...")
+        _GLOBAL_WHISPER_MODEL = whisper.load_model("base", device=device)
+    return _GLOBAL_WHISPER_MODEL
 
 def sanitize_card_text(text: str) -> str:
     """Strips all emoji and unsupported unicode glyphs to completely eliminate tofu boxes."""
@@ -104,10 +121,8 @@ def generate_persistent_header(out_png: Path):
     img.save(out_png)
 
 def transcribe_and_make_ass(audio_path: Path, out_ass: Path):
-    import whisper
-    import torch
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = whisper.load_model("base", device=device)
+    t0 = time.time()
+    model = get_whisper_model()
     res = model.transcribe(str(audio_path), word_timestamps=True, language="es")
     
     words = []
@@ -158,8 +173,48 @@ def transcribe_and_make_ass(audio_path: Path, out_ass: Path):
 
     with open(out_ass, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
+    Messenger.info(f"  ⚡ [Subtítulos ASS] Generados en {time.time()-t0:.2f}s ({len(words)} palabras)")
+
+def fetch_and_norm_scene(idx: int, sc: dict, t_dur: float, work_dir: Path, media_hub: MediaHub) -> Path:
+    raw_clip = work_dir / f"raw_scene_{idx+1}.mp4"
+    norm_clip = work_dir / f"norm_scene_{idx+1}.mp4"
+
+    q = sc["query"].strip()
+    cache_key = hashlib.md5(f"{q}_{round(t_dur, 1)}".encode("utf-8")).hexdigest()
+    cached_file = SHARED_CACHE_DIR / f"{cache_key}.mp4"
+
+    # 1. Reusar de la caché compartida global
+    if cached_file.exists() and cached_file.stat().st_size > 50000:
+        shutil.copy(cached_file, norm_clip)
+        return norm_clip
+
+    # 2. Descargar si no existe localmente
+    if not raw_clip.exists() or raw_clip.stat().st_size < 10000:
+        ok = media_hub.fetch_best_clip(query=q, out_path=raw_clip, scene_topic=sc["narration"], duration=t_dur)
+        if not ok or not raw_clip.exists() or raw_clip.stat().st_size < 10000:
+            fallback_q = sc["fallback"]
+            media_hub.fetch_best_clip(query=fallback_q, out_path=raw_clip, scene_topic=sc["narration"], duration=t_dur)
+
+    # 3. Normalizar con FFmpeg a 1080x1920 30fps ultrafast
+    cmd_norm = [
+        "ffmpeg", "-y", "-stream_loop", "3", "-i", str(raw_clip),
+        "-t", str(t_dur),
+        "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,fps=30",
+        "-an", "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p",
+        str(norm_clip)
+    ]
+    subprocess.run(cmd_norm, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=str(BASE_DIR))
+
+    # Guardar en caché global para acelerar futuros videos
+    try:
+        shutil.copy(norm_clip, cached_file)
+    except Exception:
+        pass
+
+    return norm_clip
 
 def produce_single_video(video: dict, media_hub: MediaHub, vb_client: VoiceboxClient) -> Path:
+    start_v = time.time()
     final_dest = DOWNLOADS_DIR / f"{video['id']}.mp4"
     repo_dest = REPO_PRE_DIR / f"{video['id']}.mp4"
 
@@ -201,59 +256,74 @@ def produce_single_video(video: dict, media_hub: MediaHub, vb_client: VoiceboxCl
         "fallback": "cinematic sunset time lapse sky"
     })
 
-    # 2. Audio Synthesis via Voicebox CUDA
+    # =========================================================================
+    # PIPELINE EN PARALELO: Audio en Voicebox CUDA + Descarga y Pre-normalización
+    # =========================================================================
     full_narration = " ".join([s["narration"] for s in scenes])
     audio_wav = work_dir / "narration.wav"
-    dur = vb_client.synthesize_full_narration(full_narration, audio_wav)
-    Messenger.success(f"🎙️ Audio con Voz XpressTV (CUDA): {dur:.2f}s (Regla > 60s cumplida: {dur >= 60.0})")
-
-    # 3. Subtítulos ASS sincronizados
     ass_path = work_dir / f"{video['id']}.ass"
-    transcribe_and_make_ass(audio_wav, ass_path)
 
-    # 4. Descarga y normalización de los 12 clips
+    Messenger.info("⚡ [PIPELINE] Lanzando síntesis de audio y descarga de metraje en paralelo...")
+    t_parallel_start = time.time()
+
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        # A. Audio en background (Voicebox CUDA)
+        audio_future = executor.submit(vb_client.synthesize_full_narration, full_narration, audio_wav)
+
+        # B. En paralelo, pre-descargar los metrajes en crudo para las 12 escenas
+        def prefetch_raw(idx_sc):
+            idx, sc = idx_sc
+            raw_clip = work_dir / f"raw_scene_{idx+1}.mp4"
+            if not raw_clip.exists() or raw_clip.stat().st_size < 10000:
+                q = sc["query"]
+                ok = media_hub.fetch_best_clip(query=q, out_path=raw_clip, scene_topic=sc["narration"], duration=7.0)
+                if not ok or not raw_clip.exists() or raw_clip.stat().st_size < 10000:
+                    media_hub.fetch_best_clip(query=sc["fallback"], out_path=raw_clip, scene_topic=sc["narration"], duration=7.0)
+            return raw_clip
+
+        list(executor.map(prefetch_raw, enumerate(scenes)))
+        Messenger.success(f"  ✅ [Metrajes] 12 escenas descargadas en paralelo en {time.time()-t_parallel_start:.1f}s!")
+
+        # Esperar que termine el audio si aún no ha finalizado
+        dur = audio_future.result()
+
+    Messenger.success(f"🎙️ Audio con Voz XpressTV (CUDA): {dur:.2f}s (Cumple > 60s: {dur >= 60.0})")
+
+    # =========================================================================
+    # FASE 2: Subtítulos ASS + Normalización de Escenas en Paralelo Concurrente
+    # =========================================================================
     num_scenes = len(scenes)
     dur_per_scene = round(dur / num_scenes, 2)
     scene_durations = [dur_per_scene] * num_scenes
     scene_durations[-1] = round(dur - sum(scene_durations[:-1]), 2)
 
-    clips = []
-    for idx, sc in enumerate(scenes):
-        raw_clip = work_dir / f"raw_scene_{idx+1}.mp4"
-        norm_clip = work_dir / f"norm_scene_{idx+1}.mp4"
-        t_dur = scene_durations[idx]
-        
-        q = sc["query"]
-        if not raw_clip.exists() or raw_clip.stat().st_size < 10000:
-            ok = media_hub.fetch_best_clip(query=q, out_path=raw_clip, scene_topic=sc["narration"], duration=t_dur)
-            if not ok or not raw_clip.exists() or raw_clip.stat().st_size < 10000:
-                fallback_q = sc["fallback"]
-                media_hub.fetch_best_clip(query=fallback_q, out_path=raw_clip, scene_topic=sc["narration"], duration=t_dur)
+    with ThreadPoolExecutor(max_workers=6) as executor:
+        # 1. Transcribir con Whisper pre-cargado
+        ass_future = executor.submit(transcribe_and_make_ass, audio_wav, ass_path)
 
-        # Normalizar con FFmpeg a 1080x1920 30fps
-        cmd_norm = [
-            "ffmpeg", "-y", "-stream_loop", "3", "-i", str(raw_clip),
-            "-t", str(t_dur),
-            "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,fps=30",
-            "-an", "-c:v", "libx264", "-preset", "veryfast", "-pix_fmt", "yuv420p",
-            str(norm_clip)
-        ]
-        subprocess.run(cmd_norm, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=str(BASE_DIR))
-        clips.append(norm_clip)
+        # 2. Normalizar las 12 escenas a la duración exacta en paralelo
+        def norm_task(idx_sc):
+            idx, sc = idx_sc
+            return fetch_and_norm_scene(idx, sc, scene_durations[idx], work_dir, media_hub)
+
+        clips = list(executor.map(norm_task, enumerate(scenes)))
+        ass_future.result()
 
     concat_txt = work_dir / "concat.txt"
     with open(concat_txt, "w", encoding="utf-8") as f:
         for c in clips:
             f.write(f"file '{c.resolve().as_posix()}'\n")
 
-    # 5. Overlays con texto 100% sanitizado (CERO cajas o errores de glifos)
+    # 3. Overlays con texto 100% sanitizado
     card_png = work_dir / "intro_card.png"
     generate_intro_card(video, card_png)
 
     header_png = work_dir / "persistent_header.png"
     generate_persistent_header(header_png)
 
-    # 6. Render Maestro FFmpeg
+    # =========================================================================
+    # FASE 3: Render Maestro Acelerado con GPU NVENC (NVIDIA RTX 2070)
+    # =========================================================================
     try:
         rel_fonts = FONTS_DIR.relative_to(BASE_DIR).as_posix()
     except Exception:
@@ -283,19 +353,22 @@ def produce_single_video(video: dict, media_hub: MediaHub, vb_client: VoiceboxCl
         "-map", "[v_out]",
         "-map", "[a_out]",
         "-t", str(dur),
-        "-c:v", "libx264",
-        "-preset", "veryfast",
-        "-crf", "25",
+        "-c:v", "h264_nvenc",
+        "-preset", "p4",
+        "-cq", "23",
         "-pix_fmt", "yuv420p",
         "-c:a", "aac",
         "-b:a", "192k",
         str(final_dest)
     ]
-    Messenger.info("🎬 Ensamblando master final con FFmpeg...")
+    Messenger.info("🎬 [FFmpeg NVENC] Ensamblando master final en GPU a máxima velocidad...")
+    t_render_start = time.time()
     subprocess.run(cmd_master, check=True, cwd=str(BASE_DIR))
-    
+    Messenger.info(f"  ⚡ Renderizado final completado en {time.time()-t_render_start:.2f}s!")
+
     sz_mb = final_dest.stat().st_size / (1024 * 1024)
-    Messenger.success(f"🎉 MASTER CREADO CON ÉXITO: {final_dest.name} ({sz_mb:.1f} MB, {dur:.2f}s)")
+    total_time = time.time() - start_v
+    Messenger.success(f"🎉 MASTER CREADO CON ÉXITO: {final_dest.name} ({sz_mb:.1f} MB, {dur:.2f}s) en {total_time:.1f}s!")
     shutil.copy(final_dest, repo_dest)
     return final_dest
 
@@ -348,12 +421,15 @@ def sync_queue_and_git(rendered_videos: list):
         Messenger.warning(f"⚠️ Git push warning: {ge}")
 
 def main():
-    Messenger.info("🚀 Iniciando Motor de Producción en Lote (Voz XpressTV + Duración >60s + Tarjeta Sanitizada)...")
+    Messenger.info("🚀 Iniciando Motor de Producción ULTRA-OPTIMIZADO (Pipelining + NVENC + Paralelismo)...")
     with open(CATALOG_FILE, "r", encoding="utf-8") as f:
         catalog = json.load(f)
 
     media_hub = MediaHub()
     vb_client = VoiceboxClient(profile_id=XPRESSTV_PROFILE_ID)
+
+    # Pre-calentar el modelo Whisper en memoria GPU al inicio
+    get_whisper_model()
 
     rendered = []
     # Process batch
