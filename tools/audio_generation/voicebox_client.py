@@ -94,20 +94,6 @@ class VoiceboxClient:
 
         return False
 
-    def synthesize_full_narration(self, text: str, out_path: Path) -> float:
-        """
-        Synthesizes long narration text by chunking, synthesizing each chunk with Voicebox,
-        and concatenating them into out_path (wav or mp3).
-        Strictly requires Voicebox to maintain 100% authentic XpressTV cloned voice.
-        """
-        out_path = Path(out_path)
-        out_path.parent.mkdir(parents=True, exist_ok=True)
-
-        if not self.is_available():
-            Messenger.info("ℹ️ Servidor Voicebox local no detectado en http://127.0.0.1:17493.")
-            Messenger.info("🚀 Conmutando a XTTS-v2 en CPU para síntesis 100% autónoma en la nube...")
-            return self._synthesize_with_xtts(text, out_path)
-
     def _synthesize_with_xtts(self, text: str, out_path: Path) -> float:
         """
         Cloud/CPU engine using Coqui XTTS-v2 with the official XpressTV reference audio.
@@ -129,6 +115,20 @@ class VoiceboxClient:
         dur = self._get_duration(out_path)
         Messenger.success(f"✅ [XTTS-v2] Narración con voz XpressTV sintetizada en {time.time()-t0:.1f}s ({dur:.2f}s de audio)")
         return dur
+
+    def synthesize_full_narration(self, text: str, out_path: Path) -> float:
+        """
+        Synthesizes long narration text by chunking, synthesizing each chunk with Voicebox,
+        and concatenating them into out_path (wav or mp3).
+        Strictly requires Voicebox to maintain 100% authentic XpressTV cloned voice.
+        """
+        out_path = Path(out_path)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+
+        if not self.is_available():
+            Messenger.info("ℹ️ Servidor Voicebox local no detectado en http://127.0.0.1:17493.")
+            Messenger.info("🚀 Conmutando a XTTS-v2 en CPU para síntesis 100% autónoma en la nube...")
+            return self._synthesize_with_xtts(text, out_path)
 
         Messenger.info(f"🎙️ [Voicebox Local CUDA] Sintetizando narración con voz clonada XpressTV...")
         import re
