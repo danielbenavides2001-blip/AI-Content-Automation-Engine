@@ -184,13 +184,14 @@ def transcribe_and_make_ass(audio_path: Path, out_ass: Path):
     Messenger.info(f"  ⚡ [Subtítulos ASS] Generados en {time.time()-t0:.2f}s ({len(words)} palabras)")
 
 def get_dynamic_intro(video: dict) -> dict:
-    """Generates a dynamic narrative hook and unique visual query tailored to the specific topic (no static clock!)."""
+    """
+    Generates a dynamic narrative hook and visual query derived DIRECTLY
+    from the curiosities of this specific video. The opening visual doubles as the
+    high-impact thumbnail on Facebook Reels (eliminating any clock completely).
+    """
     import random
     title = video.get("title", "")
-    category = video.get("category", "").upper()
     curiosities = video.get("curiosities", [])
-    c1 = curiosities[0] if curiosities else {}
-    c1_q = c1.get("q1", "")
     
     h_top = sanitize_card_text(video.get("headline_top", "")).strip()
     h_bottom = sanitize_card_text(video.get("headline_bottom", "")).strip()
@@ -203,68 +204,25 @@ def get_dynamic_intro(video: dict) -> dict:
     ]
     narration = random.choice(narration_options)
 
-    cat_upper = f"{category} {title}".upper()
-    if any(k in cat_upper for k in ["AVIONES", "TRENES", "TRANSPORTE", "INGENIERIA"]):
-        query = random.choice([
-            "airplane jet flying clouds speed cinematic",
-            "modern bullet train fast motion cinematic",
-            "airplane cockpit flight speed clouds"
-        ])
-        fallback = "hyperlapse modern city highway traffic speed"
-    elif any(k in cat_upper for k in ["CUERPO", "CEREBRO", "MENTE", "SALUD", "PSICOLOGIA"]):
-        query = random.choice([
-            "human brain neural synapse firing electric glow",
-            "human eye iris pupil zoom extreme macro",
-            "heart pumping anatomical 3d glowing animation"
-        ])
-        fallback = "microscopic cell division human biology"
-    elif any(k in cat_upper for k in ["ESPACIO", "COSMOS", "UNIVERSO", "NASA", "PLANETA"]):
-        query = random.choice([
-            "deep space galaxy nebula stars vortex cinematic",
-            "planet earth from orbit space cinematic sunrise",
-            "massive black hole accretion disk space gravity"
-        ])
-        fallback = "night sky milky way stars timelapse cinematic"
-    elif any(k in cat_upper for k in ["ANIMAL", "OCEANO", "MAR", "CRIATURA"]):
-        query = random.choice([
-            "wild predator tiger intense eyes slow motion",
-            "giant blue whale underwater deep ocean cinematic",
-            "octopus bioluminescent deep sea creature swimming"
-        ])
-        fallback = "coral reef exotic colorful fish swimming macro"
-    elif any(k in cat_upper for k in ["HISTORIA", "ANTIGUO", "ARQUEOLOGIA", "MITOS"]):
-        query = random.choice([
-            "ancient egyptian pyramids golden cinematic aerial",
-            "ancient roman colosseum cinematic historical ruins",
-            "burning medieval torch dark secret stone tunnel"
-        ])
-        fallback = "ancient parchment map magnifying glass mystery"
-    elif any(k in cat_upper for k in ["COMIDA", "COCINA", "ALIMENTOS"]):
-        query = random.choice([
-            "honey dripping golden macro slow motion cinematic",
-            "popcorn kernel exploding slow motion macro",
-            "coffee roasting steam rising dark cinematic"
-        ])
-        fallback = "cooking flame skillet chef kitchen slow motion"
-    elif any(k in cat_upper for k in ["PLANTA", "BOSQUE", "NATURALEZA"]):
-        query = random.choice([
-            "green rainforest canopy drone cinematic mist",
-            "venus flytrap catching fly insect macro nature",
-            "mushroom spores glowing magical forest night"
-        ])
-        fallback = "plant growing sprouting soil timelapse green"
-    else:
-        if c1_q:
-            query = f"{c1_q} cinematic 4k"
-            fallback = "neon lightning strike storm electric slow motion"
+    # Metraje y Miniatura: Extraído DIRECTAMENTE de las curiosidades de este video
+    if curiosities:
+        c1 = curiosities[0]
+        base_q = c1.get("q1", "").strip()
+        fallback = c1.get("q2", "").strip()
+        if base_q:
+            query = f"{base_q} cinematic 4k"
         else:
-            query = random.choice([
-                "lightning storm super slow motion cinematic",
-                "magnifying glass inspect mysterious document macro",
-                "futuristic neon tunnel warp speed hyperlapse",
-                "volcanic eruption lava glowing night cinematic"
-            ])
-            fallback = "ocean wave crashing massive slow motion"
+            query = f"{title} cinematic vertical"
+    else:
+        query = f"{title} cinematic vertical"
+        fallback = "dramatic scientific discovery cinematic"
+
+    return {
+        "narration": narration,
+        "query": query,
+        "fallback": fallback,
+        "is_intro": True  # NUNCA reutilizar en caché compartida
+    }
 
     return {
         "narration": narration,
