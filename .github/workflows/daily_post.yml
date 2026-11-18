@@ -123,23 +123,14 @@ jobs:
           fi
           
           if [ "$RUN_VIDEO" = true ]; then
-            echo "🎬 GENERATING VIRAL ENIGMAIQ MASTER REEL (> 60s)..."
+            echo "🎬 GENERATING VIRAL ENIGMAIQ MASTER REEL DIRECTLY IN GITHUB ACTIONS CLOUD (> 60s)..."
             export POST_TYPE="video"
-            MODE_INPUT="${{ github.event.inputs.force_mode }}"
-            if [ -n "$MODE_INPUT" ]; then
-              export MODE="$MODE_INPUT"
-            else
-              export MODE="mecanica"
-            fi
+            VIDEO_ARG=""
             TOPIC_INPUT="${{ github.event.inputs.force_topic }}"
             if [ -n "$TOPIC_INPUT" ]; then
-              export TOPIC="$TOPIC_INPUT"
+              VIDEO_ARG="--video-id $TOPIC_INPUT"
             fi
-            PILLAR_INPUT="${{ github.event.inputs.force_pillar }}"
-            if [ -n "$PILLAR_INPUT" ] && [ "$PILLAR_INPUT" != "auto" ]; then
-              export PILLAR="$PILLAR_INPUT"
-            fi
-            poetry run python flows/image_content_generator/pipeline/daily_automated_content.py
+            poetry run python flows/image_content_generator/pipeline/batch_30_production_engine.py --single --upload $VIDEO_ARG
             sleep 5
           fi
           

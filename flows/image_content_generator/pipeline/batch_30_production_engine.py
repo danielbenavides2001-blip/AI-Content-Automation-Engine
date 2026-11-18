@@ -10,8 +10,9 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 
 # Setup paths
-BASE_DIR = Path(r"C:\Users\Vanes\.gemini\antigravity\scratch\AI-Content-Automation-Engine1")
-sys.path.insert(0, str(BASE_DIR))
+BASE_DIR = Path(__file__).resolve().parents[3]
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
 
 from dotenv import load_dotenv
 load_dotenv(BASE_DIR / ".env")
@@ -19,13 +20,12 @@ load_dotenv(BASE_DIR / ".env")
 from tools.common.messenger import Messenger
 from tools.video_generation.media_hub import MediaHub
 from tools.audio_generation.voicebox_client import VoiceboxClient
+from tools.social_media.facebook import FacebookTool
 from PIL import Image, ImageDraw, ImageFont
 
 FONTS_DIR = BASE_DIR / "flows" / "curiosity_image_generator" / "resources" / "fonts"
 FONT_PATH = FONTS_DIR / "Montserrat-Bold.ttf"
 AMBIENT_AUDIO = BASE_DIR / "flows" / "image_content_generator" / "remotion" / "public" / "mar_salado_assets" / "ambient_bed.mp3"
-DOWNLOADS_DIR = Path(r"C:\Users\Vanes\Downloads\Videos_EnigmaIQ_Editados")
-DOWNLOADS_DIR.mkdir(parents=True, exist_ok=True)
 REPO_PRE_DIR = BASE_DIR / "flows" / "image_content_generator" / "out_short" / "pre_rendered"
 REPO_PRE_DIR.mkdir(parents=True, exist_ok=True)
 SCRATCH_DIR = BASE_DIR / "scratch" / "batch_30_production"
@@ -34,6 +34,14 @@ SHARED_CACHE_DIR = BASE_DIR / "scratch" / "shared_clip_cache"
 SHARED_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 QUEUE_FILE = BASE_DIR / "flows" / "image_content_generator" / "out_short" / "next_queued_action.json"
 CATALOG_FILE = BASE_DIR / "flows" / "image_content_generator" / "pipeline" / "curiosities_30_catalog.json"
+HISTORY_FILE = BASE_DIR / "flows" / "image_content_generator" / "out_short" / "automated_posts_history.csv"
+
+# Cloud-compatible output directory (works in GitHub Actions Ubuntu and local PC)
+if os.getenv("GITHUB_ACTIONS") == "true" or os.getenv("CI") == "true":
+    DOWNLOADS_DIR = REPO_PRE_DIR
+else:
+    DOWNLOADS_DIR = Path(r"C:\Users\Vanes\Downloads\Videos_EnigmaIQ_Editados")
+    DOWNLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
 XPRESSTV_PROFILE_ID = "e294f4c2-3dc3-42af-bfa5-51a6492a28b9"
 
@@ -446,6 +454,23 @@ def produce_single_video(video: dict, media_hub: MediaHub, vb_client: VoiceboxCl
         f"[a_voice][a_bed]amix=inputs=2:duration=first:dropout_transition=2[a_out]"
     )
 
+    # Dynamic encoder: NVENC on local PC GPU, libx264 ultrafast on GitHub Actions CPU
+    is_ci = os.getenv("GITHUB_ACTIONS") == "true" or os.getenv("CI") == "true"
+    has_nvenc = False
+    if not is_ci:
+        try:
+            r = subprocess.run(["ffmpeg", "-encoders"], capture_output=True, text=True)
+            has_nvenc = "h264_nvenc" in r.stdout
+        except Exception:
+            has_nvenc = False
+
+    if has_nvenc:
+        v_codec = ["-c:v", "h264_nvenc", "-preset", "p4", "-cq", "23"]
+        Messenger.info("🎬 [FFmpeg NVENC] Ensamblando master final en GPU a máxima velocidad...")
+    else:
+        v_codec = ["-c:v", "libx264", "-preset", "ultrafast", "-crf", "23"]
+        Messenger.info("🎬 [FFmpeg CPU] Ensamblando master final en CPU (modo nube / GitHub Actions)...")
+
     cmd_master = [
         "ffmpeg", "-y",
         "-f", "concat", "-safe", "0", "-i", str(concat_txt),
@@ -457,15 +482,12 @@ def produce_single_video(video: dict, media_hub: MediaHub, vb_client: VoiceboxCl
         "-map", "[v_out]",
         "-map", "[a_out]",
         "-t", str(dur),
-        "-c:v", "h264_nvenc",
-        "-preset", "p4",
-        "-cq", "23",
+        *v_codec,
         "-pix_fmt", "yuv420p",
         "-c:a", "aac",
         "-b:a", "192k",
         str(final_dest)
     ]
-    Messenger.info("🎬 [FFmpeg NVENC] Ensamblando master final en GPU a máxima velocidad...")
     t_render_start = time.time()
     subprocess.run(cmd_master, check=True, cwd=str(BASE_DIR))
     Messenger.info(f"  ⚡ Renderizado final completado en {time.time()-t_render_start:.2f}s!")
@@ -473,7 +495,8 @@ def produce_single_video(video: dict, media_hub: MediaHub, vb_client: VoiceboxCl
     sz_mb = final_dest.stat().st_size / (1024 * 1024)
     total_time = time.time() - start_v
     Messenger.success(f"🎉 MASTER CREADO CON ÉXITO: {final_dest.name} ({sz_mb:.1f} MB, {dur:.2f}s) en {total_time:.1f}s!")
-    shutil.copy(final_dest, repo_dest)
+    if final_dest.resolve() != repo_dest.resolve():
+        shutil.copy(final_dest, repo_dest)
     return final_dest
 
 def sync_queue_and_git(rendered_videos: list):
@@ -525,23 +548,87 @@ def sync_queue_and_git(rendered_videos: list):
         Messenger.warning(f"⚠️ Git push warning: {ge}")
 
 def main():
-    Messenger.info("🚀 Iniciando Motor de Producción ULTRA-OPTIMIZADO (Pipelining + NVENC + Paralelismo)...")
+    import argparse
+    parser = argparse.ArgumentParser(description="EnigmaIQ Production Engine (Local PC or GitHub Actions Cloud)")
+    parser.add_argument("--single", action="store_true", help="Produce only 1 pending video from catalog (ideal for GitHub Actions)")
+    parser.add_argument("--upload", action="store_true", help="Upload directly to Facebook Reels upon completion")
+    parser.add_argument("--video-id", type=str, default="", help="Force specific video ID to produce")
+    args = parser.parse_args()
+
+    Messenger.info("🚀 Iniciando Motor de Producción EnigmaIQ (Multi-plataforma Local / Cloud CI)...")
     with open(CATALOG_FILE, "r", encoding="utf-8") as f:
         catalog = json.load(f)
 
     media_hub = MediaHub()
     vb_client = VoiceboxClient(profile_id=XPRESSTV_PROFILE_ID)
-
-    # Pre-calentar el modelo Whisper en memoria GPU al inicio
     get_whisper_model()
 
+    # Cargar historial para no repetir videos ya publicados en Facebook
+    posted_titles = set()
+    if HISTORY_FILE.exists():
+        try:
+            with open(HISTORY_FILE, "r", encoding="utf-8") as hf:
+                for line in hf.readlines()[1:]:
+                    parts = line.strip().split(",")
+                    if len(parts) >= 3:
+                        posted_titles.add(parts[2].strip().lower())
+        except Exception:
+            pass
+
+    if args.single:
+        # Modo Nube / GitHub Actions: busca el PRIMER video que falte por renderizar o publicar
+        target_video = None
+        for v in catalog:
+            if args.video_id and v["id"] != args.video_id:
+                continue
+            v_file = REPO_PRE_DIR / f"{v['id']}.mp4"
+            is_posted = v["title"].strip().lower() in posted_titles
+            # Si el video no existe localmente, o pesa menos de 12MB, o no se ha publicado en FB
+            if not v_file.exists() or v_file.stat().st_size < 12 * 1024 * 1024 or not is_posted:
+                target_video = v
+                break
+
+        if not target_video:
+            Messenger.warning("⚠️ No hay videos pendientes en el catálogo. Todo el catálogo ya fue procesado.")
+            return
+
+        Messenger.info(f"🎯 [Modo Single Cloud] Produciendo video objetivo: {target_video['id']} - '{target_video['title']}'...")
+        master_file = produce_single_video(target_video, media_hub, vb_client)
+
+        if args.upload and master_file and master_file.exists():
+            Messenger.info(f"🚀 [Meta API] Subiendo Reel generado en la nube a Facebook: {master_file.name}...")
+            fb = FacebookTool(
+                page_id=os.getenv("FACEBOOK_PAGE_ID", ""),
+                access_token=os.getenv("FACEBOOK_PAGE_ACCESS_TOKEN", "")
+            )
+            try:
+                res_id = fb.upload_reel(
+                    file_path=master_file,
+                    title=target_video["title"],
+                    description=target_video.get("description", "")
+                )
+                Messenger.success(f"🎉 Reel publicado con éxito desde GitHub Actions! Video ID: {res_id}")
+                
+                # Registrar en historial
+                import datetime
+                today = datetime.date.today().isoformat()
+                clean_title = target_video["title"].replace(",", " - ").strip()
+                with open(HISTORY_FILE, "a", encoding="utf-8") as hf:
+                    hf.write(f"{today},video,{clean_title}\n")
+            except Exception as e:
+                Messenger.error(f"Falla subiendo a Facebook: {e}")
+                sys.exit(1)
+
+        sync_queue_and_git([target_video])
+        Messenger.success(f"🎉 Video {target_video['id']} completado y sincronizado con éxito desde GitHub Actions.")
+        return
+
+    # Modo Lote (por defecto local):
     rendered = []
-    # Process batch
     for v in catalog:
         try:
             produce_single_video(v, media_hub, vb_client)
             rendered.append(v)
-            # Sync to queue and push after each video
             sync_queue_and_git([v])
         except Exception as e:
             Messenger.error(f"Falla produciendo video {v['id']}: {e}")
