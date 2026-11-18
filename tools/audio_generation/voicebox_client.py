@@ -9,6 +9,17 @@ from tools.common.messenger import Messenger
 VOICEBOX_BASE_URL = os.getenv("VOICEBOX_URL", "http://127.0.0.1:17493")
 DEFAULT_PROFILE_ID = "e294f4c2-3dc3-42af-bfa5-51a6492a28b9"  # XpressTV (Curiosidades Virales)
 
+_GLOBAL_XTTS_MODEL = None
+
+def get_xtts_model():
+    global _GLOBAL_XTTS_MODEL
+    if _GLOBAL_XTTS_MODEL is None:
+        os.environ["COQUI_TOS_AGREED"] = "1"
+        from TTS.api import TTS
+        Messenger.info("⚡ [XTTS-v2] Inicializando modelo en memoria CPU para síntesis en nube/GitHub...")
+        _GLOBAL_XTTS_MODEL = TTS("tts_models/multilingual/multi-dataset/xtts_v2", gpu=False)
+    return _GLOBAL_XTTS_MODEL
+
 class VoiceboxClient:
     """
     Client for local Voicebox neural voice synthesis with automatic chunking,
@@ -93,13 +104,31 @@ class VoiceboxClient:
         out_path.parent.mkdir(parents=True, exist_ok=True)
 
         if not self.is_available():
-            # Wait up to 15 seconds for Voicebox server to respond
-            for _ in range(5):
-                time.sleep(3.0)
-                if self.is_available():
-                    break
-            if not self.is_available():
-                raise RuntimeError("Voicebox Local Server no está disponible en http://127.0.0.1:17493. No se permite fallback.")
+            Messenger.info("ℹ️ Servidor Voicebox local no detectado en http://127.0.0.1:17493.")
+            Messenger.info("🚀 Conmutando a XTTS-v2 en CPU para síntesis 100% autónoma en la nube...")
+            return self._synthesize_with_xtts(text, out_path)
+
+    def _synthesize_with_xtts(self, text: str, out_path: Path) -> float:
+        """
+        Cloud/CPU engine using Coqui XTTS-v2 with the official XpressTV reference audio.
+        Enables 100% autonomous cloud execution in GitHub Actions with the PC powered off.
+        """
+        ref_wav = Path(__file__).resolve().parents[2] / "flows" / "image_content_generator" / "resources" / "voices" / "xpresstv_reference.wav"
+        if not ref_wav.exists():
+            raise FileNotFoundError(f"Audio de referencia no encontrado en: {ref_wav}")
+
+        Messenger.info(f"🎙️ [XTTS-v2 CPU] Sintetizando narración con voz clonada XpressTV ({len(text.split())} palabras)...")
+        t0 = time.time()
+        tts = get_xtts_model()
+        tts.tts_to_file(
+            text=text,
+            speaker_wav=str(ref_wav),
+            language="es",
+            file_path=str(out_path)
+        )
+        dur = self._get_duration(out_path)
+        Messenger.success(f"✅ [XTTS-v2] Narración con voz XpressTV sintetizada en {time.time()-t0:.1f}s ({dur:.2f}s de audio)")
+        return dur
 
         Messenger.info(f"🎙️ [Voicebox Local CUDA] Sintetizando narración con voz clonada XpressTV...")
         import re

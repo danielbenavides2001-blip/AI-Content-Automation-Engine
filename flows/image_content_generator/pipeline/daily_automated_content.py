@@ -236,13 +236,8 @@ class DailyAutomator:
                     subprocess.run(cmd, check=True)
                     last_title = f"Legacy Remotion Reel ({forced_topic})"
                 else:
-                    # In GitHub Actions (CI), local CUDA Voicebox is not available.
-                    # Video production MUST happen locally and be consumed via pre_rendered_queue.
                     if os.getenv("GITHUB_ACTIONS") == "true" or os.getenv("CI") == "true":
-                        Messenger.warning("⚠️ [CI Runner] No hay videos pre-renderizados en la cola o el archivo .mp4 aún no está disponible en el repositorio.")
-                        Messenger.info("ℹ️ La síntesis de voz XpressTV requiere Voicebox CUDA local y no puede ejecutarse en runners en la nube de GitHub.")
-                        Messenger.info("⏩ Omitiendo ejecución sin fallar para esperar el próximo lote subido desde el equipo local.")
-                        return
+                        Messenger.info("🤖 [CI Runner] Generando nuevo video de forma 100% autónoma en la nube (XTTS-v2 CPU)...")
 
                     # Pure Stock Video Engine (NO REMOTION, 100% Real Stock Footage from 'El porque de todo')
                     Messenger.info("🚀 Launching Pure Stock Video Engine (100% Real Footage - Zero Remotion)...")

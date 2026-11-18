@@ -73,10 +73,18 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2t64
 
+      - name: Cache Coqui XTTS Model
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/tts
+          key: coqui-xtts-v2-cache-v1
+          restore-keys: |
+            coqui-xtts-v2-cache-
+
       - name: Install dependencies
         run: |
           poetry install
-          poetry run pip install edge-tts
+          poetry run pip install edge-tts coqui-tts
 
       - name: Create GCP Credentials (Optional)
         continue-on-error: true
@@ -100,6 +108,7 @@ jobs:
           PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
           USE_VERTEX_AI_IMAGE: "false"
           USE_VERTEX_AI_AUDIO: "false"
+          COQUI_TOS_AGREED: "1"
         run: |
           # Solo videos por defecto, imágenes desactivadas
           RUN_VIDEO=true
