@@ -487,6 +487,11 @@ def sync_queue_and_git(rendered_videos: list):
     Messenger.success(f"✅ Cola actualizada en next_queued_action.json ({len(queue_data['pre_rendered_queue'])} videos en cola).")
 
     # Safe Git Commit & Push
+    # In GitHub Actions cloud run, the workflow itself handles git commit and push
+    if os.getenv("GITHUB_ACTIONS") == "true" or os.getenv("CI") == "true":
+        Messenger.info("☁️ [Cloud CI] Sincronización git delegada al workflow de GitHub Actions.")
+        return
+
     try:
         git_add_cmd = ["git", "add", "flows/image_content_generator/out_short/next_queued_action.json"]
         for rf in new_files:
@@ -525,26 +530,30 @@ def main():
     posted_titles = set()
     if HISTORY_FILE.exists():
         try:
-            with open(HISTORY_FILE, "r", encoding="utf-8") as hf:
+            with open(HISTORY_FILE, "r", encoding="utf-8", errors="ignore") as hf:
                 for line in hf.readlines()[1:]:
                     parts = line.strip().split(",")
                     if len(parts) >= 3:
-                        posted_titles.add(parts[2].strip().lower())
+                        norm = re.sub(r'[^a-zA-Z0-9]', '', parts[2].lower())
+                        if norm:
+                            posted_titles.add(norm)
         except Exception:
             pass
 
     if args.single:
-        # Modo Nube / GitHub Actions: busca el PRIMER video que falte por renderizar o publicar
+        # Modo Nube / GitHub Actions: busca el PRIMER video que NO haya sido publicado todavía
         target_video = None
         for v in catalog:
-            if args.video_id and v["id"] != args.video_id:
+            if args.video_id:
+                if v["id"] == args.video_id:
+                    target_video = v
+                    break
                 continue
-            v_file = REPO_PRE_DIR / f"{v['id']}.mp4"
-            is_posted = v["title"].strip().lower() in posted_titles
-            # Si el video no existe localmente, o pesa menos de 12MB, o no se ha publicado en FB
-            if not v_file.exists() or v_file.stat().st_size < 12 * 1024 * 1024 or not is_posted:
-                target_video = v
-                break
+            norm_title = re.sub(r'[^a-zA-Z0-9]', '', v["title"].lower())
+            if norm_title in posted_titles:
+                continue
+            target_video = v
+            break
 
         if not target_video:
             Messenger.warning("⚠️ No hay videos pendientes en el catálogo. Todo el catálogo ya fue procesado.")

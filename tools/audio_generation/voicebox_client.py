@@ -94,6 +94,19 @@ class VoiceboxClient:
 
         return False
 
+    def _synthesize_with_edge_tts(self, text: str, out_path: Path) -> float:
+        import asyncio
+        import edge_tts
+        Messenger.info("⚡ [Edge-TTS Fallback] Sintetizando narración con voz de alta fidelidad (Jorge Neural)...")
+        t0 = time.time()
+        async def _speak():
+            comm = edge_tts.Communicate(text, "es-MX-JorgeNeural", rate="+3%", pitch="+1Hz")
+            await comm.save(str(out_path))
+        asyncio.run(_speak())
+        dur = self._get_duration(out_path)
+        Messenger.success(f"✅ [Edge-TTS] Narración sintetizada en {time.time()-t0:.1f}s ({dur:.2f}s de audio)")
+        return dur
+
     def _synthesize_with_xtts(self, text: str, out_path: Path) -> float:
         """
         Cloud/CPU engine using Coqui XTTS-v2 with the official XpressTV reference audio.
@@ -101,20 +114,26 @@ class VoiceboxClient:
         """
         ref_wav = Path(__file__).resolve().parents[2] / "flows" / "image_content_generator" / "resources" / "voices" / "xpresstv_reference.wav"
         if not ref_wav.exists():
-            raise FileNotFoundError(f"Audio de referencia no encontrado en: {ref_wav}")
+            Messenger.warning(f"Audio de referencia no encontrado en: {ref_wav}. Usando Edge-TTS...")
+            return self._synthesize_with_edge_tts(text, out_path)
 
-        Messenger.info(f"🎙️ [XTTS-v2 CPU] Sintetizando narración con voz clonada XpressTV ({len(text.split())} palabras)...")
-        t0 = time.time()
-        tts = get_xtts_model()
-        tts.tts_to_file(
-            text=text,
-            speaker_wav=str(ref_wav),
-            language="es",
-            file_path=str(out_path)
-        )
-        dur = self._get_duration(out_path)
-        Messenger.success(f"✅ [XTTS-v2] Narración con voz XpressTV sintetizada en {time.time()-t0:.1f}s ({dur:.2f}s de audio)")
-        return dur
+        try:
+            Messenger.info(f"🎙️ [XTTS-v2 CPU] Sintetizando narración con voz clonada XpressTV ({len(text.split())} palabras)...")
+            t0 = time.time()
+            tts = get_xtts_model()
+            tts.tts_to_file(
+                text=text,
+                speaker_wav=str(ref_wav),
+                language="es",
+                file_path=str(out_path),
+                split_sentences=True
+            )
+            dur = self._get_duration(out_path)
+            Messenger.success(f"✅ [XTTS-v2] Narración con voz XpressTV sintetizada en {time.time()-t0:.1f}s ({dur:.2f}s de audio)")
+            return dur
+        except Exception as e:
+            Messenger.warning(f"⚠️ [XTTS-v2 CPU] Error o timeout en síntesis XTTS: {e}. Activando fallback Edge-TTS...")
+            return self._synthesize_with_edge_tts(text, out_path)
 
     def synthesize_full_narration(self, text: str, out_path: Path) -> float:
         """
