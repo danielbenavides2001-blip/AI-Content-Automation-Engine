@@ -130,58 +130,70 @@ def generate_persistent_header(out_png: Path):
 
 def transcribe_and_make_ass(audio_path: Path, out_ass: Path):
     t0 = time.time()
-    model = get_whisper_model()
-    res = model.transcribe(str(audio_path), word_timestamps=True, language="es")
-    
-    words = []
-    for s in res.get("segments", []):
-        for w in s.get("words", []):
-            txt = w["word"].strip().upper()
-            if txt:
-                words.append({"word": txt, "start": round(w["start"], 2), "end": round(w["end"], 2)})
+    try:
+        model = get_whisper_model()
+        res = model.transcribe(str(audio_path), word_timestamps=True, language="es")
+        
+        words = []
+        for s in res.get("segments", []):
+            for w in s.get("words", []):
+                txt = w["word"].strip().upper()
+                if txt:
+                    words.append({"word": txt, "start": round(w["start"], 2), "end": round(w["end"], 2)})
 
-    chunks = []
-    i = 0
-    while i < len(words):
-        group = words[i:i+3]
-        start_t = group[0]["start"]
-        end_t = max(group[-1]["end"], start_t + 0.6)
-        chunks.append({"start": start_t, "end": end_t, "words": group})
-        i += len(group)
+        chunks = []
+        i = 0
+        while i < len(words):
+            group = words[i:i+3]
+            start_t = group[0]["start"]
+            end_t = max(group[-1]["end"], start_t + 0.6)
+            chunks.append({"start": start_t, "end": end_t, "words": group})
+            i += len(group)
 
-    lines = [
-        "[Script Info]",
-        "ScriptType: v4.00+",
-        "PlayResX: 1080",
-        "PlayResY: 1920",
-        "",
-        "[V4+ Styles]",
-        "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding",
-        "Style: Default,Montserrat,76,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,-1,0,0,0,100,100,-1,0,1,9,0,2,90,90,540,1",
-        "",
-        "[Events]",
-        "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text"
-    ]
+        lines = [
+            "[Script Info]",
+            "ScriptType: v4.00+",
+            "PlayResX: 1080",
+            "PlayResY: 1920",
+            "",
+            "[V4+ Styles]",
+            "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding",
+            "Style: Default,Montserrat,76,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,-1,0,0,0,100,100,-1,0,1,9,0,2,90,90,540,1",
+            "",
+            "[Events]",
+            "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text"
+        ]
 
-    for c in chunks:
-        c_words = c["words"]
-        for idx, w in enumerate(c_words):
-            w_start = w["start"]
-            w_end = c_words[idx+1]["start"] if idx + 1 < len(c_words) else c["end"]
-            if w_end <= w_start: w_end = round(w_start + 0.25, 2)
-            
-            tokens = []
-            for j, ow in enumerate(c_words):
-                if j == idx:
-                    tokens.append(f"{{\\c&H000B9EF5&}}{ow['word']}{{\\c&H00FFFFFF&}}")
-                else:
-                    tokens.append(ow["word"])
-            line_str = " ".join(tokens)
-            lines.append(f"Dialogue: 0,{format_ass_time(w_start)},{format_ass_time(w_end)},Default,,0,0,0,,{line_str}")
+        for c in chunks:
+            c_words = c["words"]
+            for idx, w in enumerate(c_words):
+                w_start = w["start"]
+                w_end = c_words[idx+1]["start"] if idx + 1 < len(c_words) else c["end"]
+                if w_end <= w_start: w_end = round(w_start + 0.25, 2)
+                
+                tokens = []
+                for j, ow in enumerate(c_words):
+                    if j == idx:
+                        tokens.append(f"{{\\c&H000B9EF5&}}{ow['word']}{{\\c&H00FFFFFF&}}")
+                    else:
+                        tokens.append(ow["word"])
+                line_str = " ".join(tokens)
+                lines.append(f"Dialogue: 0,{format_ass_time(w_start)},{format_ass_time(w_end)},Default,,0,0,0,,{line_str}")
 
-    with open(out_ass, "w", encoding="utf-8") as f:
-        f.write("\n".join(lines))
-    Messenger.info(f"  ⚡ [Subtítulos ASS] Generados en {time.time()-t0:.2f}s ({len(words)} palabras)")
+        with open(out_ass, "w", encoding="utf-8") as f:
+            f.write("\n".join(lines))
+        Messenger.info(f"  ⚡ [Subtítulos ASS] Generados en {time.time()-t0:.2f}s ({len(words)} palabras)")
+    except Exception as e:
+        Messenger.warning(f"⚠️ [Whisper] Advertencia en subtítulos: {e}. Generando plantilla ASS de seguridad...")
+        fallback_lines = [
+            "[Script Info]", "ScriptType: v4.00+", "PlayResX: 1080", "PlayResY: 1920", "",
+            "[V4+ Styles]",
+            "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding",
+            "Style: Default,Montserrat,76,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,-1,0,0,0,100,100,-1,0,1,9,0,2,90,90,540,1", "",
+            "[Events]", "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text"
+        ]
+        with open(out_ass, "w", encoding="utf-8") as f:
+            f.write("\n".join(fallback_lines))
 
 def get_dynamic_intro(video: dict) -> dict:
     """
@@ -267,6 +279,19 @@ def fetch_and_norm_scene(idx: int, sc: dict, t_dur: float, work_dir: Path, media
         if not ok or not raw_clip.exists() or raw_clip.stat().st_size < 10000:
             fallback_q = sc["fallback"]
             media_hub.fetch_best_clip(query=fallback_q, out_path=raw_clip, scene_topic=sc["narration"], duration=t_dur)
+
+    # 2.1 Garantía absoluta: Si todas las fuentes fallan, generar fondo cinemático de emergencia
+    if not raw_clip.exists() or raw_clip.stat().st_size < 10000:
+        Messenger.warning(f"⚠️ [Scene {idx+1}] No se obtuvo clip para '{q}'. Generando fondo cinemático de emergencia...")
+        cmd_emergency = [
+            "ffmpeg", "-y", "-f", "lavfi",
+            "-i", f"color=c=#0B1528:s=1080x1920:d={t_dur}:r=30",
+            "-vf", "noise=alls=10:allf=t+u",
+            "-an", "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p",
+            str(norm_clip)
+        ]
+        subprocess.run(cmd_emergency, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return norm_clip
 
     # 3. Normalizar con FFmpeg a 1080x1920 30fps ultrafast
     cmd_norm = [
