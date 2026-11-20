@@ -21,7 +21,8 @@ class AIImageMaster(BaseModelTool):
             from gradio_client import Client
             Messenger.info(f"🎨 [FLUX.1 Gradio Client] Generando imagen con Space Oficial para: '{prompt[:55]}...'")
             t0 = time.time()
-            client = Client("black-forest-labs/FLUX.1-schnell")
+            hf_token = os.getenv("HF_TOKEN")
+            client = Client("black-forest-labs/FLUX.1-schnell", hf_token=hf_token)
             
             # Formato vertical 1024x1792 (múltiplo de 16, nativo en FLUX)
             result = client.predict(
@@ -34,9 +35,15 @@ class AIImageMaster(BaseModelTool):
                 api_name="/infer"
             )
             
-            if result and Path(result).exists() and Path(result).stat().st_size > 10000:
+            # Gradio puede retornar una tupla (filepath, seed) o un string
+            if isinstance(result, (tuple, list)) and len(result) > 0:
+                img_res = result[0]
+            else:
+                img_res = result
+            
+            if img_res and Path(img_res).exists() and Path(img_res).stat().st_size > 10000:
                 out_img.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy(result, out_img)
+                shutil.copy(img_res, out_img)
                 Messenger.success(f"✨ [FLUX.1] Imagen creada con éxito en {time.time()-t0:.1f}s ({out_img.stat().st_size/1024:.1f} KB)")
                 return True
             return False
