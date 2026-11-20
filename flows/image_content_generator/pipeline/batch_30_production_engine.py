@@ -274,52 +274,56 @@ def fetch_and_norm_scene(idx: int, sc: dict, t_dur: float, work_dir: Path, media
         shutil.copy(cached_file, norm_clip)
         return norm_clip
 
-    # 2. Descargar si no existe localmente
+    # 2. Descargar video si no existe localmente
     if not raw_clip.exists() or raw_clip.stat().st_size < 10000:
         ok = media_hub.fetch_best_clip(query=q, out_path=raw_clip, scene_topic=sc["narration"], duration=t_dur)
         if not ok or not raw_clip.exists() or raw_clip.stat().st_size < 10000:
             fallback_q = sc["fallback"]
             media_hub.fetch_best_clip(query=fallback_q, out_path=raw_clip, scene_topic=sc["narration"], duration=t_dur)
 
-    # 2.1 Garantía absoluta: Si todas las fuentes fallan, generar fondo cinemático de emergencia
-    if not raw_clip.exists() or raw_clip.stat().st_size < 10000:
-        Messenger.warning(f"⚠️ [Scene {idx+1}] No se obtuvo clip para '{q}'. Generando fondo cinemático de emergencia...")
-        cmd_emergency = [
-            "ffmpeg", "-y", "-f", "lavfi",
-            "-i", f"color=c=#0B1528:s=1080x1920:d={t_dur}:r=30",
-            "-vf", "noise=alls=10:allf=t+u",
+    # 3. Normalizar con FFmpeg a 1080x1920 30fps ultrafast si tenemos raw_clip
+    if raw_clip.exists() and raw_clip.stat().st_size >= 10000:
+        cmd_norm = [
+            "ffmpeg", "-y", "-stream_loop", "3", "-i", str(raw_clip),
+            "-t", str(t_dur),
+            "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,fps=30",
             "-an", "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p",
             str(norm_clip)
         ]
-        subprocess.run(cmd_emergency, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(cmd_norm, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=str(BASE_DIR))
+        if norm_clip.exists() and norm_clip.stat().st_size > 10000:
+            if not is_intro:
+                try:
+                    shutil.copy(norm_clip, cached_file)
+                except Exception:
+                    pass
+            return norm_clip
+
+    # 4. Respaldo definitivo infalible: Fotografía HD de Pexels/Pixabay animada con Ken Burns
+    Messenger.info(f"📸 [Scene {idx+1}] Obteniendo fotografía de rescate para '{q}'...")
+    from tools.video_generation.ai_image_master import AIImageMaster
+    ai_master = AIImageMaster()
+    temp_photo = work_dir / f"fallback_photo_{idx+1}.jpg"
+    ok_photo = ai_master.fetch_stock_photo(q, temp_photo) or ai_master.fetch_stock_photo(sc.get("fallback", ""), temp_photo)
+    if ok_photo and temp_photo.exists() and temp_photo.stat().st_size > 5000:
+        if ai_master.create_ken_burns_clip(temp_photo, norm_clip, duration=t_dur, motion_style=idx):
+            return norm_clip
+
+    # 5. Si todas las redes fallaran, reutilizar una imagen previa generada en el video para evitar pantalla negra
+    existing_imgs = list(work_dir.glob("*.jpg"))
+    if existing_imgs:
+        ai_master.create_ken_burns_clip(existing_imgs[0], norm_clip, duration=t_dur, motion_style=idx)
         return norm_clip
-
-    # 3. Normalizar con FFmpeg a 1080x1920 30fps ultrafast
-    cmd_norm = [
-        "ffmpeg", "-y", "-stream_loop", "3", "-i", str(raw_clip),
-        "-t", str(t_dur),
-        "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,fps=30",
-        "-an", "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p",
-        str(norm_clip)
-    ]
-    subprocess.run(cmd_norm, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=str(BASE_DIR))
-
-    # Guardar en caché global para acelerar futuros videos (solo si no es intro)
-    if not is_intro:
-        try:
-            shutil.copy(norm_clip, cached_file)
-        except Exception:
-            pass
 
     return norm_clip
 
-def produce_single_video(video: dict, media_hub: MediaHub, vb_client: VoiceboxClient) -> Path:
+def produce_single_video(video: dict, media_hub: MediaHub, vb_client: VoiceboxClient, force: bool = False) -> Path:
     start_v = time.time()
     final_dest = DOWNLOADS_DIR / f"{video['id']}.mp4"
     repo_dest = REPO_PRE_DIR / f"{video['id']}.mp4"
 
-    # Strict check: Video must exist AND be >= 60.0s to skip
-    if final_dest.exists() and final_dest.stat().st_size > 12 * 1024 * 1024:
+    # Strict check: Video must exist AND be >= 60.0s to skip (a menos que se fuerce re-render)
+    if not force and final_dest.exists() and final_dest.stat().st_size > 12 * 1024 * 1024:
         v_dur = get_video_duration(final_dest)
         if v_dur >= 60.0:
             Messenger.success(f"Video already rendered and valid (>60s): {final_dest.name} ({v_dur:.1f}s)")
@@ -330,6 +334,8 @@ def produce_single_video(video: dict, media_hub: MediaHub, vb_client: VoiceboxCl
             Messenger.warning(f"Video {final_dest.name} is {v_dur:.1f}s (<60s). Re-rendering to comply with >60s monetization rule...")
 
     work_dir = SCRATCH_DIR / video["id"]
+    if force and work_dir.exists():
+        shutil.rmtree(work_dir, ignore_errors=True)
     work_dir.mkdir(parents=True, exist_ok=True)
     Messenger.info(f"\n==========================================")
     Messenger.info(f"Produciendo Master: {video['id']}")
@@ -338,11 +344,13 @@ def produce_single_video(video: dict, media_hub: MediaHub, vb_client: VoiceboxCl
 
     # 1. Preparar lista de 12 escenas con Gancho de Intro Dinámico y Outro Variado
     intro_scene = get_dynamic_intro(video)
-    intro_vp = video.get("intro_visual_prompt") or f"Cinematic vertical 9:16 macro documentary shot representing {video['title']}, dramatic lighting, 8k resolution, photorealistic"
+    intro_q = intro_scene["query"].strip()
+    intro_vp = video.get("intro_visual_prompt") or f"Cinematic vertical 9:16 macro documentary shot of {intro_q}, dramatic lighting, 8k resolution, photorealistic, sharp focus"
     intro_scene["visual_prompt"] = intro_vp
 
     outro_scene = get_dynamic_outro()
-    outro_vp = video.get("outro_visual_prompt") or "Cinematic vertical 9:16 shot of mysterious culinary and scientific discoveries, golden bokeh, dramatic studio lighting, 8k"
+    outro_q = outro_scene["query"].strip()
+    outro_vp = video.get("outro_visual_prompt") or f"Cinematic vertical 9:16 shot of {outro_q}, golden bokeh, dramatic studio lighting, 8k resolution, photorealistic"
     outro_scene["visual_prompt"] = outro_vp
 
     scenes = [intro_scene]
@@ -355,11 +363,22 @@ def produce_single_video(video: dict, media_hub: MediaHub, vb_client: VoiceboxCl
             p1 = " ".join(words[:mid])
             p2 = " ".join(words[mid:])
 
-        vp1 = c.get("visual_prompt_1") or f"Cinematic vertical 9:16 photorealistic shot of: {p1}. National Geographic documentary style, 8k, detailed textures, volumetric lighting, sharp focus, masterpiece"
-        vp2 = c.get("visual_prompt_2") or f"Cinematic vertical 9:16 photorealistic shot of: {p2}. National Geographic documentary style, 8k, detailed textures, volumetric lighting, sharp focus, masterpiece"
+        q1 = c.get("q1", "").strip()
+        q2 = c.get("q2", "").strip()
 
-        scenes.append({"narration": p1, "visual_prompt": vp1, "query": c.get("q1", ""), "fallback": c.get("q2", ""), "is_intro": False})
-        scenes.append({"narration": p2, "visual_prompt": vp2, "query": c.get("q2", ""), "fallback": c.get("q1", ""), "is_intro": False})
+        # Ingeniería de Prompts Visuales de Alta Precisión:
+        # Usa descriptores en inglés del catálogo ('q1' y 'q2') enriquecidos cinematográficamente
+        vp1 = c.get("visual_prompt_1") or (
+            f"Cinematic vertical 9:16 documentary photograph of {q1}, dramatic cinematic lighting, "
+            f"National Geographic 8k, hyper-detailed, photorealistic, sharp focus, masterpiece"
+        )
+        vp2 = c.get("visual_prompt_2") or (
+            f"Cinematic vertical 9:16 documentary photograph of {q2}, dramatic cinematic lighting, "
+            f"National Geographic 8k, hyper-detailed, photorealistic, sharp focus, masterpiece"
+        )
+
+        scenes.append({"narration": p1, "visual_prompt": vp1, "query": q1, "fallback": q2, "is_intro": False})
+        scenes.append({"narration": p2, "visual_prompt": vp2, "query": q2, "fallback": q1, "is_intro": False})
     scenes.append(outro_scene)
 
     # =========================================================================
@@ -389,15 +408,21 @@ def produce_single_video(video: dict, media_hub: MediaHub, vb_client: VoiceboxCl
         clip_path = work_dir / f"norm_scene_{idx+1}.mp4"
         sc_dur = scene_durations[idx]
         vp = sc.get("visual_prompt", "")
+        q = sc.get("query", "")
+        fb = sc.get("fallback", "")
         if clip_path.exists() and clip_path.stat().st_size > 10000:
             return clip_path
-        Messenger.info(f"  🎬 [Escena {idx+1}/{len(scenes)}] Generando imagen IA exacta y Ken Burns (Estilo {idx%4})...")
-        ok = ai_master.generate_ken_burns_scene(vp, clip_path, duration=sc_dur, motion_style=idx, work_dir=work_dir)
+        Messenger.info(f"  🎬 [Escena {idx+1}/{len(scenes)}] Generando visual de la curiosidad: '{q}' (Estilo {idx%4})...")
+        ok = ai_master.generate_ken_burns_scene(
+            vp, clip_path, duration=sc_dur, motion_style=idx, work_dir=work_dir, query=q, fallback_query=fb
+        )
         if not ok or not clip_path.exists() or clip_path.stat().st_size < 10000:
-            fetch_and_norm_scene(idx, sc, sc_dur, work_dir, media_hub)
+            norm_res = fetch_and_norm_scene(idx, sc, sc_dur, work_dir, media_hub)
+            if norm_res.exists() and norm_res != clip_path:
+                shutil.copy(norm_res, clip_path)
         return clip_path
 
-    with ThreadPoolExecutor(max_workers=3) as executor:
+    with ThreadPoolExecutor(max_workers=2) as executor:
         ass_future = executor.submit(transcribe_and_make_ass, audio_wav, ass_path)
         clips = list(executor.map(make_ai_scene, enumerate(scenes)))
         ass_future.result()
@@ -539,6 +564,7 @@ def main():
     parser.add_argument("--single", action="store_true", help="Produce only 1 pending video from catalog (ideal for GitHub Actions)")
     parser.add_argument("--upload", action="store_true", help="Upload directly to Facebook Reels upon completion")
     parser.add_argument("--video-id", type=str, default="", help="Force specific video ID to produce")
+    parser.add_argument("--force", action="store_true", help="Force re-rendering even if already cached")
     args = parser.parse_args()
 
     Messenger.info("🚀 Iniciando Motor de Producción EnigmaIQ (Multi-plataforma Local / Cloud CI)...")
@@ -583,7 +609,7 @@ def main():
             return
 
         Messenger.info(f"🎯 [Modo Single Cloud] Produciendo video objetivo: {target_video['id']} - '{target_video['title']}'...")
-        master_file = produce_single_video(target_video, media_hub, vb_client)
+        master_file = produce_single_video(target_video, media_hub, vb_client, force=args.force)
 
         if args.upload and master_file and master_file.exists():
             Messenger.info(f"🚀 [Meta API] Subiendo Reel generado en la nube a Facebook: {master_file.name}...")

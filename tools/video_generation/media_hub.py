@@ -57,6 +57,20 @@ class MediaHub:
         if self.wikimedia.fetch_image_clip(clean_q, out_path, duration=duration):
             return True
 
+        # 4.5 Si no hubo clip de video, buscar fotografía vertical HD en Pexels / Pixabay y animar con Ken Burns
+        Messenger.info("📸 Buscando fotografía de alta resolución para animar con Ken Burns...")
+        temp_photo = out_path.with_suffix(".temp_photo.jpg")
+        if self.pexels.fetch_photo(clean_q, temp_photo) or self.pixabay.fetch_photo(clean_q, temp_photo):
+            from tools.video_generation.ai_image_master import AIImageMaster
+            ai_master = AIImageMaster()
+            if ai_master.create_ken_burns_clip(temp_photo, out_path, duration=duration):
+                if temp_photo.exists():
+                    temp_photo.unlink()
+                Messenger.success(f"✅ Fotografía animada con Ken Burns creada con éxito ({out_path.stat().st_size / 1024:.1f} KB)")
+                return True
+            if temp_photo.exists():
+                temp_photo.unlink()
+
         # 5. Fallback Definitivo Cero Margen de Error: IA Generativa Hiperrealista + Ken Burns
         Messenger.info("🎨 Ningún stock comercial tiene este evento exacto. Activando IA Generativa...")
         full_prompt = f"{clean_q}, {scene_topic}".strip(", ")

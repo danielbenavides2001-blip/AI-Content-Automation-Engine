@@ -110,6 +110,7 @@ jobs:
           FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
           USE_VERTEX_AI_IMAGE: "false"
           USE_VERTEX_AI_AUDIO: "false"
           COQUI_TOS_AGREED: "1"
@@ -132,7 +133,7 @@ jobs:
             VIDEO_ARG=""
             TOPIC_INPUT="${{ github.event.inputs.force_topic }}"
             if [ -n "$TOPIC_INPUT" ]; then
-              VIDEO_ARG="--video-id $TOPIC_INPUT"
+              VIDEO_ARG="--video-id $TOPIC_INPUT --force"
             fi
             poetry run python flows/image_content_generator/pipeline/batch_30_production_engine.py --single --upload $VIDEO_ARG
             sleep 5
