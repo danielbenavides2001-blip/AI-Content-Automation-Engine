@@ -35,7 +35,7 @@ class AIImageMaster(BaseModelTool):
             try:
                 Messenger.info(f"🎨 [FLUX.1 Gradio Client] Intentando Space '{space_name}' para: '{prompt[:50]}...'")
                 t0 = time.time()
-                client = Client(space_name, hf_token=hf_token)
+                client = Client(space_name, token=hf_token) if hf_token else Client(space_name)
                 
                 # Formato vertical optimizado para velocidad e inferencia en nube
                 result = client.predict(
