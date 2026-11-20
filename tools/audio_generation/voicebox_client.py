@@ -146,8 +146,8 @@ class VoiceboxClient:
 
         if not self.is_available():
             Messenger.info("ℹ️ Servidor Voicebox local no detectado en http://127.0.0.1:17493.")
-            Messenger.info("🚀 Conmutando a XTTS-v2 en CPU para síntesis 100% autónoma en la nube...")
-            return self._synthesize_with_xtts(text, out_path)
+            Messenger.info("🚀 Generando narración ultra-realista mediante Edge-TTS (rany2/edge-tts en GitHub Actions)...")
+            return self._synthesize_with_edge_tts(text, out_path)
 
         Messenger.info(f"🎙️ [Voicebox Local CUDA] Sintetizando narración con voz clonada XpressTV...")
         import re

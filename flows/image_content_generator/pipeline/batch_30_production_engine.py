@@ -19,6 +19,7 @@ load_dotenv(BASE_DIR / ".env")
 
 from tools.common.messenger import Messenger
 from tools.video_generation.media_hub import MediaHub
+from tools.video_generation.ai_image_master import AIImageMaster
 from tools.audio_generation.voicebox_client import VoiceboxClient
 from tools.social_media.facebook import FacebookTool
 from PIL import Image, ImageDraw, ImageFont
@@ -337,7 +338,13 @@ def produce_single_video(video: dict, media_hub: MediaHub, vb_client: VoiceboxCl
 
     # 1. Preparar lista de 12 escenas con Gancho de Intro Dinámico y Outro Variado
     intro_scene = get_dynamic_intro(video)
+    intro_vp = video.get("intro_visual_prompt") or f"Cinematic vertical 9:16 macro documentary shot representing {video['title']}, dramatic lighting, 8k resolution, photorealistic"
+    intro_scene["visual_prompt"] = intro_vp
+
     outro_scene = get_dynamic_outro()
+    outro_vp = video.get("outro_visual_prompt") or "Cinematic vertical 9:16 shot of mysterious culinary and scientific discoveries, golden bokeh, dramatic studio lighting, 8k"
+    outro_scene["visual_prompt"] = outro_vp
+
     scenes = [intro_scene]
     for c in video["curiosities"]:
         p1 = c.get("p1")
@@ -347,61 +354,52 @@ def produce_single_video(video: dict, media_hub: MediaHub, vb_client: VoiceboxCl
             mid = len(words) // 2
             p1 = " ".join(words[:mid])
             p2 = " ".join(words[mid:])
-        scenes.append({"narration": p1, "query": c["q1"], "fallback": c["q2"], "is_intro": False})
-        scenes.append({"narration": p2, "query": c["q2"], "fallback": c["q1"], "is_intro": False})
+
+        vp1 = c.get("visual_prompt_1") or f"Cinematic vertical 9:16 photorealistic shot of: {p1}. National Geographic documentary style, 8k, detailed textures, volumetric lighting, sharp focus, masterpiece"
+        vp2 = c.get("visual_prompt_2") or f"Cinematic vertical 9:16 photorealistic shot of: {p2}. National Geographic documentary style, 8k, detailed textures, volumetric lighting, sharp focus, masterpiece"
+
+        scenes.append({"narration": p1, "visual_prompt": vp1, "query": c.get("q1", ""), "fallback": c.get("q2", ""), "is_intro": False})
+        scenes.append({"narration": p2, "visual_prompt": vp2, "query": c.get("q2", ""), "fallback": c.get("q1", ""), "is_intro": False})
     scenes.append(outro_scene)
 
     # =========================================================================
-    # PIPELINE EN PARALELO: Audio en Voicebox CUDA + Descarga y Pre-normalización
+    # PIPELINE FASE 1: Voz Realista en Nube (Edge-TTS / rany2)
     # =========================================================================
     full_narration = " ".join([s["narration"] for s in scenes])
     audio_wav = work_dir / "narration.wav"
     ass_path = work_dir / f"{video['id']}.ass"
 
-    Messenger.info("⚡ [PIPELINE] Lanzando síntesis de audio y descarga de metraje en paralelo...")
-    t_parallel_start = time.time()
-
-    with ThreadPoolExecutor(max_workers=8) as executor:
-        # A. Audio en background (Voicebox CUDA)
-        audio_future = executor.submit(vb_client.synthesize_full_narration, full_narration, audio_wav)
-
-        # B. En paralelo, pre-descargar los metrajes en crudo para las 12 escenas
-        def prefetch_raw(idx_sc):
-            idx, sc = idx_sc
-            raw_clip = work_dir / f"raw_scene_{idx+1}.mp4"
-            if not raw_clip.exists() or raw_clip.stat().st_size < 10000:
-                q = sc["query"]
-                ok = media_hub.fetch_best_clip(query=q, out_path=raw_clip, scene_topic=sc["narration"], duration=7.0)
-                if not ok or not raw_clip.exists() or raw_clip.stat().st_size < 10000:
-                    media_hub.fetch_best_clip(query=sc["fallback"], out_path=raw_clip, scene_topic=sc["narration"], duration=7.0)
-            return raw_clip
-
-        list(executor.map(prefetch_raw, enumerate(scenes)))
-        Messenger.success(f"  ✅ [Metrajes] 12 escenas descargadas en paralelo en {time.time()-t_parallel_start:.1f}s!")
-
-        # Esperar que termine el audio si aún no ha finalizado
-        dur = audio_future.result()
-
-    Messenger.success(f"🎙️ Audio con Voz XpressTV (CUDA): {dur:.2f}s (Cumple > 60s: {dur >= 60.0})")
+    Messenger.info("⚡ [PIPELINE] Sintetizando voz realista (Edge-TTS)...")
+    dur = vb_client.synthesize_full_narration(full_narration, audio_wav)
+    Messenger.success(f"🎙️ Audio con Voz Realista: {dur:.2f}s (Cumple > 60s: {dur >= 60.0})")
 
     # =========================================================================
-    # FASE 2: Subtítulos ASS + Normalización de Escenas en Paralelo Concurrente
+    # PIPELINE FASE 2: Subtítulos ASS + Generación Visual con FLUX.1 / Imagen 3 + Ken Burns
     # =========================================================================
     num_scenes = len(scenes)
     dur_per_scene = round(dur / num_scenes, 2)
     scene_durations = [dur_per_scene] * num_scenes
     scene_durations[-1] = round(dur - sum(scene_durations[:-1]), 2)
 
-    with ThreadPoolExecutor(max_workers=6) as executor:
-        # 1. Transcribir con Whisper pre-cargado
+    ai_master = AIImageMaster()
+    Messenger.info("🎨 [IA VISUAL MASTER] Generando escenas con FLUX.1 (Gradio) / Imagen 3 + Movimiento Ken Burns...")
+
+    def make_ai_scene(idx_sc):
+        idx, sc = idx_sc
+        clip_path = work_dir / f"norm_scene_{idx+1}.mp4"
+        sc_dur = scene_durations[idx]
+        vp = sc.get("visual_prompt", "")
+        if clip_path.exists() and clip_path.stat().st_size > 10000:
+            return clip_path
+        Messenger.info(f"  🎬 [Escena {idx+1}/{len(scenes)}] Generando imagen IA exacta y Ken Burns (Estilo {idx%4})...")
+        ok = ai_master.generate_ken_burns_scene(vp, clip_path, duration=sc_dur, motion_style=idx, work_dir=work_dir)
+        if not ok or not clip_path.exists() or clip_path.stat().st_size < 10000:
+            fetch_and_norm_scene(idx, sc, sc_dur, work_dir, media_hub)
+        return clip_path
+
+    with ThreadPoolExecutor(max_workers=3) as executor:
         ass_future = executor.submit(transcribe_and_make_ass, audio_wav, ass_path)
-
-        # 2. Normalizar las 12 escenas a la duración exacta en paralelo
-        def norm_task(idx_sc):
-            idx, sc = idx_sc
-            return fetch_and_norm_scene(idx, sc, scene_durations[idx], work_dir, media_hub)
-
-        clips = list(executor.map(norm_task, enumerate(scenes)))
+        clips = list(executor.map(make_ai_scene, enumerate(scenes)))
         ass_future.result()
 
     concat_txt = work_dir / "concat.txt"

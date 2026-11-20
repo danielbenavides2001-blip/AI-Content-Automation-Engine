@@ -88,7 +88,7 @@ jobs:
       - name: Install dependencies
         run: |
           poetry install
-          poetry run pip install edge-tts coqui-tts
+          poetry run pip install edge-tts coqui-tts gradio_client google-genai pillow
 
       - name: Create GCP Credentials (Optional)
         continue-on-error: true

@@ -413,7 +413,9 @@
         "p2": "Arqueólogos en Egipto han abierto vasijas selladas en tumbas faraónicas con más de tres mil años y su miel seguía perfectamente comestible.",
         "q1": "golden honey dripping from wooden dipper",
         "q2": "ancient egyptian tomb hieroglyphs desert",
-        "text": "Número uno. La miel pura de abeja es el único alimento natural conocido que prácticamente jamás se descompone ni caduca. Arqueólogos en Egipto han abierto vasijas selladas en tumbas faraónicas con más de tres mil años y su miel seguía perfectamente comestible."
+        "text": "Número uno. La miel pura de abeja es el único alimento natural conocido que prácticamente jamás se descompone ni caduca. Arqueólogos en Egipto han abierto vasijas selladas en tumbas faraónicas con más de tres mil años y su miel seguía perfectamente comestible.",
+        "visual_prompt_1": "Cinematic vertical 9:16 macro shot of pure amber honey slowly dripping from a rustic wooden dipper into an ornate glass jar, crystalline textures, honeycomb and bees in soft focus background, golden sunlight glowing through the liquid, 8k resolution, photorealistic National Geographic documentary style, sharp focus",
+        "visual_prompt_2": "Cinematic vertical 9:16 documentary shot inside an ancient Egyptian pharaoh tomb, archaeologist with flashlight examining an open ancient clay jar filled with edible golden honey, hieroglyphic stone walls, dusty volumetric light beams, photorealistic, 8k, historical realism"
       },
       {
         "num": 2,
@@ -421,7 +423,9 @@
         "p2": "Al calentarse, el agua se transforma en vapor a altísima presión hasta que revienta la cáscara expandiendo el almidón blanco en milésimas de segundo.",
         "q1": "popcorn popping slow motion machine cinema",
         "q2": "corn kernels yellow macro cooking pot",
-        "text": "Número dos. Las palomitas de maíz estallan porque guardan en su interior una diminuta gota de agua líquida rodeada de almidón duro. Al calentarse, el agua se transforma en vapor a altísima presión hasta que revienta la cáscara expandiendo el almidón blanco en milésimas de segundo."
+        "text": "Número dos. Las palomitas de maíz estallan porque guardan en su interior una diminuta gota de agua líquida rodeada de almidón duro. Al calentarse, el agua se transforma en vapor a altísima presión hasta que revienta la cáscara expandiendo el almidón blanco en milésimas de segundo.",
+        "visual_prompt_1": "Extreme macro scientific cross-section of a golden corn kernel, glowing microscopic droplet of water trapped inside the hard yellow starch matrix, scientific visualization, high detail, studio lighting, 8k, vertical 9:16",
+        "visual_prompt_2": "Ultra high-speed 10000fps phantom camera shot of a corn kernel exploding mid-air into fluffy white popcorn, golden shell shattering with steam, black background, commercial food photography, 8k, vertical 9:16"
       },
       {
         "num": 3,
@@ -429,7 +433,9 @@
         "p2": "La capsaicina engaña a los receptores nerviosos que detectan quemaduras térmicas, haciendo creer a tu cerebro que tu lengua se está incendiando.",
         "q1": "fresh red chili peppers spicy cooking",
         "q2": "flames fire burning heat slow motion",
-        "text": "Número tres. La sensación de picante en tu boca al morder un chile no es un sabor, sino una ilusión de calor y dolor físico. La capsaicina engaña a los receptores nerviosos que detectan quemaduras térmicas, haciendo creer a tu cerebro que tu lengua se está incendiando."
+        "text": "Número tres. La sensación de picante en tu boca al morder un chile no es un sabor, sino una ilusión de calor y dolor físico. La capsaicina engaña a los receptores nerviosos que detectan quemaduras térmicas, haciendo creer a tu cerebro que tu lengua se está incendiando.",
+        "visual_prompt_1": "Dramatic vertical 9:16 shot of a glossy red habanero chili pepper engulfed in real cinematic flames and smoke, water droplets on skin, dark moody culinary photography, 8k, ultra-sharp focus, cinematic lighting",
+        "visual_prompt_2": "Medical science 3D illustration of human tongue with microscopic neural pain receptors glowing bright fiery red and orange, electric neurotransmitter signals traveling to brain, 8k, scientific documentary, vertical 9:16"
       },
       {
         "num": 4,
@@ -437,7 +443,9 @@
         "p2": "Esto se debe a que casi un veinticinco por ciento del volumen total de su carne interna está compuesto por diminutas bolsas de aire.",
         "q1": "red apples floating fresh water bowl splash",
         "q2": "fresh apple orchard picking red apples",
-        "text": "Número cuatro. Si arrojas una manzana fresca a un balde lleno de agua notarás que flota inmediatamente en la superficie. Esto se debe a que casi un veinticinco por ciento del volumen total de su carne interna está compuesto por diminutas bolsas de aire."
+        "text": "Número cuatro. Si arrojas una manzana fresca a un balde lleno de agua notarás que flota inmediatamente en la superficie. Esto se debe a que casi un veinticinco por ciento del volumen total de su carne interna está compuesto por diminutas bolsas de aire.",
+        "visual_prompt_1": "Crisp cinematic vertical 9:16 shot of a vibrant red ripe apple splashing into clear water in a rustic metal bucket, water droplets suspended in air, soft natural sunlight, fresh organic aesthetic, 8k, photorealistic",
+        "visual_prompt_2": "Macro cross-section of a crisp juicy red apple revealing microscopic natural air pockets and porous spongy cell structure inside the white flesh, backlit translucent texture, 8k, vertical 9:16"
       },
       {
         "num": 5,
@@ -445,9 +453,13 @@
         "p2": "Con cuatro semillas podías comprar calabazas frescas y con cien semillas podías pagar por un conejo entero o un sirviente temporal.",
         "q1": "dark chocolate melting smooth liquid rich",
         "q2": "cacao pod beans harvest tropical tree",
-        "text": "Número cinco. En las civilizaciones maya y azteca, los granos de cacao eran tan valiosos que funcionaban literalmente como moneda de cambio. Con cuatro semillas podías comprar calabazas frescas y con cien semillas podías pagar por un conejo entero o un sirviente temporal."
+        "text": "Número cinco. En las civilizaciones maya y azteca, los granos de cacao eran tan valiosos que funcionaban literalmente como moneda de cambio. Con cuatro semillas podías comprar calabazas frescas y con cien semillas podías pagar por un conejo entero o un sirviente temporal.",
+        "visual_prompt_1": "Cinematic vertical 9:16 historical reenactment in an ancient Mayan city, indigenous merchant hands exchanging dark roasted cacao beans like sacred currency, ancient stone temples in background, golden hour sunset, 8k, photorealistic",
+        "visual_prompt_2": "Historical still life of ancient Aztec marketplace trading stall, woven basket filled with raw cacao beans next to fresh green squash pumpkins and clay pottery, warm sunlight, authentic details, 8k, vertical 9:16"
       }
-    ]
+    ],
+    "intro_visual_prompt": "Cinematic vertical 9:16 shot of pure golden honey dripping from a wooden dipper into an ancient pottery jar, bursting popcorn kernels, photorealistic 8k, warm cinematic rim lighting, National Geographic documentary aesthetic, depth of field",
+    "outro_visual_prompt": "Cinematic vertical 9:16 shot of exotic culinary spices, golden honey, and artisan food glowing under warm dramatic spotlights, dark background with golden bokeh, 8k resolution"
   },
   {
     "id": "30_EnigmaIQ_5_Cosas_Vol10",
