@@ -605,8 +605,8 @@ def main():
             break
 
         if not target_video:
-            Messenger.warning("⚠️ No hay videos pendientes en el catálogo. Todo el catálogo ya fue procesado.")
-            return
+            Messenger.warning("⚠️ Todos los videos del catálogo ya fueron procesados una vez. Reiniciando ciclo continuo para nunca detener las publicaciones...")
+            target_video = catalog[0]
 
         Messenger.info(f"🎯 [Modo Single Cloud] Produciendo video objetivo: {target_video['id']} - '{target_video['title']}'...")
         master_file = produce_single_video(target_video, media_hub, vb_client, force=args.force)
