@@ -568,6 +568,47 @@ def main():
     args = parser.parse_args()
 
     Messenger.info("🚀 Iniciando Motor de Producción EnigmaIQ (Multi-plataforma Local / Cloud CI)...")
+
+    if args.single and not args.video_id and QUEUE_FILE.exists():
+        try:
+            q_data = json.loads(QUEUE_FILE.read_text(encoding="utf-8"))
+            pre_item = q_data.get("pre_rendered_video")
+            if isinstance(pre_item, dict) and pre_item.get("file_path"):
+                pre_path = BASE_DIR / pre_item["file_path"]
+                if pre_path.exists():
+                    pre_title = pre_item.get("title", "").strip()
+                    pre_desc = pre_item.get("description", "").strip()
+                    Messenger.info(f"🎯 [QUEUE PRIORITY] Video pre-renderizado encontrado: {pre_path.name}")
+                    if args.upload:
+                        Messenger.info(f"🚀 [Meta API] Subiendo video prioritario a Facebook Reels: {pre_path.name}...")
+                        fb = FacebookTool(
+                            page_id=os.getenv("FACEBOOK_PAGE_ID", ""),
+                            access_token=os.getenv("FACEBOOK_PAGE_ACCESS_TOKEN", "")
+                        )
+                        res_id = fb.upload_reel(
+                            file_path=pre_path,
+                            title=pre_title,
+                            description=pre_desc
+                        )
+                        Messenger.success(f"🎉 Video prioritario publicado con éxito! Video ID: {res_id}")
+
+                        import datetime
+                        today = datetime.date.today().isoformat()
+                        clean_title = pre_title.replace(",", " - ").strip()
+                        with open(HISTORY_FILE, "a", encoding="utf-8") as hf:
+                            hf.write(f"{today},video,{clean_title}\n")
+
+                        q_data["pre_rendered_video"] = None
+                        q_data["last_executed"] = pre_title
+                        q_data["executed_at"] = datetime.datetime.now().isoformat()
+                        QUEUE_FILE.write_text(json.dumps(q_data, indent=2, ensure_ascii=False), encoding="utf-8")
+                    else:
+                        Messenger.info(f"🧪 [Dry-Run] Video listo para la próxima ejecución con --upload: '{pre_title}'")
+                    return
+        except Exception as e:
+            Messenger.error(f"Falla procesando video prioritario en cola: {e}")
+            sys.exit(1)
+
     with open(CATALOG_FILE, "r", encoding="utf-8") as f:
         catalog = json.load(f)
 
