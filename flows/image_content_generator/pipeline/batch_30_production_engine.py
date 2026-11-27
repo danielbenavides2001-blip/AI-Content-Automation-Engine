@@ -558,6 +558,90 @@ def sync_queue_and_git(rendered_videos: list):
     except Exception as ge:
         Messenger.warning(f"⚠️ Git push warning: {ge}")
 
+def _norm_title(title: str) -> str:
+    return re.sub(r'[^a-zA-Z0-9]', '', title.lower())
+
+
+def generate_fresh_catalog_episode(catalog: list, posted_titles: set) -> dict | None:
+    """Generates a brand-new 5-curiosity episode via Gemini so cloud runs never repeat old videos."""
+    api_keys = [k.strip() for k in (os.getenv("GEMINI_API_KEY", ""), os.getenv("GEMINI_API_KEY_2", "")) if k.strip()]
+    if not api_keys:
+        return None
+    try:
+        from google import genai
+        from google.genai import types
+    except Exception as e:
+        Messenger.warning(f"⚠️ google-genai no disponible para autogenerar episodio: {e}")
+        return None
+
+    next_num = len(catalog) + 21
+    next_vol = len(catalog) + 1
+    existing_titles = "\n".join(f"- {v['title']}" for v in catalog[-25:])
+    prompt = f"""Eres el guionista estrella de un canal viral de curiosidades en español estilo XpressTV/EnigmaIQ.
+Todos los episodios anteriores del catálogo ya fueron publicados:
+{existing_titles}
+
+Genera UN (1) episodio COMPLETAMENTE NUEVO, FASCINANTE Y VIRAL que NO repita ninguno de los temas anteriores (puede ser sobre paradojas físicas, misterios de la naturaleza, datos sorprendentes del cerebro, récords del mundo animal, enigmas históricos poco conocidos, ilusiones sensoriales, ingeniería extrema, fenómenos del cosmos o biología insólita).
+
+Devuelve ÚNICAMENTE un JSON válido (sin markdown ni texto extra) con exactamente esta estructura:
+{{
+  "id": "{next_num}_EnigmaIQ_5_Cosas_Vol{next_vol}",
+  "title": "5 ... (máximo 65 caracteres, con 2 emojis al final)",
+  "headline_top": "5 ... (MAYÚSCULAS, 3-5 palabras)",
+  "headline_bottom": "... (MAYÚSCULAS, 3-5 palabras que completan el titular)",
+  "category": "CATEGORÍA EN MAYÚSCULAS",
+  "description": "Resumen atrapante en 2 líneas + hashtags #EnigmaIQ #Curiosidades #Ciencia #DatosCuriosos #XpressTV",
+  "curiosities": [
+    {{
+      "num": 1,
+      "p1": "Número uno. Oración inicial corta y directa con gancho.",
+      "p2": "Segunda oración con el dato revelador exacto.",
+      "q1": "concise english visual prompt for scene 1 (4-7 words)",
+      "q2": "concise english visual prompt for scene 2 (4-7 words)",
+      "text": "p1 + espacio + p2"
+    }}
+  ]
+}}
+
+Reglas estrictas:
+- Exactamente 5 curiosidades (`num`: 1 al 5) empezando cada `p1` con "Número uno.", "Número dos.", "Número tres.", "Número cuatro.", "Número cinco.".
+- Cada `p1` y `p2` debe ser texto limpio en español natural sin abreviaturas raras ni símbolos, optimizado para TTS (~12-14 segundos por curiosidad, ~65 segundos total).
+- `q1` y `q2` SIEMPRE en inglés descriptivo visual claro (nunca abstracto), representando exactamente lo narrado en `p1` y `p2`.
+"""
+
+    for key in api_keys:
+        for model_name in ("gemini-2.5-flash", "gemini-2.0-flash"):
+            try:
+                client = genai.Client(api_key=key)
+                resp = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                        temperature=0.9,
+                    ),
+                )
+                raw_txt = (resp.text or "").strip()
+                if raw_txt.startswith("```"):
+                    raw_txt = re.sub(r'^```(?:json)?\s*|\s*```$', '', raw_txt, flags=re.S)
+                ep = json.loads(raw_txt)
+                if (
+                    isinstance(ep, dict)
+                    and ep.get("title")
+                    and isinstance(ep.get("curiosities"), list)
+                    and len(ep["curiosities"]) == 5
+                    and _norm_title(ep["title"]) not in posted_titles
+                ):
+                    for c in ep["curiosities"]:
+                        if not c.get("text"):
+                            c["text"] = f"{c['p1']} {c['p2']}".strip()
+                    ep["id"] = f"{next_num}_EnigmaIQ_5_Cosas_Vol{next_vol}"
+                    return ep
+            except Exception as ge:
+                Messenger.warning(f"⚠️ Fallo autogenerando con {model_name}: {ge}")
+    return None
+
+
 def main():
     import argparse
     parser = argparse.ArgumentParser(description="EnigmaIQ Production Engine (Local PC or GitHub Actions Cloud)")
@@ -616,17 +700,19 @@ def main():
     vb_client = VoiceboxClient(profile_id=XPRESSTV_PROFILE_ID)
     get_whisper_model()
 
-    # Cargar historial para no repetir videos ya publicados en Facebook
-    posted_titles = set()
+    # Cargar historial con conteo y posición para rotación sin repeticiones
+    title_counts = {}
+    title_last_idx = {}
     if HISTORY_FILE.exists():
         try:
             with open(HISTORY_FILE, "r", encoding="utf-8", errors="ignore") as hf:
-                for line in hf.readlines()[1:]:
+                for row_idx, line in enumerate(hf.readlines()[1:]):
                     parts = line.strip().split(",")
                     if len(parts) >= 3:
-                        norm = re.sub(r'[^a-zA-Z0-9]', '', parts[2].lower())
+                        norm = _norm_title(parts[2])
                         if norm:
-                            posted_titles.add(norm)
+                            title_counts[norm] = title_counts.get(norm, 0) + 1
+                            title_last_idx[norm] = row_idx
         except Exception:
             pass
 
@@ -639,15 +725,29 @@ def main():
                     target_video = v
                     break
                 continue
-            norm_title = re.sub(r'[^a-zA-Z0-9]', '', v["title"].lower())
-            if norm_title in posted_titles:
-                continue
-            target_video = v
-            break
+            if title_counts.get(_norm_title(v["title"]), 0) == 0:
+                target_video = v
+                break
 
         if not target_video:
-            Messenger.warning("⚠️ Todos los videos del catálogo ya fueron procesados una vez. Reiniciando ciclo continuo para nunca detener las publicaciones...")
-            target_video = catalog[0]
+            Messenger.info("✨ Todos los episodios del catálogo ya se publicaron. Generando un episodio 100% nuevo con Gemini...")
+            fresh_ep = generate_fresh_catalog_episode(catalog, set(title_counts.keys()))
+            if fresh_ep:
+                catalog.append(fresh_ep)
+                with open(CATALOG_FILE, "w", encoding="utf-8") as cf:
+                    json.dump(catalog, cf, indent=2, ensure_ascii=False)
+                target_video = fresh_ep
+                Messenger.success(f"🆕 Nuevo episodio inédito añadido al catálogo: {fresh_ep['id']} - '{fresh_ep['title']}'")
+            else:
+                Messenger.warning("⚠️ No se pudo generar episodio nuevo con Gemini; seleccionando el episodio menos repetido y más antiguo del catálogo...")
+                target_video = min(
+                    enumerate(catalog),
+                    key=lambda pair: (
+                        title_counts.get(_norm_title(pair[1]["title"]), 0),
+                        title_last_idx.get(_norm_title(pair[1]["title"]), -1),
+                        pair[0],
+                    ),
+                )[1]
 
         Messenger.info(f"🎯 [Modo Single Cloud] Produciendo video objetivo: {target_video['id']} - '{target_video['title']}'...")
         master_file = produce_single_video(target_video, media_hub, vb_client, force=args.force)
