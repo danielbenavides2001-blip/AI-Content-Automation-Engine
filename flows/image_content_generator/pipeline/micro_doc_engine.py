@@ -549,7 +549,7 @@ def produce_micro_doc(ep: dict, force: bool = False) -> Path:
         rel_ass = ass_path.as_posix().replace(":", "\\:")
 
     filter_complex = (
-        f"[0:v][1:v]overlay=0:0[v_b];"
+        f"[0:v][1:v]overlay=0:0:shortest=1[v_b];"
         f"[v_b]ass='{rel_ass}':fontsdir='{rel_fonts}'[v_out];"
         f"[2:a]volume=1.0[va];"
         f"[3:a]volume=0.28[ba];"
@@ -562,7 +562,7 @@ def produce_micro_doc(ep: dict, force: bool = False) -> Path:
     subprocess.run([
         "ffmpeg", "-y",
         "-f", "concat", "-safe", "0", "-i", str(concat_txt),
-        "-i", str(badge_png),
+        "-loop", "1", "-framerate", "30", "-i", str(badge_png),
         "-i", str(voice_wav),
         "-i", str(bed_wav),
         "-filter_complex", filter_complex,

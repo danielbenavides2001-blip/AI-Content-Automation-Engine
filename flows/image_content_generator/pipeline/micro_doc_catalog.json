@@ -1,0 +1,115 @@
+[
+  {
+    "id": "MD_01_tuneladora_tbm",
+    "pillar": "ingenieria_extrema",
+    "title": "Cómo esta máquina excava bajo ciudades enteras sin derrumbar nada ⚙️🚇",
+    "description": "Las tuneladoras gigantes no solo rompen la roca: mientras avanzan, colocan el revestimiento definitivo del túnel detrás de ellas. ⚙️🚇 ¿Habías visto alguna vez este mecanismo por dentro? #ingenieria #ciencia #tecnologia #curiosidades #maquinaria #sabiasque",
+    "beats": [
+      {"narration": "Esta máquina gigante excava túneles bajo ciudades enteras sin que nadie arriba lo note.", "q": "tunnel boring machine underground construction", "fb": "underground subway tunnel construction"},
+      {"narration": "En el frente, una rueda de acero con discos de corte tritura roca sólida centímetro a centímetro.", "q": "giant steel drill head machine rotating", "fb": "heavy machinery drilling rock"},
+      {"narration": "Pero si solo excavara, la presión de la tierra aplastaría el hueco al instante.", "q": "subway tunnel underground dark concrete", "fb": "deep earth excavation cliff"},
+      {"narration": "Por eso, un brazo hidráulico trasero va instalando anillos de hormigón prefabricado detrás de ella.", "q": "concrete tunnel lining construction workers", "fb": "industrial hydraulic crane lifting concrete"},
+      {"narration": "Unos gatos hidráulicos empujan contra el anillo recién puesto para impulsar la máquina hacia adelante.", "q": "hydraulic piston heavy steel machine", "fb": "industrial factory robotic machinery"},
+      {"narration": "Toda la roca triturada sale por una cinta transportadora continua que recorre kilómetros hasta la superficie.", "q": "conveyor belt rocks mining industry", "fb": "mining gravel transport belt"},
+      {"narration": "Así construyen líneas de metro completas bajo ríos y rascacielos sin abrir una sola calle.", "q": "modern subway train tunnel lights", "fb": "city skyline aerial view river"}
+    ]
+  },
+  {
+    "id": "MD_02_anodo_barco",
+    "pillar": "fisica_oculta",
+    "title": "Para qué sirven estos bloques metálicos pegados al casco de los barcos 🚢⚡",
+    "description": "Sin estas pequeñas piezas de zinc, el casco de acero de un buque de carga se oxidaría en cuestión de meses en agua salada. 🚢⚡ La electroquímica al rescate en alta mar. #ciencia #fisica #barcos #ingenieria #curiosidades",
+    "beats": [
+      {"narration": "Si miras el casco de un barco fuera del agua, verás estos bloques grises atornillados al metal.", "q": "ship hull dry dock metal maintenance", "fb": "cargo ship steel hull close up"},
+      {"narration": "No son refuerzos ni sensores: se llaman ánodos de sacrificio y evitan que el barco se deshaga.", "q": "rusty metal ship hull ocean", "fb": "steel plates industrial shipyard"},
+      {"narration": "El agua salada actúa como un electrolito natural que provoca corrosión constante sobre el acero.", "q": "ocean waves crashing dark blue water", "fb": "sea salt water splash macro"},
+      {"narration": "Como el zinc o el aluminio pierden electrones más fácil que el hierro, atraen la reacción química hacia ellos.", "q": "welding metal sparks shipyard worker", "fb": "metal surface corrosion macro"},
+      {"narration": "Literalmente se oxidan y se consumen por completo para mantener intacto todo el casco de acero.", "q": "underwater diver inspecting ship hull", "fb": "rusty iron pipe close up"},
+      {"narration": "Cuando los buzos ven que los bloques están desgastados, simplemente atornillan otros nuevos y el barco sigue navegando.", "q": "cargo ship sailing ocean aerial", "fb": "container ship moving ocean"}
+    ]
+  },
+  {
+    "id": "MD_03_ranura_pista_avion",
+    "pillar": "ingenieria_extrema",
+    "title": "Por qué las pistas de los aeropuertos tienen estas ranuras ocultas ✈️🌧️",
+    "description": "Un avión comercial aterriza a más de 250 km/h incluso bajo lluvia torrencial. Sin este diseño milimétrico en el asfalto, los neumáticos patinarían sin control. ✈️🌧️ #aviacion #ingenieria #ciencia #curiosidades #fisica",
+    "beats": [
+      {"narration": "Un avión comercial toca el suelo a más de doscientos cincuenta kilómetros por hora incluso bajo tormenta.", "q": "airplane landing wet runway rain", "fb": "commercial jet landing airport"},
+      {"narration": "Con tanta agua en el asfalto, los neumáticos deberían patinar sin control por aquaplaning.", "q": "car tire splashing water puddle slow motion", "fb": "heavy rain falling on asphalt road"},
+      {"narration": "Para evitarlo, las pistas tienen miles de ranuras transversales cortadas con sierra de diamante.", "q": "concrete road surface texture macro", "fb": "airport runway asphalt lines"},
+      {"narration": "En el instante en que la rueda pisa el agua, esos canales la evacuan hacia los lados bajo presión.", "q": "airplane wheels touching down smoke runway", "fb": "water draining concrete grooves"},
+      {"narration": "Eso permite que el caucho muerda el pavimento seco y frene toneladas de peso en segundos.", "q": "jet engine reverse thrust landing", "fb": "commercial airplane braking runway"},
+      {"narration": "Un detalle de apenas seis milímetros de profundidad que salva miles de vuelos cada día.", "q": "airplane taking off sunset airport", "fb": "airport runway lights night"}
+    ]
+  },
+  {
+    "id": "MD_04_camaron_pistola",
+    "pillar": "biologia_insolita",
+    "title": "Este pequeño animal golpea tan rápido que crea luz y calor solar bajo el mar 🦐💥",
+    "description": "El camarón mantis no solo ve colores que ni imaginamos: su golpe acelera como una bala y hace hervir el agua en microsegundos. 🦐💥 #biologia #oceanos #animales #ciencia #curiosidades",
+    "beats": [
+      {"narration": "Este crustáceo de apenas diez centímetros tiene el golpe más rápido y violento del reino animal.", "q": "mantis shrimp colorful coral reef", "fb": "colorful shrimp underwater macro"},
+      {"narration": "Sus apéndices almacenan energía como un resorte biológico comprimido y se disparan en milisegundos.", "q": "crab underwater moving coral reef", "fb": "ocean reef macro creature"},
+      {"narration": "La pinza acelera tan rápido bajo el agua que genera una burbuja de cavitación detrás del impacto.", "q": "underwater bubbles rising light rays", "fb": "water explosion bubbles slow motion"},
+      {"narration": "Cuando esa burbuja colapsa, produce una onda de choque capaz de aturdir presas y romper conchas.", "q": "ocean shockwave bubbles macro", "fb": "coral reef fish swimming"},
+      {"narration": "Durante una fracción de microsegundo, la implosión emite un destello de luz y alcanza miles de grados.", "q": "bioluminescent ocean glowing blue", "fb": "underwater sunlight beams"},
+      {"narration": "Incluso los acuarios deben usar acrílico reforzado para que este pequeño cazador no rompa el cristal.", "q": "aquarium glass coral reef fish", "fb": "deep blue sea coral"}
+    ]
+  },
+  {
+    "id": "MD_05_cables_submarinos",
+    "pillar": "tecnologia_mecanica",
+    "title": "Así es realmente el cable que cruza el océano para darte internet 🌊🌐",
+    "description": "Más del 98% del tráfico mundial de internet no viaja por satélites, sino por fibras del grosor de un cabello escondidas a kilómetros bajo el mar. 🌊🌐 #tecnologia #internet #ciencia #ingenieria #curiosidades",
+    "beats": [
+      {"narration": "Casi todo el internet que usas ahora mismo no viene de satélites en el espacio, sino del fondo del mar.", "q": "underwater deep ocean cable floor", "fb": "earth from space glowing network"},
+      {"narration": "Barcos especializados desenrollan miles de kilómetros de cable de fibra óptica directamente al abismo.", "q": "industrial ship ocean crane sea", "fb": "cargo ship sailing deep ocean"},
+      {"narration": "Aunque soporta presiones aplastantes y mordidas de tiburón, el núcleo que lleva tus datos es del grosor de un pelo.", "q": "fiber optic cables glowing light", "fb": "glowing blue glass strands macro"},
+      {"narration": "Alrededor lleva capas de vaselina, tubos de cobre, alambre de acero y blindaje de polietileno.", "q": "heavy steel wire rope cable coil", "fb": "industrial copper wire cables"},
+      {"narration": "Cada ochenta kilómetros incorpora repetidores ópticos alimentados con miles de voltios para que la señal no muera.", "q": "circuit board glowing microchip macro", "fb": "laser light pulse optical"},
+      {"narration": "Gracias a esta autopista silenciosa bajo el océano, un mensaje cruza continentes en menos de un parpadeo.", "q": "modern server room data center lights", "fb": "city night lights aerial"}
+    ]
+  },
+  {
+    "id": "MD_06_desalinizacion_osmosis",
+    "pillar": "tecnologia_mecanica",
+    "title": "Cómo convierten agua salada del mar en agua potable en minutos 💧⚙️",
+    "description": "La ósmosis inversa utiliza presiones extremas para empujar moléculas de agua pura a través de membranas microscópicas que bloquean la sal. 💧⚙️ #agua #ciencia #tecnologia #ingenieria #curiosidades",
+    "beats": [
+      {"narration": "El noventa y siete por ciento del agua del planeta es salada y beberla puede deshidratarte.", "q": "ocean waves dark blue water", "fb": "sea surface aerial deep blue"},
+      {"narration": "Pero en plantas gigantes frente al mar logran convertir esa agua salobre en agua totalmente potable.", "q": "industrial water treatment plant pipes", "fb": "large industrial factory aerial"},
+      {"narration": "Primero pasa por filtros de arena y carbón que atrapan algas, sedimentos y microplásticos.", "q": "clean water filtration laboratory glass", "fb": "water pouring sand filter"},
+      {"narration": "Luego, bombas de altísima presión la empujan contra membranas espirales con poros microscópicos.", "q": "high pressure stainless steel pipes", "fb": "industrial water pumps machine"},
+      {"narration": "Los poros son tan diminutos que dejan pasar las moléculas de agua pura, pero bloquean cada cristal de sal.", "q": "microscopic water droplets macro", "fb": "pure water splash macro slow motion"},
+      {"narration": "Tras añadir minerales esenciales, sale lista para abastecer a ciudades enteras en medio del desierto.", "q": "pouring crystal clear drinking water glass", "fb": "desert city skyline sunset"}
+    ]
+  },
+  {
+    "id": "MD_07_puente_lanzadora",
+    "pillar": "ingenieria_extrema",
+    "title": "La máquina roja gigante que construye autopistas en el aire sin grúas abajo 🌉🏗️",
+    "description": "Las lanzadoras de vigas caminan de pilar en pilar a decenas de metros de altura para armar viaductos enteros sobre barrancos y ríos. 🌉🏗️ #ingenieria #construccion #puentes #tecnologia #curiosidades",
+    "beats": [
+      {"narration": "Cuando hay que levantar una autopista sobre un barranco profundo, no se pueden usar grúas desde el suelo.", "q": "high concrete bridge pillars canyon", "fb": "highway bridge construction mountain"},
+      {"narration": "Por eso los ingenieros utilizan una estructura metálica autopropulsada llamada lanzadora de vigas.", "q": "steel bridge crane construction high", "fb": "giant red construction crane"},
+      {"narration": "Esta máquina se apoya sobre los pilares de hormigón ya construidos y camina hacia el vacío paso a paso.", "q": "bridge deck construction aerial view", "fb": "steel truss bridge engineering"},
+      {"narration": "Un carro interno recoge bloques prefabricados de decenas de toneladas y los baja con precisión milimétrica.", "q": "crane lifting heavy concrete beam", "fb": "industrial steel cables lifting"},
+      {"narration": "Luego unos cables de acero tensan cada tramo unido hasta convertirlo en una sola viga rígida.", "q": "workers securing bridge cables steel", "fb": "bridge structure steel engineering"},
+      {"narration": "En cuanto termina un vano completo, la máquina desliza sus patas delanteras al siguiente pilar y repite el proceso.", "q": "finished modern highway bridge river", "fb": "cars driving over high bridge"}
+    ]
+  },
+  {
+    "id": "MD_08_relampago_esfera",
+    "pillar": "fisica_oculta",
+    "title": "Por qué un rayo no busca el suelo y prefiere caer hacia las nubes ⚡🌩️",
+    "description": "Aunque parezca que todos los rayos caen desde el cielo, los más potentes y raros nacen en las torres altas y suben hacia la tormenta. ⚡🌩️ #clima #fisica #rayos #ciencia #naturaleza #curiosidades",
+    "beats": [
+      {"narration": "Siempre creemos que todos los rayos caen desde las nubes hacia la tierra, pero no siempre es así.", "q": "lightning storm dark clouds slow motion", "fb": "thunderstorm lightning sky night"},
+      {"narration": "En tormentas eléctricas intensas, las cargas positivas se acumulan en lo alto de antenas y rascacielos.", "q": "skyscraper lightning rod storm clouds", "fb": "tall radio tower dark storm"},
+      {"narration": "Cuando el campo eléctrico supera la resistencia del aire, la descarga despega desde el metal hacia arriba.", "q": "electric arc spark high voltage", "fb": "plasma electricity blue discharge"},
+      {"narration": "En cámaras de alta velocidad se ve cómo el canal luminoso se ramifica hacia el cielo como un árbol invertido.", "q": "lightning bolt branching sky night", "fb": "bright lightning flash clouds"},
+      {"narration": "Y aún más arriba existen los chorros gigantes: descargas rojas y azules que suben directo hacia el espacio.", "q": "aurora earth atmosphere from space", "fb": "storm clouds seen from airplane"},
+      {"narration": "En menos de un milisegundo, el canal de plasma alcanza cinco veces la temperatura de la superficie del sol.", "q": "sun solar flare surface plasma", "fb": "bright electric flash dark"}
+    ]
+  }
+]
