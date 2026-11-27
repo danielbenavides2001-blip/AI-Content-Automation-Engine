@@ -88,7 +88,7 @@ jobs:
       - name: Install dependencies
         run: |
           poetry install
-          poetry run pip install edge-tts gradio_client google-genai pillow
+          poetry run pip install edge-tts gradio_client google-genai pillow numpy requests openai-whisper
 
       - name: Create GCP Credentials (Optional)
         continue-on-error: true
@@ -128,14 +128,14 @@ jobs:
           fi
           
           if [ "$RUN_VIDEO" = true ]; then
-            echo "🎬 GENERATING VIRAL ENIGMAIQ MASTER REEL DIRECTLY IN GITHUB ACTIONS CLOUD (> 60s)..."
+            echo "🎬 GENERATING VIRAL MICRO-DOCUMENTARY V2 DIRECTLY IN GITHUB ACTIONS CLOUD..."
             export POST_TYPE="video"
             VIDEO_ARG=""
             TOPIC_INPUT="${{ github.event.inputs.force_topic }}"
             if [ -n "$TOPIC_INPUT" ]; then
-              VIDEO_ARG="--video-id $TOPIC_INPUT --force"
+              VIDEO_ARG="--episode-id $TOPIC_INPUT --force"
             fi
-            poetry run python flows/image_content_generator/pipeline/batch_30_production_engine.py --single --upload $VIDEO_ARG
+            poetry run python flows/image_content_generator/pipeline/micro_doc_engine.py --single --upload $VIDEO_ARG
             sleep 5
           fi
           
@@ -149,7 +149,7 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add -f flows/image_content_generator/out_short/automated_posts_history.csv flows/image_content_generator/out_short/ideas_tracking.csv flows/image_content_generator/out_short/next_queued_action.json flows/image_content_generator/pipeline/curiosities_30_catalog.json
+          git add -f flows/image_content_generator/out_short/automated_posts_history.csv flows/image_content_generator/out_short/ideas_tracking.csv flows/image_content_generator/out_short/next_queued_action.json flows/image_content_generator/pipeline/micro_doc_catalog.json flows/image_content_generator/pipeline/curiosities_30_catalog.json
           git commit -m "chore: update tracking and history [skip ci]" || echo "No changes to commit"
           git pull --rebase --autostash origin main || { git rebase --abort 2>/dev/null; echo "Rebase failed (conflict). Skipping push."; exit 0; }
           git push origin main || echo "No changes to push"
