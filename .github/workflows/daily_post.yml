@@ -128,14 +128,14 @@ jobs:
           fi
           
           if [ "$RUN_VIDEO" = true ]; then
-            echo "📰 GENERATING 100% FREE VOX PAPER-COLLAGE V3 REEL IN GITHUB ACTIONS..."
+            echo "🎬 GENERATING VIRAL MICRO-DOCUMENTARY V2 DIRECTLY IN GITHUB ACTIONS CLOUD..."
             export POST_TYPE="video"
             VIDEO_ARG=""
             TOPIC_INPUT="${{ github.event.inputs.force_topic }}"
             if [ -n "$TOPIC_INPUT" ]; then
               VIDEO_ARG="--episode-id $TOPIC_INPUT --force"
             fi
-            poetry run python flows/image_content_generator/pipeline/vox_paper_engine.py --single --upload $VIDEO_ARG
+            poetry run python flows/image_content_generator/pipeline/micro_doc_engine.py --single --upload $VIDEO_ARG
             sleep 5
           fi
           
