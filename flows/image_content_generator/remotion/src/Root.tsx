@@ -26,12 +26,35 @@ import { ElPorqueDeTodoAvionHielo, AVION_HIELO_TOTAL_FRAMES, AVION_HIELO_FPS } f
 
 import { EnigmaIQDynamicMaster, DEFAULT_BLUEPRINT } from './dynamic/EnigmaIQDynamicMaster';
 import { DynamicVideoBlueprint } from './dynamic/types';
+import { VoxPaperMaster, DEFAULT_VOX_BLUEPRINT } from './vox/VoxPaperMaster';
+import { VoxBlueprint } from './vox/types';
 
 const FPS = 30;
 
 export const RemotionRoot: React.FC = () => {
   return (
     <>
+      <Composition
+        id="VoxPaperMaster"
+        component={VoxPaperMaster}
+        durationInFrames={DEFAULT_VOX_BLUEPRINT.totalFrames}
+        fps={FPS}
+        width={1080}
+        height={1920}
+        defaultProps={DEFAULT_VOX_BLUEPRINT}
+        calculateMetadata={({ props }) => {
+          const bp = props as VoxBlueprint;
+          if (bp?.totalFrames && bp.totalFrames > 0) {
+            return { durationInFrames: bp.totalFrames, fps: bp.fps || FPS };
+          }
+          if (bp?.beats && bp.beats.length > 0) {
+            const last = bp.beats[bp.beats.length - 1];
+            return { durationInFrames: last.startFrame + last.durationFrames, fps: bp.fps || FPS };
+          }
+          return { durationInFrames: DEFAULT_VOX_BLUEPRINT.totalFrames, fps: FPS };
+        }}
+      />
+
       <Composition
         id="EnigmaIQDynamicMaster"
         component={EnigmaIQDynamicMaster}

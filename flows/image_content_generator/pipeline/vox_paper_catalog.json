@@ -1,0 +1,407 @@
+[
+  {
+    "id": "VX_01_triangulo_litio",
+    "pillar": "GEOLOGÍA",
+    "title": "El salar invisible que guarda la mitad del litio del planeta 🔋🗺️",
+    "description": "Bajo el desierto más árido de Sudamérica existe una capa de salmuera líquida que alimenta millones de baterías en todo el mundo. 🔋🗺️ #ciencia #geologia #tecnologia #curiosidades #sudamerica",
+    "beats": [
+      {
+        "kind": "vox_map",
+        "mapCountry": "chile",
+        "mapLabel": "SALAR DE ATACAMA",
+        "mapCoords": "23.5° S, 68.2° W",
+        "headline": "Aquí está el mayor depósito de litio líquido del mundo.",
+        "narration": "En el norte de Chile y sus fronteras vecinas se esconde la mayor reserva de litio del planeta.",
+        "q": "atacama salt flat desert aerial view",
+        "fb": "white salt flat desert landscape"
+      },
+      {
+        "kind": "paper_highlight",
+        "kicker": "EVIDENCIA",
+        "headline": "El litio no se excava como piedra: se bombea en forma de salmuera subterránea.",
+        "highlightPhrase": "salmuera subterránea",
+        "narration": "A diferencia del carbón, este metal no se saca picando roca sino bombeando agua salada subterránea.",
+        "q": "lithium evaporation ponds colorful aerial",
+        "fb": "industrial water pools desert aerial"
+      },
+      {
+        "kind": "data_bars",
+        "kicker": "CONCENTRACIÓN",
+        "headline": "La densidad de litio en Atacama duplica la de otros salares.",
+        "chartTitle": "Concentración relativa de litio en salmuera",
+        "bars": [
+          {"label": "Promedio global", "value": 420, "unit": " mg/L", "highlight": false},
+          {"label": "Atacama (Chile)", "value": 1500, "unit": " mg/L", "highlight": true}
+        ],
+        "narration": "Mientras otros yacimientos rondan cuatrocientos miligramos por litro, este salar supera los mil quinientos.",
+        "q": "turquoise evaporation pond industrial salt",
+        "fb": "crystal salt crust macro"
+      },
+      {
+        "kind": "split_process",
+        "kicker": "PROCESO SOLAR",
+        "headline": "Cómo el desierto separa el metal sin hornos gigantes:",
+        "steps": [
+          "Bombean salmuera desde treinta metros bajo tierra",
+          "El sol evapora el agua durante dieciocho meses",
+          "Queda carbonato de litio listo para baterías"
+        ],
+        "narration": "Durante dieciocho meses, la radiación extrema evapora el agua en piscinas turquesas hasta concentrar el mineral.",
+        "q": "solar evaporation mineral salt crystals",
+        "fb": "desert sunlight bright salt landscape"
+      },
+      {
+        "kind": "big_stat",
+        "kicker": "IMPACTO GLOBAL",
+        "statValue": "54",
+        "statUnit": "%",
+        "statSub": "de las reservas conocidas están en este triángulo andino.",
+        "narration": "Más de la mitad de las reservas mundiales probadas descansan bajo este suelo blanco entre tres países.",
+        "q": "electric vehicle battery factory robot",
+        "fb": "smartphone lithium battery assembly"
+      },
+      {
+        "kind": "media_cutout",
+        "kicker": "CONCLUSIÓN",
+        "headline": "Sin este desierto salado, el mundo móvil no arrancaría.",
+        "highlightPhrase": "el mundo móvil",
+        "caption": "ENERGÍA QUÍMICA DESDE LOS ANDES",
+        "narration": "Cada teléfono y auto eléctrico moderno lleva un fragmento evaporado de este antiguo lago andino.",
+        "q": "electric car charging modern city night",
+        "fb": "person holding glowing smartphone"
+      }
+    ]
+  },
+  {
+    "id": "VX_02_canal_panama_esclusas",
+    "pillar": "INGENIERÍA",
+    "title": "Cómo un canal sube barcos gigantes una montaña de agua sin bombas eléctricas 🚢⚙️",
+    "description": "El Canal de Panamá no conecta dos mares al mismo nivel: eleva buques de carga de cientos de miles de toneladas usando únicamente gravedad. 🚢⚙️ #ingenieria #barcos #fisica #curiosidades",
+    "beats": [
+      {
+        "kind": "paper_highlight",
+        "kicker": "MITO COMÚN",
+        "headline": "El Canal de Panamá no es una zanja plana: los barcos suben veintiséis metros.",
+        "highlightPhrase": "suben veintiséis metros",
+        "narration": "Muchos creen que el Canal de Panamá es una zanja plana, pero en realidad eleva cada barco veintiséis metros.",
+        "q": "panama canal cargo ship passing locks",
+        "fb": "huge container ship aerial view"
+      },
+      {
+        "kind": "data_bars",
+        "kicker": "CONSUMO POR BARCO",
+        "headline": "Cada tránsito usa millones de litros de agua dulce por gravedad.",
+        "chartTitle": "Agua movida por cada buque que cruza",
+        "bars": [
+          {"label": "Piscina olímpica", "value": 2.5, "unit": "M L", "highlight": false},
+          {"label": "1 cruce de esclusa", "value": 200, "unit": "M L", "highlight": true}
+        ],
+        "narration": "Para lograrlo, el sistema mueve doscientos millones de litros de agua dulce en cada cruce sin bombas eléctricas.",
+        "q": "water rushing dam floodgate torrent",
+        "fb": "heavy cargo ship canal water"
+      },
+      {
+        "kind": "split_process",
+        "kicker": "MECÁNICA PURA",
+        "headline": "Cómo funciona el ascensor hidráulico gigante:",
+        "steps": [
+          "El barco entra y se cierran compuertas de acero",
+          "El lago superior inunda la cámara por gravedad",
+          "El casco flota nivelado hacia el siguiente escalón"
+        ],
+        "narration": "Cuando las compuertas se cierran, el agua del lago Gatún cae por túneles ocultos e impulsa el casco hacia arriba.",
+        "q": "heavy steel lock gates water dam",
+        "fb": "ship inside narrow canal channel"
+      },
+      {
+        "kind": "big_stat",
+        "kicker": "ESCALA REAL",
+        "statValue": "80",
+        "statUnit": "KM",
+        "statSub": "de ruta artificial que ahorran rodear todo un continente.",
+        "narration": "Cruzar ochenta kilómetros por esta escalera acuática evita un viaje peligroso de catorce mil kilómetros por el sur.",
+        "q": "container ship sailing sunset ocean",
+        "fb": "port cranes unloading cargo ship"
+      },
+      {
+        "kind": "media_cutout",
+        "kicker": "PRECISION MILIMÉTRICA",
+        "headline": "Locomotoras eléctricas guían los cascos a centímetros del muro.",
+        "highlightPhrase": "a centímetros",
+        "caption": "REMOLCADORES DE TIERRA EN ACCIÓN",
+        "narration": "Unas locomotoras llamadas mulas tensan cables de acero desde la orilla para que el gigante no roce el cemento.",
+        "q": "cargo port ship steel cables tugboat",
+        "fb": "ship deck ropes sea industrial"
+      },
+      {
+        "kind": "media_cutout",
+        "kicker": "CIERRE",
+        "headline": "La obra que unió dos océanos con pura gravedad tropical.",
+        "highlightPhrase": "pura gravedad",
+        "caption": "INGENIERÍA HIDRÁULICA DE 1914",
+        "narration": "Cien años después, la física del agua sigue levantando ciudades flotantes sobre la selva centroamericana.",
+        "q": "tropical rainforest lake aerial mist",
+        "fb": "cargo ship open ocean aerial"
+      }
+    ]
+  },
+  {
+    "id": "VX_03_amazonas_rio_oculto",
+    "pillar": "GEOGRAFÍA",
+    "title": "El río invisible que corre cuatro kilómetros debajo del Amazonas 🌊🌎",
+    "description": "Debajo del río más caudaloso del mundo fluye otra corriente subterránea gigantesca con el mismo recorrido hacia el Atlántico. 🌊🌎 #amazonas #geografia #ciencia #curiosidades #sudamerica",
+    "beats": [
+      {
+        "kind": "vox_map",
+        "mapCountry": "brasil",
+        "mapLabel": "CUENCA DEL AMAZONAS",
+        "mapCoords": "3.1° S, 60.0° W",
+        "headline": "Bajo este gigante verde fluye un río gemelo oculto.",
+        "narration": "Debajo del río Amazonas existe otra gigantesca corriente de agua dulce oculta bajo la roca.",
+        "q": "amazon rainforest river aerial winding",
+        "fb": "wide brown river jungle canopy"
+      },
+      {
+        "kind": "big_stat",
+        "kicker": "PROFUNDIDAD",
+        "statValue": "4,000",
+        "statUnit": "M",
+        "statSub": "bajo la selva, donde nadie imaginaba un río continuo.",
+        "narration": "Los geofísicos descubrieron este flujo a cuatro mil metros de profundidad analizando antiguos pozos petroleros.",
+        "q": "deep underground cavern dark water",
+        "fb": "oil drilling geological core rock"
+      },
+      {
+        "kind": "data_bars",
+        "kicker": "VELOCIDAD",
+        "headline": "No corre rápido: se filtra por arena y rocas porosas.",
+        "chartTitle": "Comparación de velocidad del agua",
+        "bars": [
+          {"label": "Río subterráneo", "value": 1, "unit": " mm/s", "highlight": true},
+          {"label": "Río en superficie", "value": 2000, "unit": " mm/s", "highlight": false}
+        ],
+        "narration": "No es un túnel hueco sino una autopista de arena porosa donde el agua avanza apenas un milímetro por segundo.",
+        "q": "water seeping porous sandstone rock macro",
+        "fb": "underwater sandy riverbed current"
+      },
+      {
+        "kind": "paper_highlight",
+        "kicker": "EXTENSIÓN",
+        "headline": "Mide seis mil kilómetros de largo y es mucho más ancho que el río superior.",
+        "highlightPhrase": "seis mil kilómetros",
+        "narration": "Aunque es lentísimo, tiene hasta cuatrocientos kilómetros de ancho y recorre seis mil kilómetros hasta el océano.",
+        "q": "atlantic ocean estuary river mouth aerial",
+        "fb": "wide river delta satellite clouds"
+      },
+      {
+        "kind": "media_cutout",
+        "kicker": "ORIGEN ANDINO",
+        "headline": "La lluvia de los Andes alimenta ambos pisos del planeta.",
+        "highlightPhrase": "ambos pisos",
+        "caption": "CICLO HIDROLÓGICO SUBTERRÁNEO",
+        "narration": "Esa agua fría nace en la cordillera andina, se hunde por grietas profundas y tarda siglos en tocar el mar.",
+        "q": "andes mountains mist waterfall jungle",
+        "fb": "mountain rain clouds forest"
+      },
+      {
+        "kind": "media_cutout",
+        "kicker": "DESCUBRIMIENTO",
+        "headline": "El mapa secreto de Sudamérica recién empieza a entenderse.",
+        "highlightPhrase": "mapa secreto",
+        "caption": "HIDROGEOLOGÍA DEL SIGLO XXI",
+        "narration": "Incluso los lugares más fotografiados de la Tierra todavía esconden ríos enteros bajo nuestros pies.",
+        "q": "amazon sunset river reflection boat",
+        "fb": "green jungle canopy aerial"
+      }
+    ]
+  },
+  {
+    "id": "VX_04_acero_torre_eiffel",
+    "pillar": "FÍSICA",
+    "title": "Por qué la Torre Eiffel cambia de altura cada verano sin que nadie la toque 🗼🌡️",
+    "description": "El hierro pudelado de París se expande con el calor del verano hasta ganar 15 centímetros de estatura y volver a encogerse en invierno. 🗼🌡️ #fisica #ciencia #arquitectura #curiosidades",
+    "beats": [
+      {
+        "kind": "paper_highlight",
+        "kicker": "EXPANSIÓN TÉRMICA",
+        "headline": "La Torre Eiffel crece hasta quince centímetros cada verano.",
+        "highlightPhrase": "quince centímetros",
+        "narration": "Cada mes de julio, la Torre Eiffel se vuelve hasta quince centímetros más alta sin que nadie la toque.",
+        "q": "eiffel tower paris sunny summer sky",
+        "fb": "eiffel tower steel structure close up"
+      },
+      {
+        "kind": "split_process",
+        "kicker": "QUÉ PASA EN LOS ÁTOMOS",
+        "headline": "Cómo el calor estira siete mil toneladas de hierro:",
+        "steps": [
+          "El sol calienta el hierro hasta cuarenta grados",
+          "Los átomos vibran rápido y se separan",
+          "Toda la estructura de hierro se expande hacia arriba"
+        ],
+        "narration": "Cuando el sol calienta sus siete mil toneladas de hierro pudelado, los átomos vibran más fuerte y empujan la estructura.",
+        "q": "forged hot glowing iron steel factory",
+        "fb": "steel bridge girders sunlight shadow"
+      },
+      {
+        "kind": "data_bars",
+        "kicker": "DIFERENCIA TÉRMICA",
+        "headline": "La altura cambia según la estación del año en París.",
+        "chartTitle": "Variación vertical medida en la antena",
+        "bars": [
+          {"label": "Invierno (-5 °C)", "value": 329.85, "unit": " m", "highlight": false},
+          {"label": "Verano (+38 °C)", "value": 330.0, "unit": " m", "highlight": true}
+        ],
+        "narration": "Además de crecer hacia arriba, la cara iluminada por el sol se dilata más rápido e inclina la punta hacia la sombra.",
+        "q": "paris cityscape golden hour shadow",
+        "fb": "metal lattice tower looking up"
+      },
+      {
+        "kind": "big_stat",
+        "kicker": "CURIOSIDAD SOLAR",
+        "statValue": "18",
+        "statUnit": "CM",
+        "statSub": "se inclina la punta huyendo del lado donde pega el sol.",
+        "narration": "Durante una tarde calurosa, la antena superior dibuja un pequeño círculo mientras sigue el movimiento del sol.",
+        "q": "sunbeams shining through iron tower",
+        "fb": "sunlight shadows architectural iron"
+      },
+      {
+        "kind": "media_cutout",
+        "kicker": "DISEÑO INTELIGENTE",
+        "headline": "Puentes y rieles sufren exactamente este mismo fenómeno físico.",
+        "highlightPhrase": "mismo fenómeno físico",
+        "caption": "JUNTAS DE DILATACIÓN EN INGENIERÍA",
+        "narration": "Por esta misma razón los puentes llevan dientes metálicos en las uniones: sin espacio libre, el concreto explotaría.",
+        "q": "steel train tracks perspective sunny",
+        "fb": "highway bridge expansion joint metal"
+      }
+    ]
+  },
+  {
+    "id": "VX_05_mar_negro_oxigeno",
+    "pillar": "OCÉANOS",
+    "title": "El mar donde los barcos antiguos de madera siguen intactos tras dos mil años ⚓🌊",
+    "description": "En las profundidades del Mar Negro no hay oxígeno ni gusanos que devoren la madera, creando un museo perfecto bajo el agua. ⚓🌊 #oceanos #historia #ciencia #curiosidades",
+    "beats": [
+      {
+        "kind": "paper_highlight",
+        "kicker": "MISTERIO MARINO",
+        "headline": "En el fondo de este mar, barcos de dos mil años conservan hasta sus cuerdas.",
+        "highlightPhrase": "conservan hasta sus cuerdas",
+        "narration": "Mientras cualquier barco hundido desaparece en décadas, en el fondo del Mar Negro siguen intactos tras dos mil años.",
+        "q": "underwater shipwreck dark ocean blue",
+        "fb": "deep ocean underwater diving dark"
+      },
+      {
+        "kind": "data_bars",
+        "kicker": "ZONA MUERTA NATURAL",
+        "headline": "Por debajo de doscientos metros casi no existe oxígeno.",
+        "chartTitle": "Porcentaje de agua sin oxígeno",
+        "bars": [
+          {"label": "Océano normal", "value": 2, "unit": "%", "highlight": false},
+          {"label": "Mar Negro profundo", "value": 90, "unit": "%", "highlight": true}
+        ],
+        "narration": "Noventa por ciento del volumen de este mar carece por completo de oxígeno disuelto en sus capas profundas.",
+        "q": "dark abyss deep ocean water rays",
+        "fb": "ocean waves dark storm surface"
+      },
+      {
+        "kind": "split_process",
+        "kicker": "CAPAS SELLADAS",
+        "headline": "Por qué sus aguas nunca se mezclan:",
+        "steps": [
+          "Ríos dulces flotan arriba como capa ligera",
+          "Agua salada densa queda atrapada en el fondo",
+          "Sin oxígeno, los microbios de madera mueren"
+        ],
+        "narration": "Los grandes ríos europeos mantienen arriba una capa ligera que impide al oxígeno bajar hasta el fondo helado.",
+        "q": "oil and water density separation science",
+        "fb": "river flowing into dark sea aerial"
+      },
+      {
+        "kind": "big_stat",
+        "kicker": "HALLAZGO ARQUEOLÓGICO",
+        "statValue": "60+",
+        "statUnit": "NAVES",
+        "statSub": "romanas, bizantinas y griegas intactas en una sola campaña.",
+        "narration": "Los robots submarinos hallaron más de sesenta barcos antiguos con remos, mástiles y tallados en perfecto estado.",
+        "q": "underwater exploration rov submarine light",
+        "fb": "wooden antique ship model close up"
+      },
+      {
+        "kind": "media_cutout",
+        "kicker": "MUSEO NATURAL",
+        "headline": "Una cápsula del tiempo sellada por química marina.",
+        "highlightPhrase": "cápsula del tiempo",
+        "caption": "QUÍMICA DE AGUAS ANÓXICAS",
+        "narration": "Sin gusanos comedores ni bacterias aeróbicas, el fondo del Mar Negro es la mayor cápsula del tiempo del planeta.",
+        "q": "scuba diver flashlight dark cave ocean",
+        "fb": "deep sea darkness blue bubbles"
+      }
+    ]
+  },
+  {
+    "id": "VX_06_tren_maglev_levitacion",
+    "pillar": "TECNOLOGÍA",
+    "title": "Cómo este tren vuela a 600 km/h sin tocar jamás los rieles 🚄⚡",
+    "description": "Los trenes de levitación magnética eliminan toda fricción mecánica usando imanes superconductores refrigerados con helio líquido. 🚄⚡ #tecnologia #trenes #fisica #ingenieria",
+    "beats": [
+      {
+        "kind": "paper_highlight",
+        "kicker": "SIN RUEDAS NI FRICCIÓN",
+        "headline": "Este tren alcanza seiscientos kilómetros por hora flotando diez centímetros.",
+        "highlightPhrase": "flotando diez centímetros",
+        "narration": "A seiscientos kilómetros por hora, las ruedas de acero explotarían por el calor y la fricción con la vía.",
+        "q": "high speed bullet train passing blurred",
+        "fb": "modern train station sleek train"
+      },
+      {
+        "kind": "split_process",
+        "kicker": "MAGNETISMO EXTREMO",
+        "headline": "Cómo levita un vagón de cuarenta toneladas:",
+        "steps": [
+          "Helio líquido enfría bobinas a menos 269 grados",
+          "Se convierten en imanes superconductores",
+          "Campos opuestos empujan y arrastran el tren"
+        ],
+        "narration": "Por eso el Maglev japonés enfría sus imanes con helio líquido hasta eliminar la resistencia eléctrica y despegar.",
+        "q": "liquid nitrogen cooling vapor science lab",
+        "fb": "copper magnet coil electricity sparks"
+      },
+      {
+        "kind": "data_bars",
+        "kicker": "RÉCORD DE VELOCIDAD",
+        "headline": "Casi duplica la velocidad de un tren de alta velocidad clásico.",
+        "chartTitle": "Velocidad máxima operativa y récord",
+        "bars": [
+          {"label": "Tren convencional", "value": 320, "unit": " km/h", "highlight": false},
+          {"label": "Maglev L0 Series", "value": 603, "unit": " km/h", "highlight": true}
+        ],
+        "narration": "Al flotar en el aire, el único enemigo del tren ya no es el metal de la vía, sino la resistencia del viento.",
+        "q": "wind tunnel aerodynamics car airflow",
+        "fb": "futuristic high speed railway aerial"
+      },
+      {
+        "kind": "big_stat",
+        "kicker": "SILENCIO RELATIVO",
+        "statValue": "10",
+        "statUnit": "CM",
+        "statSub": "de espacio vacío permanente entre el tren y el concreto.",
+        "narration": "Incluso durante el arranque usa pequeñas ruedas retráctiles hasta superar ciento cincuenta kilómetros por hora y despegar.",
+        "q": "airplane wheels retracting takeoff close up",
+        "fb": "sleek modern bullet train nose"
+      },
+      {
+        "kind": "media_cutout",
+        "kicker": "FUTURO FERROVIARIO",
+        "headline": "Volar al ras del suelo será más limpio que tomar un avión corto.",
+        "highlightPhrase": "más limpio",
+        "caption": "ELECTROMAGNETISMO APLICADO",
+        "narration": "Así el magnetismo convierte un vagón pesado en un avión silencioso que viaja sobre una viga de concreto.",
+        "q": "tokyo city skyline night fast traffic",
+        "fb": "modern bullet train interior window"
+      }
+    ]
+  }
+]

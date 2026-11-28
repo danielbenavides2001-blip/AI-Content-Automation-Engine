@@ -64,10 +64,10 @@ jobs:
           cache-dependency-path: 'flows/image_content_generator/remotion/package-lock.json'
 
       - name: Install Remotion Dependencies
-        continue-on-error: true
         run: |
           cd flows/image_content_generator/remotion
-          npm ci
+          npm ci || npm install
+          npx remotion browser ensure
 
       - name: Install Linux dependencies
         run: |
@@ -128,14 +128,14 @@ jobs:
           fi
           
           if [ "$RUN_VIDEO" = true ]; then
-            echo "🎬 GENERATING VIRAL MICRO-DOCUMENTARY V2 DIRECTLY IN GITHUB ACTIONS CLOUD..."
+            echo "📰 GENERATING 100% FREE VOX PAPER-COLLAGE V3 REEL IN GITHUB ACTIONS..."
             export POST_TYPE="video"
             VIDEO_ARG=""
             TOPIC_INPUT="${{ github.event.inputs.force_topic }}"
             if [ -n "$TOPIC_INPUT" ]; then
               VIDEO_ARG="--episode-id $TOPIC_INPUT --force"
             fi
-            poetry run python flows/image_content_generator/pipeline/micro_doc_engine.py --single --upload $VIDEO_ARG
+            poetry run python flows/image_content_generator/pipeline/vox_paper_engine.py --single --upload $VIDEO_ARG
             sleep 5
           fi
           
@@ -149,7 +149,7 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add -f flows/image_content_generator/out_short/automated_posts_history.csv flows/image_content_generator/out_short/ideas_tracking.csv flows/image_content_generator/out_short/next_queued_action.json flows/image_content_generator/pipeline/micro_doc_catalog.json flows/image_content_generator/pipeline/curiosities_30_catalog.json
+          git add -f flows/image_content_generator/out_short/automated_posts_history.csv flows/image_content_generator/out_short/ideas_tracking.csv flows/image_content_generator/out_short/next_queued_action.json flows/image_content_generator/pipeline/vox_paper_catalog.json flows/image_content_generator/pipeline/micro_doc_catalog.json flows/image_content_generator/pipeline/curiosities_30_catalog.json
           git commit -m "chore: update tracking and history [skip ci]" || echo "No changes to commit"
           git pull --rebase --autostash origin main || { git rebase --abort 2>/dev/null; echo "Rebase failed (conflict). Skipping push."; exit 0; }
           git push origin main || echo "No changes to push"
