@@ -42,6 +42,7 @@ flows/image_content_generator/remotion/public/dynamic_audio/*.mp3
 !flows/image_content_generator/pipeline/curiosities_30_catalog.json
 !flows/image_content_generator/pipeline/micro_doc_catalog.json
 !flows/image_content_generator/pipeline/vox_paper_catalog.json
+!flows/image_content_generator/remotion/src/real_country_geodata.json
 !flows/image_content_generator/out_short/CaidaAvion8KmHielo_Master.mp4
 flows/image_content_generator/remotion/public/avion_hielo_assets/*_frames/
 
