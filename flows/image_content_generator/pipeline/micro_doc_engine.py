@@ -496,22 +496,62 @@ def _fmt_ass(sec: float) -> str:
     return f"{h:01d}:{m:02d}:{s:02d}.{cs:02d}"
 
 
-def make_viral_pop_subtitles(audio_wav: Path, out_ass: Path, beats: Optional[list[dict]] = None, beat_durs: Optional[list[float]] = None):
-    """Generates giant 1-2 word pop-in subtitles synchronized word-for-word via Whisper (with deterministic beat fallback)."""
+def _align_script_to_whisper(tokens: list[str], w_words: list[tuple[float, float]], cursor: float, dur: float) -> list[dict]:
+    if not tokens:
+        return []
+    if w_words and len(tokens) == len(w_words):
+        return [
+            {"word": tok, "start": cursor + max(0.0, ws), "end": cursor + min(dur - 0.03, max(ws + 0.08, we))}
+            for tok, (ws, we) in zip(tokens, w_words)
+        ]
+    # Speech span from Whisper (or full beat minus end pad) distributed by word weight
+    span_start = max(0.0, w_words[0][0]) if w_words else 0.0
+    span_end = min(dur - 0.04, w_words[-1][1]) if w_words else max(0.25, dur - 0.14)
+    if span_end <= span_start + 0.15:
+        span_start, span_end = 0.0, max(0.25, dur - 0.14)
+    weights = [max(2, len(t)) for t in tokens]
+    total_w = sum(weights)
+    t_cur = span_start
+    out: list[dict] = []
+    for tok, wt in zip(tokens, weights):
+        seg = (span_end - span_start) * (wt / total_w)
+        out.append({"word": tok, "start": cursor + t_cur, "end": cursor + t_cur + seg})
+        t_cur += seg
+    return out
+
+
+def make_viral_pop_subtitles(audio_wav: Path, out_ass: Path, beats: Optional[list[dict]] = None, beat_durs: Optional[list[float]] = None, work_dir: Optional[Path] = None):
+    """Generates giant 1-2 word pop-in subtitles per beat with exact Spanish script spelling + Whisper voice timing."""
     words: list[dict] = []
-    prompt_hint = " ".join(b.get("narration", "") for b in (beats or []))
     try:
         import torch
         import whisper
 
         device = "cuda" if torch.cuda.is_available() else "cpu"
         model = whisper.load_model("base", device=device)
-        res = model.transcribe(str(audio_wav), word_timestamps=True, language="es", initial_prompt=prompt_hint or None)
-        for seg in res.get("segments", []):
-            for w in seg.get("words", []):
-                txt = w["word"].strip().strip(".,;:!?¿¡").upper()
-                if txt:
-                    words.append({"word": txt, "start": float(w["start"]), "end": float(w["end"])})
+
+        if beats and beat_durs and work_dir:
+            cursor = 0.0
+            for idx, (b, d) in enumerate(zip(beats, beat_durs)):
+                tokens = [t.strip(".,;:!?¿¡").upper() for t in b.get("narration", "").split() if t.strip(".,;:!?¿¡")]
+                b_wav = work_dir / f"beat_{idx+1:02d}_clean.wav"
+                w_times: list[tuple[float, float]] = []
+                if b_wav.exists():
+                    res = model.transcribe(str(b_wav), word_timestamps=True, language="es", condition_on_previous_text=False)
+                    for seg in res.get("segments", []):
+                        for w in seg.get("words", []):
+                            ws, we = float(w["start"]), float(w["end"])
+                            if w.get("word", "").strip() and ws < d - 0.05 and (we - ws) >= 0.02:
+                                w_times.append((ws, we))
+                words.extend(_align_script_to_whisper(tokens, w_times, cursor, d))
+                cursor += d
+        else:
+            res = model.transcribe(str(audio_wav), word_timestamps=True, language="es", condition_on_previous_text=False)
+            for seg in res.get("segments", []):
+                for w in seg.get("words", []):
+                    txt = w["word"].strip().strip(".,;:!?¿¡").upper()
+                    if txt:
+                        words.append({"word": txt, "start": float(w["start"]), "end": float(w["end"])})
     except Exception as e:
         Messenger.warning(f"  ⚠️ Whisper fallback a tiempos por golpe visual ({e})")
 
@@ -519,10 +559,7 @@ def make_viral_pop_subtitles(audio_wav: Path, out_ass: Path, beats: Optional[lis
         cursor = 0.0
         for b, d in zip(beats, beat_durs):
             tokens = [t.strip(".,;:!?¿¡").upper() for t in b.get("narration", "").split() if t.strip(".,;:!?¿¡")]
-            if tokens:
-                step = max(0.18, (d - 0.14) / len(tokens))
-                for ti, tok in enumerate(tokens):
-                    words.append({"word": tok, "start": cursor + ti * step, "end": cursor + (ti + 1) * step})
+            words.extend(_align_script_to_whisper(tokens, [], cursor, d))
             cursor += d
 
     # Group into 1-2 ultra-punchy words (single big word if length >= 5 or natural pause)
@@ -607,7 +644,7 @@ def produce_micro_doc(ep: dict, force: bool = False) -> Path:
 
     # 3. Subtitles + unique real stock video scenes
     ass_path = work_dir / "subtitles.ass"
-    make_viral_pop_subtitles(voice_wav, ass_path, beats=ep["beats"], beat_durs=beat_durs)
+    make_viral_pop_subtitles(voice_wav, ass_path, beats=ep["beats"], beat_durs=beat_durs, work_dir=work_dir)
 
     used_ids: set[str] = set()
     used_lock = threading.Lock()
