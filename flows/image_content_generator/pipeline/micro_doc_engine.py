@@ -121,16 +121,16 @@ Devuelve ÚNICAMENTE un JSON válido (sin markdown ni texto extra) con esta estr
 }}
 
 REGLAS ESTRICTAS DE RETENCIÓN VIRAL Y MONETIZACIÓN:
-1. Exactamente **6 o 7 beats** (total **80 a 102 palabras**, duración resultante **27 a 35 segundos** a ~3 palabras/seg).
-2. Beat 1 (0-3.5s) DEBE arrancar en frío describiendo exactamente lo que ocurre visualmente con un gancho paradójico o revelador (ej: "Esta máquina perfora bajo una calle entera sin romper el asfalto", "Si miras el casco de un barco verás estos bloques...").
-3. Los beats intermedios explican PASO A PASO cómo funciona físicamente o biológicamente el mecanismo con lenguaje claro y directo.
+1. Exactamente **8 o 9 beats cortos** (total **80 a 102 palabras**, duración resultante **27 a 35 segundos**, ~2.8-3.8s por plano).
+2. Regla de oro **"lo que se narra se muestra"**: cada beat DEBE describir UN solo objeto o acción visual concreta (8-12 palabras), y su `q` debe buscar exactamente ese objeto/acción en el video.
+3. Beat 1 (0-3.5s) DEBE arrancar en frío describiendo exactamente lo que ocurre en pantalla (prohibido saludar o decir "en este video").
 4. El último beat cierra con el remate o consecuencia impactante (NO digas "dale like", "comenta amén", "no lo ignores", ni "sígueme").
 5. `q` y `fb` SIEMPRE deben describir objetos o acciones físicas reales filmables en Pexels/Pixabay (ej: "cargo ship ocean aerial", "metal welding sparks", "jellyfish deep sea glowing"). Nunca conceptos abstractos.
 6. Español natural limpio sin abreviaturas raras ni números con símbolos (escribe "doscientos cincuenta" o "noventa y siete por ciento" en texto claro para voz neural).
 """
 
     for key in api_keys:
-        for model_name in ("gemini-2.5-flash", "gemini-2.0-flash"):
+        for model_name in ("gemini-2.5-flash", "gemini-2.5-flash-lite"):
             try:
                 client = genai.Client(api_key=key)
                 resp = client.models.generate_content(
@@ -150,7 +150,7 @@ REGLAS ESTRICTAS DE RETENCIÓN VIRAL Y MONETIZACIÓN:
                     isinstance(ep, dict)
                     and ep.get("title")
                     and isinstance(beats, list)
-                    and 5 <= len(beats) <= 8
+                    and 5 <= len(beats) <= 10
                     and all(b.get("narration") and b.get("q") for b in beats)
                     and _norm_title(ep["title"]) not in posted_norm_titles
                 ):
@@ -194,12 +194,22 @@ def synthesize_beats_voice(beats: list[dict], work_dir: Path) -> tuple[Path, lis
                 time.sleep(1.5)
 
         pad = 0.14 if idx < len(beats) - 1 else 0.35
-        subprocess.run([
-            "ffmpeg", "-y", "-i", str(raw_mp3),
-            "-af", f"silenceremove=start_periods=1:start_duration=0.02:start_threshold=-42dB:stop_periods=-1:stop_duration=0.18:stop_threshold=-42dB,afade=t=in:st=0:d=0.01,apad=pad_dur={pad:.2f}",
-            "-ar", "48000", "-ac", "2", "-c:a", "pcm_s16le", str(clean_wav),
-        ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        dur = _probe_duration(clean_wav)
+        try:
+            subprocess.run([
+                "ffmpeg", "-y", "-i", str(raw_mp3),
+                "-af", f"silenceremove=start_periods=1:start_duration=0.02:start_threshold=-42dB:stop_periods=-1:stop_duration=0.18:stop_threshold=-42dB,afade=t=in:st=0:d=0.01,apad=pad_dur={pad:.2f}",
+                "-ar", "48000", "-ac", "2", "-c:a", "pcm_s16le", str(clean_wav),
+            ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            dur = _probe_duration(clean_wav)
+            if dur < 0.4:
+                raise ValueError("trimmed audio too short")
+        except Exception:
+            subprocess.run([
+                "ffmpeg", "-y", "-i", str(raw_mp3),
+                "-af", f"apad=pad_dur={pad:.2f}",
+                "-ar", "48000", "-ac", "2", "-c:a", "pcm_s16le", str(clean_wav),
+            ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            dur = _probe_duration(clean_wav)
         beat_durs.append(dur)
         clean_wavs.append(clean_wav)
 
@@ -209,7 +219,10 @@ def synthesize_beats_voice(beats: list[dict], work_dir: Path) -> tuple[Path, lis
     raw_voice = work_dir / "voice_raw.wav"
     dry_voice = work_dir / "voice_dry.wav"
     subprocess.run(["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(concat_txt), "-c:a", "pcm_s16le", str(raw_voice)], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    subprocess.run(["ffmpeg", "-y", "-i", str(raw_voice), "-af", "loudnorm=I=-14:TP=-1.5:LRA=8", "-ar", "48000", "-ac", "2", "-c:a", "pcm_s16le", str(dry_voice)], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        subprocess.run(["ffmpeg", "-y", "-i", str(raw_voice), "-af", "loudnorm=I=-14:TP=-1.5:LRA=8", "-ar", "48000", "-ac", "2", "-c:a", "pcm_s16le", str(dry_voice)], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception:
+        shutil.copy2(raw_voice, dry_voice)
     total_dur = _probe_duration(dry_voice)
     return dry_voice, beat_durs, total_dur
 
@@ -306,7 +319,37 @@ def _release_id(vid: str, used_ids: set[str], used_lock: Optional[threading.Lock
         used_ids.discard(vid)
 
 
-def _search_pexels_unused(query: str, used_ids: set[str], out_path: Path, used_lock: Optional[threading.Lock] = None) -> bool:
+def _relevance_score(query: str, text_blob: str) -> int:
+    q_tokens = {t for t in re.findall(r"[a-z]{3,}", query.lower()) if t not in {"the", "and", "with", "for", "from"}}
+    blob = text_blob.lower()
+    return sum(1 for tok in q_tokens if tok in blob)
+
+
+def _transcode_video_safe(raw_mp4: Path, norm_mp4: Path, dur: float) -> bool:
+    try:
+        if not raw_mp4.exists() or raw_mp4.stat().st_size < 20_000:
+            return False
+        raw_dur = _probe_duration(raw_mp4)
+        src_args = ["-i", str(raw_mp4)]
+        if 0.35 < raw_dur < dur + 0.15:
+            reps = max(2, int((dur + 0.5) // raw_dur) + 1)
+            loop_txt = raw_mp4.with_suffix(".concat.txt")
+            loop_txt.write_text("\n".join(f"file '{raw_mp4.resolve().as_posix()}'" for _ in range(reps)) + "\n", encoding="utf-8")
+            src_args = ["-f", "concat", "-safe", "0", "-i", str(loop_txt)]
+        vf = "scale=1080:1920:force_original_aspect_ratio=increase:flags=lanczos+accurate_rnd,crop=1080:1920,setsar=1,cas=strength=0.60,eq=contrast=1.10:saturation=1.16:brightness=-0.01,fps=30"
+        subprocess.run([
+            "ffmpeg", "-y", *src_args,
+            "-t", f"{dur:.3f}", "-vf", vf,
+            "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "19", "-pix_fmt", "yuv420p",
+            str(norm_mp4),
+        ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return norm_mp4.exists() and norm_mp4.stat().st_size > 20_000
+    except Exception as e:
+        Messenger.warning(f"  ⚠️ Clip descartado ({e}), probando siguiente fuente...")
+        return False
+
+
+def _search_pexels_unused(query: str, used_ids: set[str], out_raw: Path, norm_mp4: Path, dur: float, used_lock: Optional[threading.Lock] = None) -> bool:
     pkey = os.getenv("PEXELS_API_KEY", "").strip()
     if not pkey:
         return False
@@ -320,14 +363,17 @@ def _search_pexels_unused(query: str, used_ids: set[str], out_path: Path, used_l
 
     for qv in dict.fromkeys(variants):
         for orient in ("portrait", None):
-            params = {"query": qv, "per_page": 10}
+            params = {"query": qv, "per_page": 12}
             if orient:
                 params["orientation"] = orient
             try:
                 r = requests.get("https://api.pexels.com/videos/search", headers={"Authorization": pkey}, params=params, timeout=12)
                 if r.status_code != 200:
                     continue
-                for v in r.json().get("videos", []):
+                vids = r.json().get("videos", [])
+                # Rank by literal keyword overlap with Pexels slug/URL so visuals match spoken narration
+                vids.sort(key=lambda item: _relevance_score(query, str(item.get("url", ""))), reverse=True)
+                for v in vids:
                     vid = f"pexels_{v['id']}"
                     if not _claim_id(vid, used_ids, used_lock):
                         continue
@@ -337,9 +383,8 @@ def _search_pexels_unused(query: str, used_ids: set[str], out_path: Path, used_l
                     if not files:
                         _release_id(vid, used_ids, used_lock)
                         continue
-                    # Pick 720p-1080p HD stream (fast cloud download + crisp quality)
                     files.sort(key=lambda f: abs(min(f.get("width", 0), f.get("height", 0)) - 1080))
-                    if _download_stream(files[0]["link"], out_path):
+                    if _download_stream(files[0]["link"], out_raw) and _transcode_video_safe(out_raw, norm_mp4, dur):
                         Messenger.info(f"  📹 Pexels clip único [{vid}] para '{qv}'")
                         return True
                     _release_id(vid, used_ids, used_lock)
@@ -348,7 +393,7 @@ def _search_pexels_unused(query: str, used_ids: set[str], out_path: Path, used_l
     return False
 
 
-def _search_pixabay_unused(query: str, used_ids: set[str], out_path: Path, used_lock: Optional[threading.Lock] = None) -> bool:
+def _search_pixabay_unused(query: str, used_ids: set[str], out_raw: Path, norm_mp4: Path, dur: float, used_lock: Optional[threading.Lock] = None) -> bool:
     pxkey = os.getenv("PIXABAY_API_KEY", "").strip()
     if not pxkey:
         return False
@@ -356,16 +401,18 @@ def _search_pixabay_unused(query: str, used_ids: set[str], out_path: Path, used_
     variants = [query.strip(), " ".join(words[:2])] if len(words) >= 2 else [query.strip()]
     for qv in dict.fromkeys(variants):
         try:
-            r = requests.get("https://pixabay.com/api/videos/", params={"key": pxkey, "q": qv, "per_page": 10}, timeout=12)
+            r = requests.get("https://pixabay.com/api/videos/", params={"key": pxkey, "q": qv, "per_page": 12}, timeout=12)
             if r.status_code != 200:
                 continue
-            for h in r.json().get("hits", []):
+            hits = r.json().get("hits", [])
+            hits.sort(key=lambda item: _relevance_score(query, str(item.get("tags", ""))), reverse=True)
+            for h in hits:
                 vid = f"pixabay_{h['id']}"
                 if not _claim_id(vid, used_ids, used_lock):
                     continue
                 v_info = h.get("videos", {}).get("large") or h.get("videos", {}).get("medium") or {}
                 url = v_info.get("url")
-                if url and _download_stream(url, out_path):
+                if url and _download_stream(url, out_raw) and _transcode_video_safe(out_raw, norm_mp4, dur):
                     Messenger.info(f"  📹 Pixabay clip único [{vid}] para '{qv}'")
                     return True
                 _release_id(vid, used_ids, used_lock)
@@ -374,43 +421,68 @@ def _search_pixabay_unused(query: str, used_ids: set[str], out_path: Path, used_
     return False
 
 
+def _create_emergency_motion_clip(norm_mp4: Path, dur: float, idx: int) -> Path:
+    """Zero-network animated visual fallback so pipeline never crashes even if all APIs fail."""
+    img_path = norm_mp4.with_suffix(".bg.jpg")
+    palettes = [((18, 36, 68), (52, 118, 175)), ((42, 22, 62), (140, 62, 130)), ((16, 52, 54), (44, 148, 136))]
+    c1, c2 = palettes[idx % len(palettes)]
+    arr = np.zeros((1920, 1080, 3), dtype=np.uint8)
+    y_grad = np.linspace(0.0, 1.0, 1920, dtype=np.float32)[:, None]
+    for ch in range(3):
+        arr[:, :, ch] = np.clip(c1[ch] * (1.0 - y_grad) + c2[ch] * y_grad, 0, 255).astype(np.uint8)
+    Image.fromarray(arr).save(img_path, quality=92)
+    subprocess.run([
+        "ffmpeg", "-y", "-loop", "1", "-i", str(img_path),
+        "-t", f"{dur:.3f}",
+        "-vf", "scale=1200:2134,zoompan=z='min(zoom+0.0018,1.18)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1080x1920:fps=30,pix_fmt=yuv420p",
+        "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", str(norm_mp4),
+    ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return norm_mp4
+
+
 def fetch_and_master_scene(idx: int, beat: dict, dur: float, work_dir: Path, used_ids: set[str], ai_master: AIImageMaster, nasa: NASATool, used_lock: Optional[threading.Lock] = None) -> Path:
     raw_mp4 = work_dir / f"raw_{idx+1:02d}.mp4"
     norm_mp4 = work_dir / f"scene_{idx+1:02d}.mp4"
     q = beat["q"].strip()
     fb = beat.get("fb", q).strip()
 
-    got_video = False
     if any(k in q.lower() for k in ("space", "planet", "orbit", "nasa", "rocket", "sun", "solar", "galaxy")):
-        if nasa.fetch_video(q, raw_mp4):
-            got_video = True
+        try:
+            if nasa.fetch_video(q, raw_mp4) and _transcode_video_safe(raw_mp4, norm_mp4, dur):
+                return norm_mp4
+        except Exception:
+            pass
 
-    if not got_video:
-        got_video = _search_pexels_unused(q, used_ids, raw_mp4, used_lock) or _search_pixabay_unused(q, used_ids, raw_mp4, used_lock)
-    if not got_video and fb != q:
-        got_video = _search_pexels_unused(fb, used_ids, raw_mp4, used_lock) or _search_pixabay_unused(fb, used_ids, raw_mp4, used_lock)
-
-    if got_video and raw_mp4.exists() and raw_mp4.stat().st_size > 20_000:
-        # Master look: Lanczos upscale/crop + adaptive sharpening (CAS) + HDR color contrast + 30fps
-        vf = "scale=1080:1920:force_original_aspect_ratio=increase:flags=lanczos+accurate_rnd,crop=1080:1920,setsar=1,cas=strength=0.60,eq=contrast=1.10:saturation=1.16:brightness=-0.01,fps=30"
-        subprocess.run([
-            "ffmpeg", "-y", "-stream_loop", "3", "-i", str(raw_mp4),
-            "-t", f"{dur:.3f}", "-vf", vf,
-            "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "19", "-pix_fmt", "yuv420p",
-            str(norm_mp4),
-        ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if _search_pexels_unused(q, used_ids, raw_mp4, norm_mp4, dur, used_lock):
         return norm_mp4
+    if _search_pixabay_unused(q, used_ids, raw_mp4, norm_mp4, dur, used_lock):
+        return norm_mp4
+    if fb != q:
+        if _search_pexels_unused(fb, used_ids, raw_mp4, norm_mp4, dur, used_lock):
+            return norm_mp4
+        if _search_pixabay_unused(fb, used_ids, raw_mp4, norm_mp4, dur, used_lock):
+            return norm_mp4
 
     # Fallback: real stock photo + dynamic Ken Burns (never static or black!)
     photo = work_dir / f"photo_{idx+1:02d}.jpg"
-    if ai_master.fetch_stock_photo(q, photo) or ai_master.fetch_stock_photo(fb, photo):
-        if ai_master.create_ken_burns_clip(photo, norm_mp4, duration=dur, motion_style=idx):
-            return norm_mp4
+    try:
+        if ai_master.fetch_stock_photo(q, photo) or ai_master.fetch_stock_photo(fb, photo):
+            if ai_master.create_ken_burns_clip(photo, norm_mp4, duration=dur, motion_style=idx):
+                return norm_mp4
+    except Exception:
+        pass
 
-    # Last resort: AI visual + Ken Burns
-    vp = f"Cinematic vertical 9:16 documentary shot of {q}, realistic lighting, sharp detail, 8k"
-    ai_master.generate_ken_burns_scene(vp, norm_mp4, duration=dur, motion_style=idx, work_dir=work_dir, query=q, fallback_query=fb)
-    return norm_mp4
+    # Secondary fallback: AI visual + Ken Burns
+    try:
+        vp = f"Cinematic vertical 9:16 documentary shot of {q}, realistic lighting, sharp detail, 8k"
+        if ai_master.generate_ken_burns_scene(vp, norm_mp4, duration=dur, motion_style=idx, work_dir=work_dir, query=q, fallback_query=fb):
+            if norm_mp4.exists() and norm_mp4.stat().st_size > 20_000:
+                return norm_mp4
+    except Exception:
+        pass
+
+    Messenger.warning(f"  🛡️ Activando fondo animado de emergencia para escena {idx+1}")
+    return _create_emergency_motion_clip(norm_mp4, dur, idx)
 
 
 def _fmt_ass(sec: float) -> str:
@@ -424,21 +496,34 @@ def _fmt_ass(sec: float) -> str:
     return f"{h:01d}:{m:02d}:{s:02d}.{cs:02d}"
 
 
-def make_viral_pop_subtitles(audio_wav: Path, out_ass: Path):
-    """Generates giant 1-2 word pop-in subtitles synchronized word-for-word via Whisper."""
-    import torch
-    import whisper
+def make_viral_pop_subtitles(audio_wav: Path, out_ass: Path, beats: Optional[list[dict]] = None, beat_durs: Optional[list[float]] = None):
+    """Generates giant 1-2 word pop-in subtitles synchronized word-for-word via Whisper (with deterministic beat fallback)."""
+    words: list[dict] = []
+    prompt_hint = " ".join(b.get("narration", "") for b in (beats or []))
+    try:
+        import torch
+        import whisper
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = whisper.load_model("base", device=device)
-    res = model.transcribe(str(audio_wav), word_timestamps=True, language="es")
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        model = whisper.load_model("base", device=device)
+        res = model.transcribe(str(audio_wav), word_timestamps=True, language="es", initial_prompt=prompt_hint or None)
+        for seg in res.get("segments", []):
+            for w in seg.get("words", []):
+                txt = w["word"].strip().strip(".,;:!?¿¡").upper()
+                if txt:
+                    words.append({"word": txt, "start": float(w["start"]), "end": float(w["end"])})
+    except Exception as e:
+        Messenger.warning(f"  ⚠️ Whisper fallback a tiempos por golpe visual ({e})")
 
-    words = []
-    for seg in res.get("segments", []):
-        for w in seg.get("words", []):
-            txt = w["word"].strip().strip(".,;:!?¿¡").upper()
-            if txt:
-                words.append({"word": txt, "start": float(w["start"]), "end": float(w["end"])})
+    if not words and beats and beat_durs:
+        cursor = 0.0
+        for b, d in zip(beats, beat_durs):
+            tokens = [t.strip(".,;:!?¿¡").upper() for t in b.get("narration", "").split() if t.strip(".,;:!?¿¡")]
+            if tokens:
+                step = max(0.18, (d - 0.14) / len(tokens))
+                for ti, tok in enumerate(tokens):
+                    words.append({"word": tok, "start": cursor + ti * step, "end": cursor + (ti + 1) * step})
+            cursor += d
 
     # Group into 1-2 ultra-punchy words (single big word if length >= 5 or natural pause)
     lines = [
@@ -522,7 +607,7 @@ def produce_micro_doc(ep: dict, force: bool = False) -> Path:
 
     # 3. Subtitles + unique real stock video scenes
     ass_path = work_dir / "subtitles.ass"
-    make_viral_pop_subtitles(voice_wav, ass_path)
+    make_viral_pop_subtitles(voice_wav, ass_path, beats=ep["beats"], beat_durs=beat_durs)
 
     used_ids: set[str] = set()
     used_lock = threading.Lock()

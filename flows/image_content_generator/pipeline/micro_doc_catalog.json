@@ -111,5 +111,125 @@
       {"narration": "Y aún más arriba existen los chorros gigantes: descargas rojas y azules que suben directo hacia el espacio.", "q": "aurora earth atmosphere from space", "fb": "storm clouds seen from airplane"},
       {"narration": "En menos de un milisegundo, el canal de plasma alcanza cinco veces la temperatura de la superficie del sol.", "q": "sun solar flare surface plasma", "fb": "bright electric flash dark"}
     ]
+  },
+  {
+    "id": "MD_09_corte_agua_chorro",
+    "pillar": "tecnologia_mecanica",
+    "title": "Cómo un simple chorro de agua corta acero grueso como mantequilla 💧🔪",
+    "description": "Las máquinas de corte por hidroabrasión comprimen agua hasta miles de atmósferas y le mezclan arena de granate para rebanar acero sólido en frío. 💧⚙️ #ingenieria #tecnologia #ciencia #maquinaria #curiosidades",
+    "beats": [
+      {"narration": "Este delgado chorro de agua está partiendo por la mitad una placa de acero.", "q": "waterjet cutting thick metal steel", "fb": "industrial metal cutting machine"},
+      {"narration": "Una bomba industrial comprime agua limpia hasta cuatro mil atmósferas de presión.", "q": "high pressure hydraulic pump steel", "fb": "industrial pipes pressure gauge"},
+      {"narration": "El líquido sale disparado por una boquilla de diamante más fina que un alfiler.", "q": "sharp water jet spray nozzle", "fb": "high speed water stream macro"},
+      {"narration": "Justo antes de salir, absorbe millones de granos microscópicos de arena de granate.", "q": "fine sand grains falling macro", "fb": "red mineral crystal sand close up"},
+      {"narration": "Ese polvo viaja más rápido que el sonido y lija cualquier metal sin calentarlo.", "q": "cnc machine cutting metal sparks", "fb": "precision metal milling workshop"},
+      {"narration": "Corta titanio, granito y hasta vidrio blindado sin derretir ni deformar los bordes.", "q": "cutting thick stone marble factory", "fb": "glass cutting precision industry"},
+      {"narration": "Una cuchilla invisible hecha únicamente de agua y polvo mineral acelerado.", "q": "polished cut stainless steel parts", "fb": "modern precision engineering factory"}
+    ]
+  },
+  {
+    "id": "MD_10_escarabajo_bombardero",
+    "pillar": "biologia_insolita",
+    "title": "El insecto que fabrica agua hirviendo en su cuerpo para defenderse 🔥🪲",
+    "description": "El escarabajo bombardero mezcla dos químicos inofensivos dentro de una cámara blindada y dispara un chorro tóxico a cien grados centígrados. 🔥🪲 #biologia #insectos #ciencia #naturaleza #curiosidades",
+    "beats": [
+      {"narration": "Este pequeño escarabajo tiene dentro de su abdomen un auténtico reactor químico.", "q": "beetle insect walking leaf macro", "fb": "black beetle bug close up"},
+      {"narration": "En dos glándulas separadas guarda peróxido de hidrógeno y compuestos orgánicos.", "q": "chemistry liquid vials laboratory macro", "fb": "clear bubbles chemical reaction"},
+      {"narration": "Por separado no hacen nada, pero al sentirse atrapado abre unas válvulas internas.", "q": "insect walking soil forest macro", "fb": "macro bug crawling moss"},
+      {"narration": "Ambos líquidos entran en una cámara resistente recubierta de enzimas aceleradoras.", "q": "boiling chemical reaction bubbles glass", "fb": "hot steam vapor rising dark"},
+      {"narration": "La mezcla hierve al instante hasta alcanzar cien grados centígrados de temperatura.", "q": "steam mist erupting volcanic hot", "fb": "boiling water bubbles close up"},
+      {"narration": "Con un estallido audible, dispara un chorro hirviendo directo hacia el depredador.", "q": "frog predator forest night macro", "fb": "spider hunting insect leaf"},
+      {"narration": "Incluso puede girar la punta de su abdomen para apuntar en cualquier dirección.", "q": "colorful beetle insect branch nature", "fb": "wildlife macro beetle sunny"}
+    ]
+  },
+  {
+    "id": "MD_11_caja_negra_avion",
+    "pillar": "ingenieria_extrema",
+    "title": "Por qué la llamada caja negra de los aviones en realidad es naranja brillante ✈️🟠",
+    "description": "Diseñadas para soportar choques de miles de fuerzas G, temperaturas de más de mil grados y kilómetros bajo el océano sin perder un solo segundo de audio. ✈️🟠 #aviacion #ingenieria #tecnologia #curiosidades",
+    "beats": [
+      {"narration": "Todos la llaman caja negra, pero en realidad es de color naranja fosforescente.", "q": "orange industrial box metal equipment", "fb": "airplane cockpit instruments controls"},
+      {"narration": "Se pinta así para poder encontrarla rápido entre restos de selva o nieve.", "q": "aerial search snow forest rescue", "fb": "orange safety buoy ocean"},
+      {"narration": "Su carcasa lleva titanio, acero inoxidable y un escudo térmico cerámico.", "q": "titanium steel metal sheet welding", "fb": "heavy steel casing factory"},
+      {"narration": "Está probada para resistir incendios de mil cien grados durante una hora.", "q": "fire flames burning metal test", "fb": "intense furnace fire heat"},
+      {"narration": "Y soporta impactos de tres mil cuatrocientas veces su propio peso.", "q": "airplane takeoff runway fast motion", "fb": "commercial jet aircraft tarmac"},
+      {"narration": "Si cae al océano, un sensor de agua activa una baliza ultrasónica automática.", "q": "underwater sonar diver deep sea", "fb": "ocean waves dark deep water"},
+      {"narration": "Emite pulsos durante treinta días a seis mil metros de profundidad.", "q": "submarine exploration ocean floor", "fb": "airplane flying above ocean clouds"}
+    ]
+  },
+  {
+    "id": "MD_12_torre_eiffel_crece",
+    "pillar": "fisica_oculta",
+    "title": "Por qué la Torre Eiffel mide hasta quince centímetros más en verano 🗼☀️",
+    "description": "El calor del sol hace vibrar los átomos de sus siete mil toneladas de hierro pudelado, estirando la estructura entera durante los días más calurosos. 🗼☀️ #fisica #arquitectura #paris #ciencia #curiosidades",
+    "beats": [
+      {"narration": "Cada verano en París, la Torre Eiffel se estira y crece quince centímetros.", "q": "eiffel tower paris sunny summer", "fb": "eiffel tower looking up sky"},
+      {"narration": "La responsable no es ninguna obra secreta, sino sus siete mil toneladas de hierro.", "q": "eiffel tower iron girders macro", "fb": "vintage steel lattice bridge"},
+      {"narration": "Cuando el sol calienta el metal, sus átomos vibran rápido y se separan.", "q": "red hot steel factory sparks", "fb": "sunlight shining through iron structure"},
+      {"narration": "Esa expansión térmica empuja toda la torre hacia el cielo cada tarde calurosa.", "q": "paris skyline warm sunset aerial", "fb": "sunny city buildings heat wave"},
+      {"narration": "Además, la cara iluminada se dilata más e inclina la punta lejos del sol.", "q": "sunbeams architectural shadow metal", "fb": "eiffel tower sunset silhouette"},
+      {"narration": "Por la noche el metal se enfría y vuelve exactamente a su altura original.", "q": "eiffel tower night lights sparkling", "fb": "paris night city river"},
+      {"narration": "Por el mismo principio físico los puentes dejan huecos metálicos entre sus tramos.", "q": "highway bridge metal expansion joint", "fb": "train rails steel tracks summer"}
+    ]
+  },
+  {
+    "id": "MD_13_cangrejo_herradura_azul",
+    "pillar": "biologia_insolita",
+    "title": "El extraño animal de sangre azul que protege casi todas tus vacunas 🦀💙",
+    "description": "Este fósil viviente lleva más de 400 millones de años en la Tierra y su sangre basada en cobre detecta toxinas bacterianas al instante. 🦀💙 #biologia #medicina #oceanos #ciencia #curiosidades",
+    "beats": [
+      {"narration": "Este animal marino con forma de casco tiene la sangre completamente azul brillante.", "q": "horseshoe crab beach sand water", "fb": "crab walking shallow ocean water"},
+      {"narration": "En lugar de hierro como nosotros, usa cobre para transportar el oxígeno.", "q": "blue liquid laboratory test tube", "fb": "blue glowing chemistry flask"},
+      {"narration": "Su organismo contiene unas células especiales que reaccionan ante cualquier bacteria peligrosa.", "q": "microscope cells bacteria green blue", "fb": "medical laboratory researcher microscope"},
+      {"narration": "Si detectan una mínima toxina, su sangre azul se coagula en segundos.", "q": "scientist dropper liquid petri dish", "fb": "vaccine vials medicine factory"},
+      {"narration": "Por eso la industria farmacéutica la usa para verificar la pureza médica.", "q": "vaccine bottle syringe laboratory", "fb": "pharmaceutical clean room vials"},
+      {"narration": "Cada vacuna o implante seguro en el mundo pasa antes por esta prueba.", "q": "doctor holding medical vaccine vial", "fb": "hospital laboratory safety test"},
+      {"narration": "Después de extraer una pequeña fracción, devuelven vivos a los cangrejos al mar.", "q": "ocean waves returning shore sunset", "fb": "calm sea beach morning light"}
+    ]
+  },
+  {
+    "id": "MD_14_fibra_optica_luz",
+    "pillar": "tecnologia_mecanica",
+    "title": "Cómo viajan miles de películas dentro de un hilo de vidrio delgado como un cabello 💡🌐",
+    "description": "La fibra óptica guía pulsos láser de luz mediante reflexión interna total sin que escapen aunque dobles el cable en curva. 💡🌐 #tecnologia #internet #fisica #ciencia #curiosidades",
+    "beats": [
+      {"narration": "Cada mensaje de video que ves cruza primero por un hilo de vidrio transparente.", "q": "fiber optic light glowing macro", "fb": "glowing glass strands blue"},
+      {"narration": "Ese núcleo es tan delgado como un cabello humano, pero más puro que cualquier ventana.", "q": "glass strand precision optical laser", "fb": "transparent crystal glass macro"},
+      {"narration": "Un láser convierte tus fotos en millones de destellos de luz por segundo.", "q": "red laser beam laboratory optics", "fb": "pulsing light microchip circuit"},
+      {"narration": "El vidrio exterior actúa como un espejo perfecto que atrapa los rayos dentro.", "q": "light beam reflecting mirror prism", "fb": "laser light bouncing dark room"},
+      {"narration": "Incluso si doblas el cable, la luz rebota en las paredes sin escapar.", "q": "glowing curved fiber optic cables", "fb": "blue fiber cable network"},
+      {"narration": "Cada destello recorre doscientos mil kilómetros por segundo dentro del cristal.", "q": "high speed light trails city night", "fb": "data streams glowing lines"},
+      {"narration": "Un solo cabello de fibra transmite millones de llamadas al mismo tiempo.", "q": "server rack data center glowing cables", "fb": "modern telecommunication network lights"}
+    ]
+  },
+  {
+    "id": "MD_15_hormigas_balsas_agua",
+    "pillar": "biologia_insolita",
+    "title": "Cómo miles de hormigas crean un barco viviente para no ahogarse en tormentas 🐜🌊",
+    "description": "Cuando el agua inunda su nido, las hormigas de fuego entrelazan patas y mandíbulas formando una balsa impermeable con bolsas de aire. 🐜🌊 #animales #naturaleza #ciencia #biologia #curiosidades",
+    "beats": [
+      {"narration": "Cuando las lluvias inundan el bosque, estas hormigas nunca se ahogan ni se rinden.", "q": "heavy rain flooding forest water", "fb": "raindrops splashing muddy puddle"},
+      {"narration": "En menos de dos minutos, toda la colonia se junta sobre el agua.", "q": "ants colony crawling together macro", "fb": "red fire ants ground macro"},
+      {"narration": "Cada hormiga entrelaza sus patas y mandíbulas formando un tejido impermeable vivo.", "q": "macro insects crawling close up", "fb": "ant colony teamwork leaf"},
+      {"narration": "Los pequeños pelos de sus cuerpos atrapan burbujas de aire como un salvavidas.", "q": "water droplets leaf hydrophobic macro", "fb": "air bubbles underwater macro"},
+      {"narration": "Las hormigas de abajo quedan sumergidas, pero respiran gracias al aire atrapado.", "q": "insects floating water surface ripple", "fb": "pond water surface bugs"},
+      {"narration": "La balsa viviente protege a la reina y las larvas secas en el centro.", "q": "ants carrying white eggs colony", "fb": "forest river current flowing"},
+      {"narration": "Pueden flotar semanas enteras hasta encontrar tierra firme y reconstruir el hormiguero.", "q": "green forest riverbank lush sunlight", "fb": "ants walking tree bark"}
+    ]
+  },
+  {
+    "id": "MD_16_tren_maglev_iman",
+    "pillar": "tecnologia_mecanica",
+    "title": "Por qué este tren bala japonés no tiene ruedas cuando supera los 500 km/h 🚄⚡",
+    "description": "Imanes superconductores refrigerados con helio líquido hacen levitar el convoy diez centímetros sobre la vía para viajar sin rozamiento. 🚄⚡ #trenes #tecnologia #japon #fisica #ingenieria",
+    "beats": [
+      {"narration": "A más de seiscientos kilómetros por hora, cualquier rueda de acero se destruiría.", "q": "high speed bullet train passing fast", "fb": "sleek train station japan"},
+      {"narration": "Por eso este tren japonés flota en el aire diez centímetros sobre la vía.", "q": "modern bullet train nose close up", "fb": "futuristic elevated railway track"},
+      {"narration": "Lleva bobinas metálicas enfriadas con helio líquido a menos doscientos sesenta y nueve grados.", "q": "liquid nitrogen cooling vapor science", "fb": "cold cryogenic laboratory tank"},
+      {"narration": "A esa temperatura extrema se transforman en imanes superconductores de enorme potencia.", "q": "copper magnet coil electricity lab", "fb": "industrial electromagnet sparks"},
+      {"narration": "Al arrancar usa pequeñas ruedas retráctiles hasta alcanzar ciento cincuenta por hora.", "q": "airplane wheels retracting takeoff", "fb": "train wheels metal tracks fast"},
+      {"narration": "Luego la fuerza magnética lo levanta y elimina toda fricción con el riel.", "q": "levitating magnet floating physics", "fb": "bullet train speeding tunnel"},
+      {"narration": "Solo el aire frena a esta flecha silenciosa sobre vigas de concreto.", "q": "wind tunnel car aerodynamics smoke", "fb": "tokyo railway bridge sunset"}
+    ]
   }
 ]
